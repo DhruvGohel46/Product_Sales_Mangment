@@ -1,3 +1,27 @@
 <?xml version="1.0" ?>
 <bills date="2026-01-28">
+  
+
+  <bill no="1">
+    <date>2026-01-28</date>
+    <time>16:05:53</time>
+    <products>
+      <product id="COLA002">
+        <name>Pepsi</name>
+        <price>25.0</price>
+        <quantity>1</quantity>
+      </product>
+      <product id="COLA004">
+        <name>Mountain Dew</name>
+        <price>25.0</price>
+        <quantity>1</quantity>
+      </product>
+      <product id="COLA003">
+        <name>Sprite</name>
+        <price>20.0</price>
+        <quantity>1</quantity>
+      </product>
+    </products>
+    <total>70.0</total>
+  </bill>
 </bills>

@@ -3,6 +3,7 @@
 
 // Neutral-first color system
 export const neutral = {
+  0: '#FFFFFF',
   50: '#FAFAFA',
   100: '#F5F5F5',
   200: '#E5E5E5',

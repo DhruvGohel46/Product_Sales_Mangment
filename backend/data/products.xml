@@ -16,7 +16,11 @@
   
   
   
+  
+  
   <product id="COLA001">
+    
+    
     
     
     
@@ -50,7 +54,11 @@
     
     
     
+    
+    
     <price>25.0</price>
+    
+    
     
     
     
@@ -84,6 +92,8 @@
     
     
     
+    
+    
     <active>true</active>
     
     
@@ -93,6 +103,8 @@
     
     
     
+    
+  
   
   
   
@@ -102,6 +114,8 @@
   
   
   </product>
+  
+  
   
   
   
@@ -135,7 +149,11 @@
     
     
     
+    
+    
     <name>Pepsi</name>
+    
+    
     
     
     
@@ -169,7 +187,11 @@
     
     
     
+    
+    
     <category>coldrink</category>
+    
+    
     
     
     
@@ -195,6 +217,8 @@
     
     
     
+    
+  
   
   
   
@@ -204,6 +228,8 @@
   
   
   </product>
+  
+  
   
   
   
@@ -237,7 +263,11 @@
     
     
     
+    
+    
     <name>Sprite</name>
+    
+    
     
     
     
@@ -271,6 +301,8 @@
     
     
     
+    
+    
     <category>coldrink</category>
     
     
@@ -288,7 +320,9 @@
     
     
     
-    <active>true</active>
+    
+    
+    <active>false</active>
     
     
     
@@ -297,6 +331,8 @@
     
     
     
+    
+  
   
   
   
@@ -306,6 +342,8 @@
   
   
   </product>
+  
+  
   
   
   
@@ -339,7 +377,11 @@
     
     
     
+    
+    
     <name>Mountain Dew</name>
+    
+    
     
     
     
@@ -373,7 +415,11 @@
     
     
     
+    
+    
     <category>coldrink</category>
+    
+    
     
     
     
@@ -399,6 +445,8 @@
     
     
     
+    
+  
   
   
   
@@ -408,6 +456,8 @@
   
   
   </product>
+  
+  
   
   
   
@@ -441,7 +491,11 @@
     
     
     
+    
+    
     <name>Thums Up</name>
+    
+    
     
     
     
@@ -475,7 +529,11 @@
     
     
     
+    
+    
     <category>coldrink</category>
+    
+    
     
     
     
@@ -501,6 +559,8 @@
     
     
     
+    
+  
   
   
   
@@ -510,6 +570,8 @@
   
   
   </product>
+  
+  
   
   
   
@@ -543,7 +605,11 @@
     
     
     
+    
+    
     <name>Lime Juice</name>
+    
+    
     
     
     
@@ -577,7 +643,11 @@
     
     
     
+    
+    
     <category>coldrink</category>
+    
+    
     
     
     
@@ -603,6 +673,8 @@
     
     
     
+    
+  
   
   
   
@@ -612,6 +684,8 @@
   
   
   </product>
+  
+  
   
   
   
@@ -645,6 +719,8 @@
     
     
     
+    
+    
     <name>Orange Juice</name>
     
     
@@ -662,7 +738,11 @@
     
     
     
+    
+    
     <price>20.0</price>
+    
+    
     
     
     
@@ -696,6 +776,8 @@
     
     
     
+    
+    
     <active>true</active>
     
     
@@ -705,6 +787,8 @@
     
     
     
+    
+  
   
   
   
@@ -714,6 +798,8 @@
   
   
   </product>
+  
+  
   
   
   
@@ -747,7 +833,11 @@
     
     
     
+    
+    
     <name>Regular Paan</name>
+    
+    
     
     
     
@@ -781,7 +871,11 @@
     
     
     
+    
+    
     <category>paan</category>
+    
+    
     
     
     
@@ -807,6 +901,8 @@
     
     
     
+    
+  
   
   
   
@@ -816,6 +912,8 @@
   
   
   </product>
+  
+  
   
   
   
@@ -849,7 +947,11 @@
     
     
     
+    
+    
     <name>Meetha Paan</name>
+    
+    
     
     
     
@@ -883,7 +985,11 @@
     
     
     
+    
+    
     <category>paan</category>
+    
+    
     
     
     
@@ -909,6 +1015,8 @@
     
     
     
+    
+  
   
   
   
@@ -918,6 +1026,8 @@
   
   
   </product>
+  
+  
   
   
   
@@ -951,7 +1061,11 @@
     
     
     
+    
+    
     <name>Sada Paan</name>
+    
+    
     
     
     
@@ -985,7 +1099,11 @@
     
     
     
+    
+    
     <category>paan</category>
+    
+    
     
     
     
@@ -1011,6 +1129,8 @@
     
     
     
+    
+  
   
   
   
@@ -1020,6 +1140,8 @@
   
   
   </product>
+  
+  
   
   
   
@@ -1053,7 +1175,11 @@
     
     
     
+    
+    
     <name>Chocolate</name>
+    
+    
     
     
     
@@ -1087,7 +1213,11 @@
     
     
     
+    
+    
     <category>other</category>
+    
+    
     
     
     
@@ -1113,6 +1243,8 @@
     
     
     
+    
+  
   
   
   
@@ -1122,6 +1254,8 @@
   
   
   </product>
+  
+  
   
   
   
@@ -1155,7 +1289,11 @@
     
     
     
+    
+    
     <name>Chips</name>
+    
+    
     
     
     
@@ -1189,7 +1327,11 @@
     
     
     
+    
+    
     <category>other</category>
+    
+    
     
     
     
@@ -1215,6 +1357,8 @@
     
     
     
+    
+  
   
   
   
@@ -1224,6 +1368,8 @@
   
   
   </product>
+  
+  
   
   
   
@@ -1257,7 +1403,11 @@
     
     
     
+    
+    
     <name>Biscuits</name>
+    
+    
     
     
     
@@ -1291,7 +1441,11 @@
     
     
     
+    
+    
     <category>other</category>
+    
+    
     
     
     
@@ -1317,6 +1471,8 @@
     
     
     
+    
+  
   
   
   
@@ -1326,6 +1482,8 @@
   
   
   </product>
+  
+  
   
   
   
@@ -1359,7 +1517,11 @@
     
     
     
+    
+    
     <name>Cigarettes</name>
+    
+    
     
     
     
@@ -1393,7 +1555,11 @@
     
     
     
+    
+    
     <category>other</category>
+    
+    
     
     
     
@@ -1419,6 +1585,8 @@
     
     
     
+    
+  
   
   
   
@@ -1428,6 +1596,8 @@
   
   
   </product>
+  
+  
   
   
   
@@ -1461,7 +1631,11 @@
     
     
     
+    
+    
     <name>Water Bottle</name>
+    
+    
     
     
     
@@ -1495,7 +1669,11 @@
     
     
     
+    
+    
     <category>other</category>
+    
+    
     
     
     
@@ -1521,6 +1699,8 @@
     
     
     
+    
+  
   
   
   
@@ -1538,6 +1718,8 @@
   
   
   
+  
+
 
 
 

@@ -14,6 +14,7 @@ const Button = React.forwardRef(({
   fullWidth = false,
   onClick,
   className = '',
+  style: styleProp,
   ...props
 }, ref) => {
   const { currentTheme } = useTheme();
@@ -170,6 +171,11 @@ const Button = React.forwardRef(({
     ...widthStyles,
   };
 
+  const mergedStyles = {
+    ...styles,
+    ...(styleProp || {}),
+  };
+
   const renderIcon = () => {
     if (!icon) return null;
     
@@ -219,7 +225,7 @@ const Button = React.forwardRef(({
   return (
     <motion.button
       ref={ref}
-      style={styles}
+      style={mergedStyles}
       className={className}
       disabled={disabled || loading}
       onClick={onClick}

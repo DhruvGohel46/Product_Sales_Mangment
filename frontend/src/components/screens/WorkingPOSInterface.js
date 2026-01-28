@@ -9,7 +9,7 @@ import Card from '../ui/Card';
 import Input from '../ui/Input';
 
 const WorkingPOSInterface = () => {
-  const { currentTheme } = useTheme();
+  const { currentTheme, isDark } = useTheme();
   
   const [products, setProducts] = useState([]);
   const [selectedCategory, setSelectedCategory] = useState('all');
@@ -17,10 +17,6 @@ const WorkingPOSInterface = () => {
   const [orderItems, setOrderItems] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
-  const [orderType, setOrderType] = useState('dinein');
-  const [tableNumber, setTableNumber] = useState('1');
-  const [paymentMethod, setPaymentMethod] = useState('cash');
-  const [isPaid, setIsPaid] = useState(false);
 
   useEffect(() => {
     loadProducts();
@@ -97,7 +93,6 @@ const WorkingPOSInterface = () => {
       const response = await billingAPI.createBill(billData);
       
       setOrderItems([]);
-      setIsPaid(false);
       
       alert(`Order saved successfully! Bill #${response.data.bill.bill_no}`);
       
@@ -108,32 +103,34 @@ const WorkingPOSInterface = () => {
   };
 
   const categories = [
-    { id: 'all', name: 'All Items', icon: '📋' },
-    { id: 'coldrink', name: 'Cold Drinks', icon: '🥤' },
-    { id: 'paan', name: 'Paan', icon: '🍃' },
-    { id: 'other', name: 'Others', icon: '📦' },
+    { id: 'all', name: 'All Items' },
+    { id: 'coldrink', name: 'Cold Drinks' },
+    { id: 'paan', name: 'Paan' },
   ];
 
   const mainContainerStyle = {
     display: 'flex',
-    height: 'calc(100vh - 80px)',
+    height: '82vh',
     backgroundColor: currentTheme.colors.background,
     fontFamily: currentTheme.typography.fontFamily.primary,
     overflow: 'hidden',
   };
 
   const leftSidebarStyle = {
-    width: '300px',
+    width: '180px',
     backgroundColor: currentTheme.colors.surface,
     borderRight: `1px solid ${currentTheme.colors.border}`,
     display: 'flex',
     flexDirection: 'column',
+    height: "82vh",
   };
 
   const middleSectionStyle = {
     flex: 1,
     padding: currentTheme.spacing[6],
     overflowY: 'auto',
+    height: '82vh',
+    backgroundColor: currentTheme.colors.background,
   };
 
   const rightSectionStyle = {
@@ -142,6 +139,7 @@ const WorkingPOSInterface = () => {
     borderLeft: `1px solid ${currentTheme.colors.border}`,
     display: 'flex',
     flexDirection: 'column',
+    height: '82vh',
   };
 
   return (
@@ -150,30 +148,7 @@ const WorkingPOSInterface = () => {
         <div style={{ 
           padding: currentTheme.spacing[5],
           borderBottom: `1px solid ${currentTheme.colors.border}`,
-          backgroundColor: currentTheme.colors.primary[600],
         }}>
-          <h2 style={{ 
-            color: currentTheme.colors.white,
-            fontSize: currentTheme.typography.fontSize['2xl'],
-            fontWeight: currentTheme.typography.fontWeight.semibold,
-            margin: 0,
-            textAlign: 'center',
-            letterSpacing: currentTheme.typography.letterSpacing.tight,
-          }}>
-            POS System
-          </h2>
-          <p style={{
-            color: `${currentTheme.colors.white}CC`,
-            fontSize: currentTheme.typography.fontSize.sm,
-            fontWeight: currentTheme.typography.fontWeight.normal,
-            margin: `${currentTheme.spacing[1]} 0 0 0`,
-            textAlign: 'center',
-          }}>
-            Fast Food Shop Management
-          </p>
-        </div>
-
-        <div style={{ padding: currentTheme.spacing[5] }}>
           <Input
             type="text"
             placeholder="Search items..."
@@ -186,22 +161,36 @@ const WorkingPOSInterface = () => {
         <div style={{ 
           flex: 1,
           overflowY: 'auto',
-          padding: `0 ${currentTheme.spacing[5]} ${currentTheme.spacing[5]}`,
+          padding: `0 ${currentTheme.spacing[6]} ${currentTheme.spacing[6]}`,
         }}>
           {categories.map((category) => (
             <motion.div
               key={category.id}
-              whileHover={{ scale: 1.01 }}
-              whileTap={{ scale: 0.99 }}
+              whileHover={{ opacity: 0.92 }}
+              whileTap={{ opacity: 0.86 }}
             >
               <Card
                 variant={selectedCategory === category.id ? 'elevated' : 'default'}
                 hover={selectedCategory !== category.id}
                 padding="md"
                 style={{
-                  marginBottom: currentTheme.spacing[3],
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  margin: currentTheme.spacing[2],
+                  padding: "10px",
+                  borderRadius: '15px',
+                  marginBottom: currentTheme.spacing[5],
                   cursor: 'pointer',
-                  borderLeft: selectedCategory === category.id ? `3px solid ${currentTheme.colors.primary[600]}` : undefined,
+                  border: selectedCategory === category.id
+                    ? `1px solid ${currentTheme.colors.primary[200]}`
+                    : `1px solid ${currentTheme.colors.border}`,
+                  backgroundColor: selectedCategory === category.id 
+                    ? (isDark ? '#4A4A4A' : '#E9E9E9')
+                    : (isDark ? '#1A1A1A' : '#F1F1F1'),
+                    
+                  
+                  transition: 'all 0.2s cubic-bezier(0, 0, 0.2, 1)',
                 }}
                 onClick={() => setSelectedCategory(category.id)}
               >
@@ -210,20 +199,6 @@ const WorkingPOSInterface = () => {
                   alignItems: 'center',
                   gap: currentTheme.spacing[3],
                 }}>
-                  <div style={{
-                    width: '32px',
-                    height: '32px',
-                    borderRadius: currentTheme.borderRadius.md,
-                    backgroundColor: selectedCategory === category.id 
-                      ? currentTheme.colors.primary[100] 
-                      : currentTheme.colors.surface,
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    fontSize: '1rem',
-                  }}>
-                    {category.icon}
-                  </div>
                   <div style={{ flex: 1 }}>
                     <div style={{
                       fontSize: currentTheme.typography.fontSize.base,
@@ -234,8 +209,9 @@ const WorkingPOSInterface = () => {
                       {category.name}
                     </div>
                     <div style={{
-                      fontSize: currentTheme.typography.fontSize.sm,
+                      fontSize: currentTheme.typography.fontSize.xs,
                       color: currentTheme.colors.text.secondary,
+                      letterSpacing: currentTheme.typography.letterSpacing.normal,
                     }}>
                       {products.filter(p => category.id === 'all' || p.category === category.id).length} items
                     </div>
@@ -248,7 +224,15 @@ const WorkingPOSInterface = () => {
       </div>
 
       <div style={middleSectionStyle}>
-        {loading ? (
+        <div style={{
+          backgroundColor: currentTheme.colors.surface,
+          borderRadius: currentTheme.borderRadius.xl,
+          border: `1px solid ${currentTheme.colors.border}`,
+          boxShadow: currentTheme.shadows.sm,
+          padding: currentTheme.spacing[5],
+          minHeight: 'calc(100% - 3rem)',
+        }}>
+          {loading ? (
           <div style={{ 
             display: 'flex',
             flexDirection: 'column',
@@ -261,8 +245,8 @@ const WorkingPOSInterface = () => {
               style={{
                 width: '48px',
                 height: '48px',
-                border: '3px solid currentTheme.colors.border',
-                borderTop: '3px solid currentTheme.colors.primary[600]',
+                border: `3px solid ${currentTheme.colors.border}`,
+                borderTop: `3px solid ${currentTheme.colors.primary[600]}`,
                 borderRadius: '50%',
               }}
               animate={{ rotate: 360 }}
@@ -286,19 +270,22 @@ const WorkingPOSInterface = () => {
             padding: currentTheme.spacing[12],
             color: currentTheme.colors.text.secondary
           }}>
-            <div style={{ 
-              fontSize: '4rem', 
-              marginBottom: currentTheme.spacing[6],
-              opacity: 0.3,
-            }}>📦</div>
-            <h3 style={{
+            <div style={{
+              width: '56px',
+              height: '56px',
+              borderRadius: currentTheme.borderRadius.full,
+              border: `1px solid ${currentTheme.colors.border}`,
+              backgroundColor: currentTheme.colors.surface,
+              margin: `0 auto ${currentTheme.spacing[6]}`,
+            }} />
+            <div style={{
               fontSize: currentTheme.typography.fontSize['2xl'],
               fontWeight: currentTheme.typography.fontWeight.semibold,
               color: currentTheme.colors.text.primary,
               marginBottom: currentTheme.spacing[2],
             }}>
               No Products Found
-            </h3>
+            </div>
             <p style={{
               fontSize: currentTheme.typography.fontSize.base,
               color: currentTheme.colors.text.secondary,
@@ -335,10 +322,10 @@ const WorkingPOSInterface = () => {
                   animate: { opacity: 1, y: 0 }
                 }}
                 whileHover={{ 
-                  scale: 1.02,
-                  transition: { duration: 0.15 }
+                  y: -1,
+                  transition: { duration: 0.14, ease: [0, 0, 0.2, 1] }
                 }}
-                whileTap={{ scale: 0.98 }}
+                whileTap={{ y: 0 }}
               >
                 <Card
                   variant="elevated"
@@ -351,12 +338,15 @@ const WorkingPOSInterface = () => {
                     display: 'flex',
                     flexDirection: 'column',
                     justifyContent: 'center',
-                    borderTop: `3px solid ${CATEGORY_COLORS[product.category]}`,
+                    borderTop: `2px solid ${CATEGORY_COLORS[product.category]}`,
+                    backgroundColor: currentTheme.colors.border,
+                    borderRadius: '15px',
+                    border: `1px solid ${currentTheme.colors.border}`,
                   }}
                   onClick={() => handleAddItem(product)}
                 >
                   <h4 style={{ 
-                    fontSize: currentTheme.typography.fontSize.sm,
+                    fontSize: currentTheme.typography.fontSize['2xl'],
                     fontWeight: currentTheme.typography.fontWeight.semibold,
                     color: currentTheme.colors.text.primary,
                     marginBottom: currentTheme.spacing[2],
@@ -376,55 +366,15 @@ const WorkingPOSInterface = () => {
             ))}
           </motion.div>
         )}
+        </div>
       </div>
 
       <div style={rightSectionStyle}>
         <div style={{ 
-          padding: currentTheme.spacing[4],
-          borderBottom: `1px solid ${currentTheme.colors.border}`,
-        }}>
-          <div style={{
-            display: 'flex',
-            marginBottom: currentTheme.spacing[3],
-            gap: currentTheme.spacing[1],
-          }}>
-            {['dinein', 'delivery', 'pickup'].map((type) => (
-              <Button
-                key={type}
-                variant={orderType === type ? 'primary' : 'ghost'}
-                onClick={() => setOrderType(type)}
-                size="sm"
-                style={{
-                  flex: 1,
-                  backgroundColor: orderType === type ? currentTheme.colors.warning[500] : undefined,
-                }}
-              >
-                {type === 'dinein' ? '🍽️ Dine In' : type === 'delivery' ? '🚚 Delivery' : '🛍️ Pickup'}
-              </Button>
-            ))}
-          </div>
-          
-          <div style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: currentTheme.spacing[2],
-          }}>
-            <span style={{ fontSize: '1.5rem' }}>🍽️</span>
-            <Input
-              type="number"
-              placeholder="Table"
-              value={tableNumber}
-              onChange={(e) => setTableNumber(e.target.value)}
-              size="sm"
-              style={{ width: '80px' }}
-            />
-          </div>
-        </div>
-
-        <div style={{ 
           flex: 1,
           padding: currentTheme.spacing[4],
           overflowY: 'auto',
+          borderBottom: `1px solid ${currentTheme.colors.border}`,
         }}>
           {orderItems.length === 0 ? (
             <div style={{ 
@@ -432,21 +382,77 @@ const WorkingPOSInterface = () => {
               padding: currentTheme.spacing[8],
               color: currentTheme.colors.text.secondary
             }}>
-              <div style={{ fontSize: '3rem', marginBottom: currentTheme.spacing[4] }}>🛒</div>
-              <h3>No Items Selected</h3>
-              <p>Please select items from the menu to start your order</p>
+              <div style={{
+                width: '56px',
+                height: '56px',
+                borderRadius: currentTheme.borderRadius.full,
+                border: `1px solid ${currentTheme.colors.border}`,
+                backgroundColor: currentTheme.colors.surface,
+                margin: `0 auto ${currentTheme.spacing[4]}`,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+              }}>
+                <svg
+                  width="22"
+                  height="22"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  xmlns="http://www.w3.org/2000/svg"
+                  aria-hidden="true"
+                  style={{ color: currentTheme.colors.text.muted }}
+                >
+                  <path
+                    d="M6.5 6.5h14l-1.5 8.5H8.2L6.5 6.5Z"
+                    stroke="currentColor"
+                    strokeWidth="1.75"
+                    strokeLinejoin="round"
+                  />
+                  <path
+                    d="M6.5 6.5 6 4H3.5"
+                    stroke="currentColor"
+                    strokeWidth="1.75"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                  <path
+                    d="M9 20a1 1 0 1 0 0-2 1 1 0 0 0 0 2Zm8 0a1 1 0 1 0 0-2 1 1 0 0 0 0 2Z"
+                    stroke="currentColor"
+                    strokeWidth="1.75"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                </svg>
+              </div>
+              <div style={{
+                fontSize: currentTheme.typography.fontSize.lg,
+                fontWeight: currentTheme.typography.fontWeight.semibold,
+                color: currentTheme.colors.text.primary,
+                marginBottom: currentTheme.spacing[2],
+              }}>
+                No items in the order
+              </div>
+              <div style={{
+                fontSize: currentTheme.typography.fontSize.sm,
+                color: currentTheme.colors.text.secondary,
+                maxWidth: '260px',
+                margin: '0 auto',
+              }}>
+                Select products to start billing.
+              </div>
             </div>
           ) : (
             <div>
               <div style={{
                 display: 'grid',
                 gridTemplateColumns: '2fr 1fr 1fr',
-                fontSize: currentTheme.typography.fontSize.sm,
+                fontSize: currentTheme.typography.fontSize.xs,
                 fontWeight: currentTheme.typography.fontWeight.semibold,
                 color: currentTheme.colors.text.secondary,
                 marginBottom: currentTheme.spacing[3],
                 paddingBottom: currentTheme.spacing[2],
                 borderBottom: `1px solid ${currentTheme.colors.border}`,
+                letterSpacing: currentTheme.typography.letterSpacing.wide,
               }}>
                 <div>ITEMS</div>
                 <div style={{ textAlign: 'center' }}>QTY.</div>
@@ -459,7 +465,7 @@ const WorkingPOSInterface = () => {
                   gridTemplateColumns: '2fr 1fr 1fr',
                   alignItems: 'center',
                   padding: `${currentTheme.spacing[2]} 0`,
-                  borderBottom: `1px solid ${currentTheme.colors.gray[200]}`,
+                  borderBottom: `1px solid ${currentTheme.colors.border}`,
                 }}>
                   <div>
                     <div style={{ 
@@ -488,7 +494,7 @@ const WorkingPOSInterface = () => {
                         variant="ghost"
                         size="sm"
                         onClick={() => updateQuantity(item.product_id, item.quantity - 1)}
-                        style={{ minWidth: '24px', padding: '0' }}
+                        style={{ minWidth: '28px', padding: '0' }}
                       >
                         −
                       </Button>
@@ -499,7 +505,7 @@ const WorkingPOSInterface = () => {
                         variant="ghost"
                         size="sm"
                         onClick={() => updateQuantity(item.product_id, item.quantity + 1)}
-                        style={{ minWidth: '24px', padding: '0' }}
+                        style={{ minWidth: '28px', padding: '0' }}
                       >
                         +
                       </Button>
@@ -519,61 +525,28 @@ const WorkingPOSInterface = () => {
           borderTop: `1px solid ${currentTheme.colors.border}`,
           padding: currentTheme.spacing[4],
         }}>
-          <div style={{
-            display: 'flex',
-            gap: currentTheme.spacing[1],
-            marginBottom: currentTheme.spacing[3],
-          }}>
-            {['cash', 'card', 'due'].map((method) => (
-              <Button
-                key={method}
-                variant={paymentMethod === method ? 'success' : 'ghost'}
-                onClick={() => setPaymentMethod(method)}
-                size="sm"
-                style={{ flex: 1 }}
-              >
-                {method === 'cash' ? '💵 Cash' : method === 'card' ? '💳 Card' : '📝 Due'}
-                {paymentMethod === method && ' ✓'}
-              </Button>
-            ))}
-            <Button variant="ghost" size="sm">
-              More ✓
-            </Button>
-          </div>
 
           <div style={{
             display: 'flex',
             justifyContent: 'space-between',
             alignItems: 'center',
-            fontSize: currentTheme.typography.fontSize.xl,
-            fontWeight: currentTheme.typography.fontWeight.bold,
+            fontSize: currentTheme.typography.fontSize.lg,
+            fontWeight: currentTheme.typography.fontWeight.semibold,
             marginBottom: currentTheme.spacing[3],
-            padding: currentTheme.spacing[2],
-            backgroundColor: currentTheme.colors.primary[50],
-            borderRadius: currentTheme.borderRadius.md,
-            border: `1px solid ${currentTheme.colors.primary[200]}`,
+            padding: `${currentTheme.spacing[3]} ${currentTheme.spacing[3]}`,
+            backgroundColor: currentTheme.colors.surface,
+            borderRadius: currentTheme.borderRadius.lg,
+            border: `1px solid ${currentTheme.colors.border}`,
           }}>
-            <span>TOTAL</span>
+            <span style={{
+              fontSize: currentTheme.typography.fontSize.sm,
+              color: currentTheme.colors.text.secondary,
+              letterSpacing: currentTheme.typography.letterSpacing.wide,
+              textTransform: 'uppercase',
+            }}>Total</span>
             <span style={{ color: currentTheme.colors.primary[600] }}>
               {formatCurrency(calculateTotal())}
             </span>
-          </div>
-
-          <div style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: currentTheme.spacing[2],
-            marginBottom: currentTheme.spacing[3],
-          }}>
-            <input
-              type="checkbox"
-              checked={isPaid}
-              onChange={(e) => setIsPaid(e.target.checked)}
-              style={{ width: '16px', height: '16px' }}
-            />
-            <label style={{ fontSize: currentTheme.typography.fontSize.sm }}>
-              ✅ Mark as Paid
-            </label>
           </div>
 
           <div style={{
@@ -582,22 +555,10 @@ const WorkingPOSInterface = () => {
             gap: currentTheme.spacing[2],
           }}>
             <Button variant="secondary" onClick={handleSaveOrder}>
-              💾 Save
+              Save
             </Button>
             <Button variant="primary" onClick={() => handleSaveOrder()}>
-              🖨️ Save & Print
-            </Button>
-            <Button variant="ghost">
-              📧 Save & EBill
-            </Button>
-            <Button variant="ghost">
-              📝 KOT
-            </Button>
-            <Button variant="ghost">
-              🖨️ KOT & Print
-            </Button>
-            <Button variant="warning">
-              ⏸️ Hold
+              Save & Print
             </Button>
           </div>
         </div>
@@ -612,9 +573,11 @@ const WorkingPOSInterface = () => {
           zIndex: 1000,
         }}>
           <Card variant="error" padding="md">
-            <p style={{ color: currentTheme.colors.error[600], margin: 0 }}>
-              ⚠️ {error}
-            </p>
+            <div style={{
+              fontSize: currentTheme.typography.fontSize.sm,
+              color: currentTheme.colors.error[600],
+              fontWeight: currentTheme.typography.fontWeight.medium,
+            }}>{error}</div>
           </Card>
         </div>
       )}

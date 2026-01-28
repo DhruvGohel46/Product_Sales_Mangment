@@ -1,0 +1,37 @@
+<?xml version="1.0" ?>
+<bills date="2026-01-27">
+  <bill no="1">
+    <date>2026-01-27</date>
+    <time>10:30:15</time>
+    <products>
+      <product id="COLA001">
+        <name>Coca Cola</name>
+        <price>25.0</price>
+        <quantity>2</quantity>
+      </product>
+      <product id="PAAN001">
+        <name>Regular Paan</name>
+        <price>10.0</price>
+        <quantity>1</quantity>
+      </product>
+    </products>
+    <total>60.0</total>
+  </bill>
+  <bill no="2">
+    <date>2026-01-27</date>
+    <time>11:45:22</time>
+    <products>
+      <product id="COLA003">
+        <name>Sprite</name>
+        <price>20.0</price>
+        <quantity>1</quantity>
+      </product>
+      <product id="OTHER002">
+        <name>Chips</name>
+        <price>20.0</price>
+        <quantity>1</quantity>
+      </product>
+    </products>
+    <total>40.0</total>
+  </bill>
+</bills>

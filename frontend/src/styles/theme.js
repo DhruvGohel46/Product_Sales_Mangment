@@ -1,7 +1,22 @@
-// Design system theme for POS application
-// Modern neutral-first palette with restrained accent
+// Unified Design System Theme for POS Application
+// Professional enterprise color system with consistent usage across all screens
 
-// Neutral-first color system
+// Primary brand color - Professional Blue
+export const primary = {
+  50: '#F0F9FF',
+  100: '#E0F2FE',
+  200: '#BAE6FD',
+  300: '#7DD3FC',
+  400: '#38BDF8',
+  500: '#0EA5E9',
+  600: '#0284C7',
+  700: '#0369A1',
+  800: '#075985',
+  900: '#0C4A6E',
+  950: '#082F49',
+};
+
+// Neutral color system
 export const neutral = {
   0: '#FFFFFF',
   50: '#FAFAFA',
@@ -17,100 +32,118 @@ export const neutral = {
   950: '#0A0A0A',
 };
 
-// Restrained accent color
-export const accent = {
-  50: '#F0F9FF',
-  100: '#E0F2FE',
-  200: '#BAE6FD',
-  300: '#7DD3FC',
-  400: '#38BDF8',
-  500: '#0EA5E9',
-  600: '#0284C7',
-  700: '#0369A1',
-  800: '#075985',
-  900: '#0C4A6E',
-  950: '#082F49',
-};
-
-// Semantic colors (subtle, professional)
+// Semantic colors - consistent across all screens
 export const semantic = {
   success: {
     50: '#F0FDF4',
-    500: '#22C55E',
-    600: '#16A34A',
-  },
-  warning: {
-    50: '#FFFBEB',
-    500: '#F59E0B',
-    600: '#D97706',
-  },
-  error: {
-    50: '#FEF2F2',
-    500: '#EF4444',
-    600: '#DC2626',
-  },
-};
-
-// Legacy color mapping for compatibility
-export const colors = {
-  // Primary colors (now using accent)
-  primary: accent,
-  
-  // Success colors
-  success: {
-    50: semantic.success[50],
     100: '#DCFCE7',
     200: '#BBF7D0',
     300: '#86EFAC',
     400: '#4ADE80',
-    500: semantic.success[500],
-    600: semantic.success[600],
+    500: '#22C55E',
+    600: '#16A34A',
     700: '#15803D',
     800: '#166534',
     900: '#14532D',
   },
-  
-  // Warning colors
   warning: {
-    50: semantic.warning[50],
+    50: '#FFFBEB',
     100: '#FEF3C7',
     200: '#FDE68A',
     300: '#FCD34D',
     400: '#FBBF24',
-    500: semantic.warning[500],
-    600: semantic.warning[600],
+    500: '#F59E0B',
+    600: '#D97706',
     700: '#B45309',
     800: '#92400E',
     900: '#78350F',
   },
-  
-  // Error colors
   error: {
-    50: semantic.error[50],
+    50: '#FEF2F2',
     100: '#FEE2E2',
     200: '#FECACA',
     300: '#FCA5A5',
     400: '#F87171',
-    500: semantic.error[500],
-    600: semantic.error[600],
+    500: '#EF4444',
+    600: '#DC2626',
     700: '#B91C1C',
     800: '#991B1B',
     900: '#7F1D1D',
   },
-  
-  // Neutral grays (now using neutral palette)
-  gray: neutral,
+  info: {
+    50: '#F0F9FF',
+    100: '#E0F2FE',
+    200: '#BAE6FD',
+    300: '#7DD3FC',
+    400: '#38BDF8',
+    500: '#0EA5E9',
+    600: '#0284C7',
+    700: '#0369A1',
+    800: '#075985',
+    900: '#0C4A6E',
+  }
+};
+
+// Category colors - consistent with semantic colors
+export const category = {
+  COLD: primary[600],      // Blue for cold drinks
+  PAAN: semantic.success[600],  // Green for paan
+  SNACK: semantic.warning[600], // Amber for snacks
+  FOOD: semantic.error[600],    // Red for food
+  OTHER: neutral[600],       // Gray for other
+};
+
+// Unified color system
+export const colors = {
+  // Primary brand color
+  primary: primary,
   
   // Semantic colors
+  success: semantic.success,
+  warning: semantic.warning,
+  error: semantic.error,
+  info: semantic.info,
+  
+  // Neutral colors
+  neutral: neutral,
+  gray: neutral, // Legacy support
+  
+  // Background colors
+  background: {
+    primary: neutral[50],
+    secondary: neutral[100],
+    tertiary: neutral[200],
+  },
+  
+  // Text colors
+  text: {
+    primary: neutral[900],
+    secondary: neutral[600],
+    tertiary: neutral[500],
+    quaternary: neutral[400],
+    inverse: neutral[0],
+  },
+  
+  // Border colors
+  border: {
+    primary: neutral[200],
+    secondary: neutral[300],
+    tertiary: neutral[400],
+  },
+  
+  // Surface colors
+  surface: {
+    primary: neutral[0],
+    secondary: neutral[50],
+    tertiary: neutral[100],
+  },
+  
+  // Category colors
+  category: category,
+  
+  // Legacy colors for compatibility
   white: '#FFFFFF',
   black: '#000000',
-  
-  // Category colors (subtle variants)
-  category: {
-    coldrink: accent[600],  // Sky blue
-    paan: semantic.success[600],      // Green
-    other: semantic.warning[600],     // Amber
-  }
 };
 
 // Typography system
@@ -123,7 +156,7 @@ export const typography = {
   fontSize: {
     xs: '0.75rem',    // 12px
     sm: '0.875rem',   // 14px
-    base: '0.9375rem', // 15px - slightly smaller for better density
+    base: '0.9375rem', // 15px
     lg: '1rem',       // 16px
     xl: '1.125rem',   // 18px
     '2xl': '1.25rem', // 20px
@@ -182,10 +215,11 @@ export const borderRadius = {
   lg: '0.5rem',     // 8px
   xl: '0.75rem',    // 12px
   '2xl': '1rem',    // 16px
+  '3xl': '1.5rem',  // 24px
   full: '9999px',
 };
 
-// Shadows - subtle elevation for modern look
+// Shadows - subtle and professional
 export const shadows = {
   none: 'none',
   sm: '0 1px 2px 0 rgba(0, 0, 0, 0.03)',
@@ -197,9 +231,24 @@ export const shadows = {
   inner: 'inset 0 1px 2px 0 rgba(0, 0, 0, 0.03)',
   
   // Colored shadows for accent elements
-  accent: {
+  primary: {
     sm: '0 1px 2px 0 rgba(14, 165, 233, 0.1)',
     md: '0 4px 6px -1px rgba(14, 165, 233, 0.15), 0 2px 4px -1px rgba(14, 165, 233, 0.1)',
+  },
+  
+  success: {
+    sm: '0 1px 2px 0 rgba(34, 197, 94, 0.1)',
+    md: '0 4px 6px -1px rgba(34, 197, 94, 0.15), 0 2px 4px -1px rgba(34, 197, 94, 0.1)',
+  },
+  
+  warning: {
+    sm: '0 1px 2px 0 rgba(245, 158, 11, 0.1)',
+    md: '0 4px 6px -1px rgba(245, 158, 11, 0.15), 0 2px 4px -1px rgba(245, 158, 11, 0.1)',
+  },
+  
+  error: {
+    sm: '0 1px 2px 0 rgba(239, 68, 68, 0.1)',
+    md: '0 4px 6px -1px rgba(239, 68, 68, 0.15), 0 2px 4px -1px rgba(239, 68, 68, 0.1)',
   },
   
   // Glow effects for interactive states
@@ -219,20 +268,20 @@ export const breakpoints = {
   '2xl': '1536px',
 };
 
-// Theme configurations
+// Light theme configuration
 export const lightTheme = {
   colors: {
     ...colors,
-    background: neutral[50],
-    surface: neutral[100],
-    card: neutral[0],
+    background: colors.background.primary,
+    surface: colors.surface.primary,
+    card: colors.surface.primary,
     text: {
-      primary: neutral[900],
-      secondary: neutral[600],
-      muted: neutral[500],
+      primary: colors.text.primary,
+      secondary: colors.text.secondary,
+      muted: colors.text.tertiary,
     },
-    border: neutral[200],
-    focus: accent[500],
+    border: colors.border.primary,
+    focus: colors.primary[500],
   },
   typography,
   spacing,
@@ -240,19 +289,20 @@ export const lightTheme = {
   shadows,
 };
 
+// Dark theme configuration
 export const darkTheme = {
   colors: {
     ...colors,
-    background: neutral[950],
+    background: colors.text.primary,
     surface: neutral[900],
     card: neutral[900],
     text: {
-      primary: neutral[100],
+      primary: colors.text.inverse,
       secondary: neutral[400],
       muted: neutral[500],
     },
     border: neutral[800],
-    focus: accent[400],
+    focus: colors.primary[400],
   },
   typography,
   spacing,
@@ -262,3 +312,13 @@ export const darkTheme = {
 
 // Default theme
 export const theme = lightTheme;
+
+// Export theme utilities
+export const getThemeColor = (colorName, shade = 500, theme = 'light') => {
+  const themeObj = theme === 'dark' ? darkTheme : lightTheme;
+  return themeObj.colors[colorName]?.[shade] || colorName;
+};
+
+export const getCategoryColor = (category) => {
+  return category[category.toUpperCase()] || category.OTHER;
+};

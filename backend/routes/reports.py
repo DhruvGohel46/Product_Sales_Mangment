@@ -1,5 +1,5 @@
 from flask import Blueprint, request, jsonify, send_file
-from services.xml_db_service import XMLDatabaseService
+from services.sqlite_db_service import SQLiteDatabaseService
 from services.excel_service import ExcelService
 from services.summary_service import SummaryService
 import os
@@ -7,9 +7,9 @@ from datetime import date
 
 
 reports_bp = Blueprint('reports', __name__, url_prefix='/api/reports')
-xml_db = XMLDatabaseService()
+db = SQLiteDatabaseService()
 excel_service = ExcelService()
-summary_service = SummaryService(xml_db)
+summary_service = SummaryService(db)
 
 
 @reports_bp.route('/excel/today', methods=['GET'])
@@ -17,7 +17,11 @@ def export_today_excel():
     """Export today's sales data to Excel (CSV format)"""
     try:
         # Get today's bills
-        bills = xml_db.get_today_bills()
+        all_bills = db.get_all_bills()
+        
+        # Filter bills for today
+        today = date.today().strftime('%Y-%m-%d')
+        bills = [bill for bill in all_bills if bill['created_at'].split(' ')[0] == today]
         
         if not bills:
             return jsonify({
@@ -59,13 +63,18 @@ def export_today_excel():
         }), 500
 
 
-@reports_bp.route('/xml/today', methods=['GET'])
-def export_today_xml():
-    """Export today's bills data as XML"""
+@reports_bp.route('/csv/today', methods=['GET'])
+def export_today_csv():
+    """Export today's bills data as CSV"""
     try:
-        xml_content = xml_db.get_today_xml_content()
+        # Get today's bills
+        all_bills = db.get_all_bills()
         
-        if not xml_content or xml_content == "<bills></bills>":
+        # Filter bills for today
+        today = date.today().strftime('%Y-%m-%d')
+        bills = [bill for bill in all_bills if bill['created_at'].split(' ')[0] == today]
+        
+        if not bills:
             return jsonify({
                 'success': False,
                 'message': 'No bills found for today'
@@ -73,17 +82,20 @@ def export_today_xml():
         
         # Create temporary file for download
         today_str = date.today().strftime("%Y-%m-%d")
-        temp_filepath = os.path.join(excel_service.export_dir, f"bills_{today_str}.xml")
+        temp_filepath = os.path.join(excel_service.export_dir, f"bills_{today_str}.csv")
+        
+        # Generate CSV content
+        csv_content = excel_service.generate_bills_csv(bills)
         
         with open(temp_filepath, 'w', encoding='utf-8') as f:
-            f.write(xml_content)
+            f.write(csv_content)
         
         # Send file for download
         return send_file(
             temp_filepath,
             as_attachment=True,
-            download_name=f"bills_{today_str}.xml",
-            mimetype='application/xml'
+            download_name=f"bills_{today_str}.csv",
+            mimetype='text/csv'
         )
         
     except Exception as e:

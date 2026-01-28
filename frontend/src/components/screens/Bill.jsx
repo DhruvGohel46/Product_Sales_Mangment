@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { motion } from 'framer-motion';
 import { useTheme } from '../../context/ThemeContext';
 import { productsAPI, billingAPI } from '../../utils/api';
@@ -17,6 +17,9 @@ const WorkingPOSInterface = () => {
   const [orderItems, setOrderItems] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  
+  // Ref to prevent multiple rapid clicks
+  const lastClickTime = useRef(0);
 
   useEffect(() => {
     loadProducts();
@@ -42,7 +45,22 @@ const WorkingPOSInterface = () => {
     return categoryMatch && searchMatch;
   });
 
-  const handleAddItem = (product) => {
+  const handleAddItem = (product, event) => {
+    // Prevent event bubbling
+    if (event) {
+      event.stopPropagation();
+      event.preventDefault();
+    }
+    
+    const now = Date.now();
+    
+    // Prevent multiple clicks within 200ms
+    if (now - lastClickTime.current < 200) {
+      return;
+    }
+    
+    lastClickTime.current = now;
+    
     setOrderItems(prev => {
       const existingIndex = prev.findIndex(item => item.product_id === product.product_id);
       
@@ -326,42 +344,37 @@ const WorkingPOSInterface = () => {
                   transition: { duration: 0.14, ease: [0, 0, 0.2, 1] }
                 }}
                 whileTap={{ y: 0 }}
+                onClick={(e) => handleAddItem(product, e)}
+                style={{
+                  cursor: 'pointer',
+                  textAlign: 'center',
+                  minHeight: '140px',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  justifyContent: 'center',
+                  borderTop: `2px solid ${CATEGORY_COLORS[product.category]}`,
+                  backgroundColor: currentTheme.colors.border,
+                  borderRadius: '15px',
+                  border: `1px solid ${currentTheme.colors.border}`,
+                  padding: currentTheme.spacing.lg,
+                }}
               >
-                <Card
-                  variant="elevated"
-                  hover
-                  padding="lg"
-                  style={{
-                    cursor: 'pointer',
-                    textAlign: 'center',
-                    minHeight: '140px',
-                    display: 'flex',
-                    flexDirection: 'column',
-                    justifyContent: 'center',
-                    borderTop: `2px solid ${CATEGORY_COLORS[product.category]}`,
-                    backgroundColor: currentTheme.colors.border,
-                    borderRadius: '15px',
-                    border: `1px solid ${currentTheme.colors.border}`,
-                  }}
-                  onClick={() => handleAddItem(product)}
-                >
-                  <h4 style={{ 
-                    fontSize: currentTheme.typography.fontSize['2xl'],
-                    fontWeight: currentTheme.typography.fontWeight.semibold,
-                    color: currentTheme.colors.text.primary,
-                    marginBottom: currentTheme.spacing[2],
-                    lineHeight: currentTheme.typography.lineHeight.tight,
-                  }}>
-                    {product.name}
-                  </h4>
-                  <div style={{
-                    fontSize: currentTheme.typography.fontSize['xl'],
-                    fontWeight: currentTheme.typography.fontWeight.bold,
-                    color: CATEGORY_COLORS[product.category],
-                  }}>
-                    {formatCurrency(product.price)}
-                  </div>
-                </Card>
+                <h4 style={{ 
+                  fontSize: currentTheme.typography.fontSize['2xl'],
+                  fontWeight: currentTheme.typography.fontWeight.semibold,
+                  color: currentTheme.colors.text.primary,
+                  marginBottom: currentTheme.spacing[2],
+                  lineHeight: currentTheme.typography.lineHeight.tight,
+                }}>
+                  {product.name}
+                </h4>
+                <div style={{
+                  fontSize: currentTheme.typography.fontSize['xl'],
+                  fontWeight: currentTheme.typography.fontWeight.bold,
+                  color: CATEGORY_COLORS[product.category],
+                }}>
+                  {formatCurrency(product.price)}
+                </div>
               </motion.div>
             ))}
           </motion.div>

@@ -1,9 +1,9 @@
 from flask import Blueprint, request, jsonify
-from services.xml_db_service import XMLDatabaseService
+from services.sqlite_db_service import SQLiteDatabaseService
 
 
 products_bp = Blueprint('products', __name__, url_prefix='/api/products')
-xml_db = XMLDatabaseService()
+db = SQLiteDatabaseService()
 
 
 @products_bp.route('', methods=['POST'])
@@ -13,16 +13,16 @@ def create_product():
         data = request.get_json()
         
         # Validate required fields
-        if not all(key in data for key in ['product_id', 'name', 'price', 'category']):
+        if not all(key in data for key in ['name', 'price', 'category']):
             return jsonify({
                 'success': False,
-                'message': 'Missing required fields: product_id, name, price, category'
+                'message': 'Missing required fields: name, price, category'
             }), 400
         
-        product_id = data['product_id']
         name = data['name']
         price = float(data['price'])
         category = data['category']
+        active = data.get('active', True)
         
         # Validate category
         if category not in ['coldrink', 'paan', 'other']:
@@ -31,43 +31,38 @@ def create_product():
                 'message': 'Invalid category. Must be: coldrink, paan, or other'
             }), 400
         
-        # Validate price
-        if price <= 0:
-            return jsonify({
-                'success': False,
-                'message': 'Price must be greater than 0'
-            }), 400
+        # Create product with auto-generated ID
+        product_data = {
+            'product_id': data['product_id'],
+            'name': name,
+            'price': price,
+            'category': category,
+            'active': active
+        }
         
-        # Add product
-        success = xml_db.add_product(product_id, name, price, category)
+        success = db.create_product(product_data)
         
         if success:
             return jsonify({
                 'success': True,
                 'message': 'Product created successfully',
-                'product': {
-                    'product_id': product_id,
-                    'name': name,
-                    'price': price,
-                    'category': category,
-                    'active': True
-                }
+                'product': product_data
             }), 201
         else:
             return jsonify({
                 'success': False,
-                'message': 'Product with this ID already exists'
-            }), 409
+                'message': 'Product ID already exists'
+            }), 400
             
     except ValueError as e:
         return jsonify({
             'success': False,
-            'message': f'Invalid data format: {str(e)}'
+            'message': f'Invalid price format: {str(e)}'
         }), 400
     except Exception as e:
         return jsonify({
             'success': False,
-            'message': f'Internal server error: {str(e)}'
+            'message': f'Error creating product: {str(e)}'
         }), 500
 
 
@@ -75,18 +70,19 @@ def create_product():
 def get_all_products():
     """Get all active products"""
     try:
-        products = xml_db.get_all_products()
+        include_inactive = request.args.get('include_inactive', 'false').lower() == 'true'
+        include_deleted = request.args.get('include_deleted', 'false').lower() == 'true'
+        
+        products = db.get_all_products(include_inactive=include_inactive)
         
         return jsonify({
             'success': True,
-            'products': products,
-            'count': len(products)
-        }), 200
-        
+            'products': products
+        })
     except Exception as e:
         return jsonify({
             'success': False,
-            'message': f'Internal server error: {str(e)}'
+            'message': f'Error fetching products: {str(e)}'
         }), 500
 
 
@@ -134,7 +130,7 @@ def update_product(product_id):
             update_data['active'] = bool(active)
         
         # Update product
-        success = xml_db.update_product(product_id, **update_data)
+        success = db.update_product(product_id, update_data)
         
         if success:
             return jsonify({
@@ -165,19 +161,18 @@ def update_product(product_id):
 def get_product(product_id):
     """Get a specific product by ID"""
     try:
-        products = xml_db.get_all_products()
+        product = db.get_product(product_id)
         
-        for product in products:
-            if product['product_id'] == product_id:
-                return jsonify({
-                    'success': True,
-                    'product': product
-                }), 200
-        
-        return jsonify({
-            'success': False,
-            'message': f'Product with ID {product_id} not found'
-        }), 404
+        if product:
+            return jsonify({
+                'success': True,
+                'product': product
+            }), 200
+        else:
+            return jsonify({
+                'success': False,
+                'message': f'Product with ID {product_id} not found'
+            }), 404
         
     except Exception as e:
         return jsonify({

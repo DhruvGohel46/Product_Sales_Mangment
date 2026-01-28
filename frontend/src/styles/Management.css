@@ -14,13 +14,13 @@
 /* Header */
 .pmHeader {
   display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
+  align-items: center;
+  justify-content:space-between ;
   gap: 12px;
   padding: 20px;
   border: 1px solid color-mix(in srgb, var(--border-subtle) 70%, transparent);
   border-radius: 20px;
-  background-color: #f4f4f4;
+  background-color: var(--surface);
   margin: 10px;
 }
 
@@ -42,28 +42,6 @@
   font-weight: 650;
   color: var(--text-primary);
   white-space: nowrap;
-  margin-bottom: 10px;
-}
-
-.pmCountPill {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  padding: 6px 10px;
-  border-radius: 999px;
-  border: 1px solid var(--border-subtle);
-  background: color-mix(in srgb, var(--surface) 92%, var(--bg-secondary));
-  color: var(--text-secondary);
-  font-size: 13px;
-  line-height: 1;
-  font-weight: 600;
-  white-space: nowrap;
-}
-
-.pmSubTitle {
-  margin-top: 4px;
-  color: var(--text-secondary);
-  font-size: 14px;
 }
 
 .pmHeaderActions {
@@ -608,8 +586,131 @@
   }
 
   .pmControls {
-    grid-template-columns: 1fr;
+    flex-direction: column;
   }
+}
+
+/* Action Button Styles */
+.pmActionBtn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 12px;
+  border: 1px solid var(--border-subtle);
+  border-radius: 8px;
+  background: var(--surface);
+  color: var(--text-secondary);
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  white-space: nowrap;
+}
+
+.pmActionBtn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+/* Edit Button - Neutral/Primary */
+.pmActionEdit {
+  border-color: var(--primary);
+  color: var(--primary);
+}
+
+.pmActionEdit:hover {
+  background: var(--primary);
+  color: white;
+}
+
+/* Out of Stock Button - Warning/Muted */
+.pmActionWarning {
+  border-color: #F59E0B;
+  color: #F59E0B;
+}
+
+.pmActionWarning:hover {
+  background: #F59E0B;
+  color: white;
+}
+
+/* Reactivate Button - Success */
+.pmActionReactivate {
+  border-color: #10B981;
+  color: #10B981;
+}
+
+.pmActionReactivate:hover {
+  background: #10B981;
+  color: white;
+}
+
+/* Delete Button - Danger */
+.pmActionDanger {
+  border-color: #EF4444;
+  color: #EF4444;
+}
+
+.pmActionDanger:hover {
+  background: #EF4444;
+  color: white;
+}
+
+/* Out of Stock Card Styling */
+.pmCardOutOfStock {
+  opacity: 0.7;
+  background: var(--surface-muted);
+  border-color: var(--border-subtle);
+}
+
+.pmCardOutOfStock .pmName {
+  color: var(--text-muted);
+}
+
+.pmCardOutOfStock .pmPrice {
+  color: var(--text-muted);
+}
+
+/* Deleted Card Styling */
+.pmCardDeleted {
+  opacity: 0.5;
+  background: var(--surface-muted);
+  border-color: #EF4444;
+  border-style: dashed;
+}
+
+.pmCardDeleted .pmName {
+  color: var(--text-muted);
+  text-decoration: line-through;
+}
+
+.pmCardDeleted .pmPrice {
+  color: var(--text-muted);
+  text-decoration: line-through;
+}
+
+.pmDeletedNote {
+  padding: 8px 12px;
+  background: #FEE2E2;
+  color: #EF4444;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 500;
+  text-align: center;
+  border: 1px solid #EF4444;
+}
+
+/* Dialog Button Variants */
+.pmDialogBtnWarning {
+  background: #F59E0B;
+  color: white;
+  border-color: #F59E0B;
+}
+
+.pmDialogBtnDanger {
+  background: #EF4444;
+  color: white;
+  border-color: #EF4444;
 }
 
 

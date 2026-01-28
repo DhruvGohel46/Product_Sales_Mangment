@@ -37,8 +37,11 @@ api.interceptors.response.use(
 
 // Product Management APIs
 export const productsAPI = {
-  // Get all active products
+  // Get all active products (for POS)
   getAllProducts: () => api.get('/api/products'),
+  
+  // Get all products including inactive ones (for management)
+  getAllProductsWithInactive: () => api.get('/api/products?include_inactive=true&include_deleted=true'),
   
   // Create new product
   createProduct: (productData) => api.post('/api/products', productData),
@@ -48,6 +51,27 @@ export const productsAPI = {
   
   // Get specific product by ID
   getProduct: (productId) => api.get(`/api/products/${productId}`),
+  
+  // Soft delete product (mark as deleted)
+  deleteProduct: (productId) => {
+    console.log('API deleteProduct called with ID:', productId);
+    console.log('Full URL:', `/api/products/${productId}`);
+    return api.put(`/api/products/${productId}`, { deleted: true });
+  },
+  
+  // Set product as out of stock (deactivate)
+  setOutOfStock: (productId) => {
+    console.log('API setOutOfStock called with ID:', productId);
+    console.log('Full URL:', `/api/products/${productId}`);
+    return api.put(`/api/products/${productId}`, { active: false });
+  },
+  
+  // Set product as active (reactivate)
+  setActive: (productId) => {
+    console.log('API setActive called with ID:', productId);
+    console.log('Full URL:', `/api/products/${productId}`);
+    return api.put(`/api/products/${productId}`, { active: true });
+  },
 };
 
 // Billing APIs

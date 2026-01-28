@@ -2,23 +2,58 @@
 
 // Product categories
 export const PRODUCT_CATEGORIES = {
-  COLDRINK: 'coldrink',
-  PAAN: 'paan',
-  OTHER: 'other'
+  COLD: 'COLD',
+  PAAN: 'PAAN',
+  SNACK: 'SNACK',
+  FOOD: 'FOOD',
+  OTHER: 'OTHER'
+};
+
+// Product statuses - centralized status management
+export const PRODUCT_STATUS = {
+  ACTIVE: 'active',
+  OUT_OF_STOCK: 'out_of_stock',
+  DELETED: 'deleted'
+};
+
+// Product status display names and configurations - using unified theme colors
+export const PRODUCT_STATUS_CONFIG = {
+  [PRODUCT_STATUS.ACTIVE]: {
+    label: 'Active',
+    color: '#22C55E', // semantic.success[500]
+    bgColor: '#F0FDF4', // semantic.success[50]
+    borderColor: '#22C55E'
+  },
+  [PRODUCT_STATUS.OUT_OF_STOCK]: {
+    label: 'Out of Stock',
+    color: '#F59E0B', // semantic.warning[500]
+    bgColor: '#FFFBEB', // semantic.warning[50]
+    borderColor: '#F59E0B'
+  },
+  [PRODUCT_STATUS.DELETED]: {
+    label: 'Deleted',
+    color: '#EF4444', // semantic.error[500]
+    bgColor: '#FEF2F2', // semantic.error[50]
+    borderColor: '#EF4444'
+  }
 };
 
 // Category display names
 export const CATEGORY_NAMES = {
-  [PRODUCT_CATEGORIES.COLDRINK]: 'Cold Drinks',
+  [PRODUCT_CATEGORIES.COLD]: 'Cold Drinks',
   [PRODUCT_CATEGORIES.PAAN]: 'Paan',
-  [PRODUCT_CATEGORIES.OTHER]: 'Others'
+  [PRODUCT_CATEGORIES.SNACK]: 'Snacks',
+  [PRODUCT_CATEGORIES.FOOD]: 'Food',
+  [PRODUCT_CATEGORIES.OTHER]: 'Other'
 };
 
-// Category colors
+// Category colors - using unified theme system
 export const CATEGORY_COLORS = {
-  [PRODUCT_CATEGORIES.COLDRINK]: '#3B82F6', // Blue
-  [PRODUCT_CATEGORIES.PAAN]: '#10B981',     // Green
-  [PRODUCT_CATEGORIES.OTHER]: '#F59E0B'     // Amber
+  [PRODUCT_CATEGORIES.COLD]: '#0284C7', // primary[600]
+  [PRODUCT_CATEGORIES.PAAN]: '#16A34A',   // semantic.success[600]
+  [PRODUCT_CATEGORIES.SNACK]: '#D97706', // semantic.warning[600]
+  [PRODUCT_CATEGORIES.FOOD]: '#DC2626',   // semantic.error[600]
+  [PRODUCT_CATEGORIES.OTHER]: '#525252'  // neutral[600]
 };
 
 // Animation durations (in seconds) - refined for professional feel

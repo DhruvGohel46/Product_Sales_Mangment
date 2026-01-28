@@ -1,11 +1,11 @@
 from flask import Blueprint, jsonify
-from services.xml_db_service import XMLDatabaseService
+from services.sqlite_db_service import SQLiteDatabaseService
 from services.summary_service import SummaryService
 
 
 summary_bp = Blueprint('summary', __name__, url_prefix='/api/summary')
-xml_db = XMLDatabaseService()
-summary_service = SummaryService(xml_db)
+db = SQLiteDatabaseService()
+summary_service = SummaryService(db)
 
 
 @summary_bp.route('/today', methods=['GET'])
@@ -111,6 +111,56 @@ def get_quick_stats():
         return jsonify({
             'success': True,
             'quick_stats': quick_stats
+        }), 200
+        
+    except Exception as e:
+        return jsonify({
+            'success': False,
+            'message': f'Internal server error: {str(e)}'
+        }), 500
+
+
+@summary_bp.route('/product-sales', methods=['GET'])
+def get_product_sales():
+    """Get detailed sales breakdown by individual products"""
+    try:
+        db = summary_service.db_service
+        all_bills = db.get_all_bills()
+        
+        # Calculate product sales from all bills
+        product_sales = {}
+        
+        for bill in all_bills:
+            # Items are stored as JSON string in SQLite
+            import json
+            items = json.loads(bill['items']) if isinstance(bill['items'], str) else bill['items']
+            
+            for item in items:
+                product_id = item['product_id']
+                product_name = item.get('name', 'Unknown Product')
+                quantity = item.get('quantity', 0)
+                price = item.get('price', 0)
+                total_amount = quantity * price
+                
+                if product_id in product_sales:
+                    product_sales[product_id]['quantity'] += quantity
+                    product_sales[product_id]['total_amount'] += total_amount
+                else:
+                    product_sales[product_id] = {
+                        'product_id': product_id,
+                        'name': product_name,
+                        'quantity': quantity,
+                        'total_amount': total_amount,
+                        'price': price
+                    }
+        
+        # Convert to array and sort by total amount
+        sales_array = list(product_sales.values())
+        sales_array.sort(key=lambda x: x['total_amount'], reverse=True)
+        
+        return jsonify({
+            'success': True,
+            'product_sales': sales_array
         }), 200
         
     except Exception as e:

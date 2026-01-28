@@ -1,10 +1,10 @@
 from flask import Blueprint, request, jsonify
-from services.xml_db_service import XMLDatabaseService
+from services.sqlite_db_service import SQLiteDatabaseService
 from services.printer_service import PrinterService
 
 
 billing_bp = Blueprint('billing', __name__, url_prefix='/api/bill')
-xml_db = XMLDatabaseService()
+db = SQLiteDatabaseService()
 printer_service = PrinterService()
 
 
@@ -44,7 +44,7 @@ def create_bill():
                 }), 400
             
             # Get product details from database
-            all_products = xml_db.get_all_products()
+            all_products = db.get_all_products()
             product_found = None
             
             for product in all_products:
@@ -68,37 +68,43 @@ def create_bill():
             })
             total += line_total
         
-        # Get next bill number
-        bill_no = xml_db.get_next_bill_number()
-        
         # Create bill in database
-        success = xml_db.create_bill(bill_no, validated_products, total)
+        bill_data = {
+            'customer_name': data.get('customer_name', ''),
+            'total_amount': total,
+            'items': validated_products
+        }
         
-        if not success:
+        bill_no = db.create_bill(bill_data)
+        
+        if not bill_no:
             return jsonify({
                 'success': False,
                 'message': 'Failed to create bill in database'
             }), 500
         
+        # Get the created bill for response
+        created_bill = db.get_bill(bill_no)
+        
         # Prepare bill data for response and printing
-        bill_data = {
+        bill_response = {
             'bill_no': bill_no,
-            'date': xml_db._get_today_bills_file().split('\\')[-1].replace('.xml', ''),
-            'time': xml_db.get_bill(bill_no)['time'] if xml_db.get_bill(bill_no) else 'Unknown',
+            'date': created_bill['created_at'].split(' ')[0],
+            'time': created_bill['created_at'].split(' ')[1],
             'products': validated_products,
             'total': total
         }
         
         # Print bill (non-blocking - don't fail if printer doesn't work)
         try:
-            printer_service.print_bill(bill_data)
+            printer_service.print_bill(bill_response)
         except Exception as e:
             print(f"Printer error (non-critical): {e}")
         
         return jsonify({
             'success': True,
             'message': 'Bill created successfully',
-            'bill': bill_data
+            'bill': bill_response
         }), 201
         
     except ValueError as e:
@@ -117,7 +123,7 @@ def create_bill():
 def get_bill(bill_no):
     """Get a specific bill by number"""
     try:
-        bill = xml_db.get_bill(bill_no)
+        bill = db.get_bill(bill_no)
         
         if bill:
             return jsonify({
@@ -141,13 +147,18 @@ def get_bill(bill_no):
 def get_today_bills():
     """Get all bills for today"""
     try:
-        bills = xml_db.get_today_bills()
+        bills = db.get_all_bills()
+        
+        # Filter bills for today (SQLite handles this better)
+        today_bills = []
+        for bill in bills:
+            bill_date = bill['created_at'].split(' ')[0]
+            if bill_date == db.get_connection().execute("SELECT DATE('now')").fetchone()[0]:
+                today_bills.append(bill)
         
         return jsonify({
             'success': True,
-            'bills': bills,
-            'count': len(bills),
-            'date': xml_db._get_today_bills_file().split('\\')[-1].replace('.xml', '')
+            'bills': today_bills
         }), 200
         
     except Exception as e:
@@ -161,7 +172,12 @@ def get_today_bills():
 def get_next_bill_number():
     """Get the next bill number for today"""
     try:
-        next_bill_no = xml_db.get_next_bill_number()
+        # Get the highest bill number and add 1
+        bills = db.get_all_bills()
+        if bills:
+            next_bill_no = max(bill['bill_no'] for bill in bills) + 1
+        else:
+            next_bill_no = 1
         
         return jsonify({
             'success': True,
@@ -179,7 +195,8 @@ def get_next_bill_number():
 def print_bill(bill_no):
     """Print an existing bill"""
     try:
-        bill = xml_db.get_bill(bill_no)
+        db = SQLiteDatabaseService()
+        bill = db.get_bill(bill_no)
         
         if not bill:
             return jsonify({
@@ -199,6 +216,31 @@ def print_bill(bill_no):
             return jsonify({
                 'success': False,
                 'message': 'Failed to print bill'
+            }), 500
+            
+    except Exception as e:
+        return jsonify({
+            'success': False,
+            'message': f'Internal server error: {str(e)}'
+        }), 500
+
+
+@billing_bp.route('/clear', methods=['DELETE'])
+def clear_all_bills():
+    """Clear all bills from the database"""
+    try:
+        db = SQLiteDatabaseService()
+        success = db.clear_all_bills()
+        
+        if success:
+            return jsonify({
+                'success': True,
+                'message': 'All bills cleared successfully'
+            }), 200
+        else:
+            return jsonify({
+                'success': False,
+                'message': 'Failed to clear bills'
             }), 500
             
     except Exception as e:

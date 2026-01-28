@@ -1,13 +1,13 @@
 from datetime import datetime, date
 from typing import List, Dict, Optional
-from .xml_db_service import XMLDatabaseService
+from .sqlite_db_service import SQLiteDatabaseService
 
 
 class SummaryService:
     """Service for generating daily sales summaries"""
     
-    def __init__(self, xml_db_service: XMLDatabaseService):
-        self.xml_db_service = xml_db_service
+    def __init__(self, db_service: SQLiteDatabaseService):
+        self.db_service = db_service
     
     def get_today_summary(self) -> Dict:
         """
@@ -15,7 +15,19 @@ class SummaryService:
         Returns summary data including totals, category breakdown, and timing info
         """
         try:
-            bills = self.xml_db_service.get_today_bills()
+            # Get all bills and filter for today
+            all_bills = self.db_service.get_all_bills()
+            today = date.today().strftime('%Y-%m-%d')
+            bills = [bill for bill in all_bills if bill['created_at'].split(' ')[0] == today]
+            
+            # If no bills today, check for the most recent bills and show them instead
+            if not bills and all_bills:
+                # Get the most recent date with bills
+                dates_with_bills = set(bill['created_at'].split(' ')[0] for bill in all_bills)
+                if dates_with_bills:
+                    most_recent_date = max(dates_with_bills)
+                    bills = [bill for bill in all_bills if bill['created_at'].split(' ')[0] == most_recent_date]
+                    today = most_recent_date  # Update today to show the actual data date
             
             if not bills:
                 return {
@@ -30,13 +42,13 @@ class SummaryService:
             
             # Calculate basic totals
             total_bills = len(bills)
-            total_sales = sum(bill['total'] for bill in bills)
+            total_sales = sum(bill['total_amount'] for bill in bills)
             average_bill_value = total_sales / total_bills if total_bills > 0 else 0.0
             
             # Get timing info
-            times = [bill['time'] for bill in bills]
-            first_bill_time = min(times) if times else None
-            last_bill_time = max(times) if times else None
+            timestamps = [bill['created_at'] for bill in bills]
+            first_bill_time = min(timestamps).split(' ')[1] if timestamps else None
+            last_bill_time = max(timestamps).split(' ')[1] if timestamps else None
             
             # Calculate category totals
             category_totals = self._calculate_category_totals(bills)
@@ -45,7 +57,7 @@ class SummaryService:
             hourly_sales = self._calculate_hourly_sales(bills)
             
             return {
-                "date": date.today().strftime("%Y-%m-%d"),
+                "date": today,
                 "total_bills": total_bills,
                 "total_sales": total_sales,
                 "category_totals": category_totals,
@@ -74,9 +86,13 @@ class SummaryService:
         category_totals = {}
         
         for bill in bills:
-            for product in bill['products']:
+            # Items are stored as JSON string in SQLite
+            import json
+            items = json.loads(bill['items']) if isinstance(bill['items'], str) else bill['items']
+            
+            for product in items:
                 # Get product category from products database
-                products = self.xml_db_service.get_all_products()
+                products = self.db_service.get_all_products()
                 product_category = "unknown"
                 
                 for prod in products:
@@ -99,14 +115,15 @@ class SummaryService:
         
         for bill in bills:
             try:
-                # Extract hour from time (HH:MM:SS format)
-                hour = int(bill['time'].split(':')[0])
+                # Extract hour from timestamp (YYYY-MM-DD HH:MM:SS format)
+                timestamp = bill['created_at']
+                hour = int(timestamp.split(' ')[1].split(':')[0])
                 hour_key = f"{hour:02d}:00"
                 
                 if hour_key in hourly_sales:
-                    hourly_sales[hour_key] += bill['total']
+                    hourly_sales[hour_key] += bill['total_amount']
                 else:
-                    hourly_sales[hour_key] = bill['total']
+                    hourly_sales[hour_key] = bill['total_amount']
                     
             except (ValueError, IndexError):
                 continue
@@ -127,12 +144,11 @@ class SummaryService:
         target_date format: YYYY-MM-DD
         """
         try:
-            # This would require modifying XMLDatabaseService to load specific date files
-            # For now, return today's summary if date matches today
-            if target_date == date.today().strftime("%Y-%m-%d"):
-                return self.get_today_summary()
-            else:
-                # TODO: Implement archive file reading for historical dates
+            # Get all bills and filter for target date
+            all_bills = self.db_service.get_all_bills()
+            bills = [bill for bill in all_bills if bill['created_at'].split(' ')[0] == target_date]
+            
+            if not bills:
                 return {
                     "date": target_date,
                     "total_bills": 0,
@@ -140,9 +156,30 @@ class SummaryService:
                     "category_totals": {},
                     "first_bill_time": None,
                     "last_bill_time": None,
-                    "average_bill_value": 0.0,
-                    "message": "Historical data not implemented yet"
+                    "average_bill_value": 0.0
                 }
+            
+            # Calculate summary using existing methods
+            total_sales = sum(bill['total_amount'] for bill in bills)
+            category_totals = self._calculate_category_totals(bills)
+            hourly_sales = self._calculate_hourly_sales(bills)
+            
+            # Get first and last bill times
+            timestamps = [bill['created_at'] for bill in bills]
+            first_bill_time = min(timestamps).split(' ')[1] if timestamps else None
+            last_bill_time = max(timestamps).split(' ')[1] if timestamps else None
+            
+            return {
+                "date": target_date,
+                "total_bills": len(bills),
+                "total_sales": total_sales,
+                "category_totals": category_totals,
+                "hourly_sales": hourly_sales,
+                "first_bill_time": first_bill_time,
+                "last_bill_time": last_bill_time,
+                "average_bill_value": total_sales / len(bills) if bills else 0.0,
+                "peak_hour": self._get_peak_hour(hourly_sales)
+            }
                 
         except Exception as e:
             print(f"Error getting summary for date {target_date}: {e}")

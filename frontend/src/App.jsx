@@ -8,9 +8,9 @@ import './styles/fonts.css';
 import './styles/global.css';
 
 // Import screens
-import WorkingPOSInterface from './components/screens/WorkingPOSInterface';
-import Reports from './components/screens/Reports';
-import ProductManagement from './components/screens/ProductManagement';
+import WorkingPOSInterface from './components/screens/Bill';
+import Reports from './components/screens/Analytics';
+import ProductManagement from './components/screens/Management';
 
 // Import UI components
 import Button from './components/ui/Button';
@@ -24,7 +24,7 @@ function AppContent() {
   const [lastBill, setLastBill] = useState(null);
 
   const navItems = [
-    { id: 'pos', label: 'POS' },
+    { id: 'pos', label: 'Bill' },
     { id: 'summary', label: 'Analytics' },
     { id: 'management', label: 'Management' },
   ];

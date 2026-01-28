@@ -3,8 +3,8 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useAnimation } from '../../hooks/useAnimation';
 import { productsAPI } from '../../utils/api';
 import { handleAPIError, formatCurrency } from '../../utils/api';
-import { PRODUCT_CATEGORIES, CATEGORY_NAMES } from '../../utils/constants';
-import styles from './ProductManagement.module.css';
+import { PRODUCT_CATEGORIES, CATEGORY_NAMES, PRODUCT_STATUS, PRODUCT_STATUS_CONFIG } from '../../utils/constants';
+import '../../styles/Management.css';
 
 const IconPlus = (props) => (
   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" {...props}>
@@ -39,7 +39,6 @@ const ProductManagement = () => {
   const [categoryFilter, setCategoryFilter] = useState('all');
   const [statusFilter, setStatusFilter] = useState('all'); // all | active | inactive
   const [formData, setFormData] = useState({
-    product_id: '',
     name: '',
     price: '',
     category: PRODUCT_CATEGORIES.OTHER,
@@ -51,27 +50,22 @@ const ProductManagement = () => {
     loadProducts();
   }, []);
 
-  async function loadProducts() {
+  const loadProducts = async () => {
     try {
-      setLoading(true);
       setError('');
-      
+      setLoading(true);
       const response = await productsAPI.getAllProducts();
       setProducts(response.data.products || []);
-      
     } catch (err) {
       const apiError = handleAPIError(err);
       setError(apiError.message);
-      console.error('Error loading products:', err);
     } finally {
       setLoading(false);
     }
-  }
+  };
 
-  // Reset form
   const resetForm = () => {
     setFormData({
-      product_id: '',
       name: '',
       price: '',
       category: PRODUCT_CATEGORIES.OTHER,
@@ -81,7 +75,6 @@ const ProductManagement = () => {
     setShowAddForm(false);
   };
 
-  // Handle form input changes
   const handleInputChange = (field, value) => {
     setFormData(prev => ({
       ...prev,
@@ -89,99 +82,45 @@ const ProductManagement = () => {
     }));
   };
 
-  // Handle form submission
+  const generateProductId = () => {
+    const category = formData.category || 'other';
+    const categoryCode = category.toUpperCase().slice(0, 4);
+    const randomNum = Math.floor(Math.random() * 1000).toString().padStart(3, '0');
+    return `${categoryCode}${randomNum}`;
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
-    if (!formData.product_id || !formData.name || !formData.price) {
-      setError('Please fill in all required fields');
-      return;
-    }
-
     try {
       setError('');
-      
       const productData = {
-        product_id: formData.product_id,
-        name: formData.name,
-        price: parseFloat(formData.price),
-        category: formData.category,
-        active: formData.active
+        ...formData,
+        product_id: generateProductId() // Auto-generate ID
       };
-
+      
       if (editingProduct) {
-        // Update existing product
         await productsAPI.updateProduct(editingProduct.product_id, productData);
       } else {
-        // Create new product
         await productsAPI.createProduct(productData);
       }
-
       resetForm();
       loadProducts();
-      
     } catch (err) {
       const apiError = handleAPIError(err);
       setError(apiError.message);
     }
   };
 
-  // Edit product
   const handleEdit = (product) => {
+    setEditingProduct(product);
     setFormData({
-      product_id: product.product_id,
       name: product.name,
-      price: product.price.toString(),
+      price: product.price,
       category: product.category,
       active: product.active
     });
-    setEditingProduct(product);
     setShowAddForm(true);
   };
-
-  // Toggle product active status
-  const handleToggleActive = async (product) => {
-    try {
-      setError('');
-      
-      await productsAPI.updateProduct(product.product_id, {
-        active: !product.active
-      });
-      
-      loadProducts();
-      
-    } catch (err) {
-      const apiError = handleAPIError(err);
-      setError(apiError.message);
-    }
-  };
-
-  const activeCount = products.filter(p => p.active).length;
-  const inactiveCount = products.length - activeCount;
-
-  const filteredProducts = products
-    .filter((p) => {
-      const q = query.trim().toLowerCase();
-      if (!q) return true;
-      return (
-        (p.name || '').toLowerCase().includes(q) ||
-        (p.product_id || '').toLowerCase().includes(q)
-      );
-    })
-    .filter((p) => (categoryFilter === 'all' ? true : p.category === categoryFilter))
-    .filter((p) => {
-      if (statusFilter === 'active') return !!p.active;
-      if (statusFilter === 'inactive') return !p.active;
-      return true;
-    });
-
-  const getBadgeClass = (category) => {
-    if (category === PRODUCT_CATEGORIES.COLDRINK) return styles.pmBadgeCold;
-    if (category === PRODUCT_CATEGORIES.PAAN) return styles.pmBadgePaan;
-    return styles.pmBadgeOther;
-  };
-
-  const getCardToneClass = (active) => (active ? styles.pmCardToneActive : styles.pmCardToneInactive);
 
   const onRequestDeactivate = (product) => setPendingDeactivate(product);
 
@@ -200,32 +139,58 @@ const ProductManagement = () => {
     }
   };
 
+  const getStatusConfig = (product) => {
+    if (!product.active) {
+      return PRODUCT_STATUS_CONFIG.OUT_OF_STOCK || PRODUCT_STATUS_CONFIG.ACTIVE;
+    }
+    return PRODUCT_STATUS_CONFIG.ACTIVE || {
+      label: 'Active',
+      color: '#10B981',
+      bgColor: '#D1FAE5',
+      borderColor: '#10B981'
+    };
+  };
+
+  const activeCount = products.filter(p => p.active).length;
+  const inactiveCount = products.filter(p => !p.active).length;
+
+  const filteredProducts = products
+    .filter((p) => {
+      const searchMatch = !query || 
+        p.name.toLowerCase().includes(query.toLowerCase()) ||
+        p.product_id.toLowerCase().includes(query.toLowerCase());
+      return searchMatch;
+    })
+    .filter((p) => (categoryFilter === 'all' ? true : p.category === categoryFilter))
+    .filter((p) => {
+      if (statusFilter === 'active') return !!p.active;
+      if (statusFilter === 'inactive') return !p.active;
+      return true;
+    });
+
+  const getBadgeClass = (category) => {
+    if (category === PRODUCT_CATEGORIES.COLDRINK) return "pmBadgeCold";
+    if (category === PRODUCT_CATEGORIES.PAAN) return "pmBadgePaan";
+    return "pmBadgeOther";
+  };
+
+  const getCardToneClass = (active) => (active ? "pmCardToneActive" : "pmCardToneInactive");
+
   return (
-    <div className={styles.pmShell}>
-      <div className={styles.pmPage}>
+    <div className="pmShell">
+      <div className="pmPage">
       {/* Header */}
-      <div className={styles.pmHeader}>
-        <div className={styles.pmHeaderLeft}>
-          <div className={styles.pmTitleRow}>
-            <div className={styles.pmTitle}>Product Management</div>
-            <div className={styles.pmCountPill} aria-label={`Products count ${products.length}`}>
-              <span>Products</span>
-              <span>({products.length})</span>
-              <span aria-hidden="true">·</span>
-              <span>{activeCount} active</span>
-              <span aria-hidden="true">·</span>
-              <span>{inactiveCount} inactive</span>
-            </div>
-          </div>
-          <div className={styles.pmSubTitle}>
-            Search, edit prices, and manage availability for live selling.
+      <div className="pmHeader">
+        <div className="pmHeaderLeft">
+          <div className="pmTitleRow">
+            <div className="pmTitle">Product Management</div>
           </div>
         </div>
 
-        <div className={styles.pmHeaderActions}>
+        <div className="pmHeaderActions">
           <button
             type="button"
-            className={styles.pmPrimaryCta}
+            className="pmPrimaryCta"
             onClick={() => setShowAddForm(true)}
             disabled={showAddForm}
           >
@@ -236,12 +201,12 @@ const ProductManagement = () => {
       </div>
 
       {/* Controls */}
-      <div className={[styles.pmPanel, styles.pmPanelTight].join(' ')}>
-        <div className={styles.pmControls}>
-          <div className={styles.pmField}>
-            <div className={styles.pmLabel}>Search</div>
+      <div className="pmPanel pmPanelTight">
+        <div className="pmControls">
+          <div className="pmField">
+            <div className="pmLabel">Search</div>
             <input
-              className={styles.pmInput}
+              className="pmInput"
               value={query}
               onChange={(e) => setQuery(e.target.value)}
               placeholder="Search by name or ID…"
@@ -249,10 +214,10 @@ const ProductManagement = () => {
             />
           </div>
 
-          <div className={styles.pmField}>
-            <div className={styles.pmLabel}>Category</div>
+          <div className="pmField">
+            <div className="pmLabel">Category</div>
             <select
-              className={styles.pmSelect}
+              className="pmSelect"
               value={categoryFilter}
               onChange={(e) => setCategoryFilter(e.target.value)}
               aria-label="Filter by category"
@@ -264,10 +229,10 @@ const ProductManagement = () => {
             </select>
           </div>
 
-          <div className={styles.pmField}>
-            <div className={styles.pmLabel}>Status</div>
+          <div className="pmField">
+            <div className="pmLabel">Status</div>
             <select
-              className={styles.pmSelect}
+              className="pmSelect"
               value={statusFilter}
               onChange={(e) => setStatusFilter(e.target.value)}
               aria-label="Filter by status"
@@ -280,7 +245,7 @@ const ProductManagement = () => {
 
           <button
             type="button"
-            className={styles.pmControlButton}
+            className="pmControlButton"
             onClick={loadProducts}
             aria-label="Refresh products"
           >
@@ -298,32 +263,19 @@ const ProductManagement = () => {
             exit={{ opacity: 0, height: 0 }}
             transition={{ duration: 0.18, ease: [0.4, 0, 0.2, 1] }}
           >
-            <div className={styles.pmFormWrap}>
-              <div className={styles.pmFormHeader}>
-                <div className={styles.pmFormTitle}>
+            <div className="pmFormWrap">
+              <div className="pmFormHeader">
+                <div className="pmFormTitle">
                   {editingProduct ? 'Edit Product' : 'Add New Product'}
                 </div>
               </div>
 
               <form onSubmit={handleSubmit}>
-                <div className={styles.pmFormGrid}>
-                  <div className={styles.pmField}>
-                    <div className={styles.pmLabel}>Product ID</div>
+                <div className="pmFormGrid">
+                  <div className="pmField">
+                    <div className="pmLabel">Product name</div>
                     <input
-                      className={styles.pmInput}
-                      type="text"
-                      value={formData.product_id}
-                      onChange={(e) => handleInputChange('product_id', e.target.value)}
-                      placeholder="e.g., COLA001"
-                      disabled={!!editingProduct}
-                      required
-                    />
-                  </div>
-
-                  <div className={styles.pmField}>
-                    <div className={styles.pmLabel}>Product name</div>
-                    <input
-                      className={styles.pmInput}
+                      className="pmInput"
                       type="text"
                       value={formData.name}
                       onChange={(e) => handleInputChange('name', e.target.value)}
@@ -332,10 +284,10 @@ const ProductManagement = () => {
                     />
                   </div>
 
-                  <div className={styles.pmField}>
-                    <div className={styles.pmLabel}>Price</div>
+                  <div className="pmField">
+                    <div className="pmLabel">Price</div>
                     <input
-                      className={styles.pmInput}
+                      className="pmInput"
                       type="number"
                       value={formData.price}
                       onChange={(e) => handleInputChange('price', e.target.value)}
@@ -346,10 +298,10 @@ const ProductManagement = () => {
                     />
                   </div>
 
-                  <div className={styles.pmField}>
-                    <div className={styles.pmLabel}>Category</div>
+                  <div className="pmField">
+                    <div className="pmLabel">Category</div>
                     <select
-                      className={styles.pmSelect}
+                      className="pmSelect"
                       value={formData.category}
                       onChange={(e) => handleInputChange('category', e.target.value)}
                     >
@@ -360,11 +312,11 @@ const ProductManagement = () => {
                   </div>
                 </div>
 
-                <div className={styles.pmFormActions}>
-                  <button type="button" className={styles.pmSecondaryBtn} onClick={resetForm}>
+                <div className="pmFormActions">
+                  <button type="button" className="pmSecondaryBtn" onClick={resetForm}>
                     Cancel
                   </button>
-                  <button type="submit" className={styles.pmPrimaryCta}>
+                  <button type="submit" className="pmPrimaryCta">
                     {editingProduct ? 'Update Product' : 'Add Product'}
                   </button>
                 </div>
@@ -375,38 +327,44 @@ const ProductManagement = () => {
       </AnimatePresence>
 
       {/* Error Display */}
-      {error && <div className={styles.pmError}>{error}</div>}
+      {error && <div className="pmError">{error}</div>}
 
       {/* Products Grid */}
-      <div className={styles.pmPanel}>
-        <div className={styles.pmGridHeader}>
-          <div className={styles.pmGridTitle}>
+      <div className="pmPanel">
+        <div className="pmGridHeader">
+          <div className="pmGridTitle">
             Products
           </div>
-          <div className={styles.pmGridHint}>
+          <div className="pmGridHint">
             {loading ? 'Refreshing…' : `${filteredProducts.length} shown`}
           </div>
         </div>
 
         {loading ? (
-          <div className={styles.pmEmpty}>Loading products…</div>
+          <div className="pmEmpty">Loading products…</div>
         ) : filteredProducts.length === 0 ? (
-          <div className={styles.pmEmpty}>
+          <div className="pmEmpty">
             No matching products. Try clearing filters or add a new product.
           </div>
         ) : (
           <motion.div
-            className={styles.pmGrid}
+            className="pmGrid"
             variants={staggerContainer}
             initial="initial"
             animate="animate"
           >
             {filteredProducts.map((product) => {
-              const statusClass = product.active ? styles.pmStatusActive : styles.pmStatusInactive;
+              const statusConfig = getStatusConfig(product);
+              const safeStatusConfig = statusConfig || {
+                label: product.active ? 'Active' : 'Inactive',
+                color: product.active ? '#10B981' : '#F59E0B',
+                bgColor: product.active ? '#D1FAE5' : '#FEF3C7',
+                borderColor: product.active ? '#10B981' : '#F59E0B'
+              };
               const cardClass = [
-                styles.pmCard,
+                "pmCard",
                 getCardToneClass(product.active),
-                !product.active ? styles.pmCardInactive : '',
+                !product.active ? "pmCardInactive" : '',
               ].filter(Boolean).join(' ');
 
               return (
@@ -415,59 +373,47 @@ const ProductManagement = () => {
                     className={cardClass}
                     layout
                   >
-                    <div className={styles.pmCardTop}>
-                      <div className={styles.pmName} title={product.name}>
+                    <div className="pmCardTop">
+                      <div className="pmName" title={product.name}>
                         {product.name}
                       </div>
-                      <div className={styles.pmPrice}>
+                      <div className="pmPrice">
                         {formatCurrency(product.price)}
                       </div>
                     </div>
 
-                    <div className={styles.pmMetaRow}>
-                      <div className={[styles.pmBadge, getBadgeClass(product.category)].join(' ')}>
+                    <div className="pmMetaRow">
+                      <div className={["pmBadge", getBadgeClass(product.category)].join(' ')}>
                         {CATEGORY_NAMES[product.category] || 'Others'}
                       </div>
-                      <div className={styles.pmId} title={product.product_id}>
+                      <div className="pmId" title={product.product_id}>
                         ID: {product.product_id}
                       </div>
                     </div>
 
-                    <div className={[styles.pmStatusRow, statusClass].join(' ')}>
-                      <div className={styles.pmStatusDot} aria-hidden="true" />
-                      <div className={styles.pmStatusLabel}>
-                        {product.active ? 'Active' : 'Inactive'}
-                      </div>
-                    </div>
-
-                    <div className={styles.pmActions}>
+                    <div className="pmActions">
+                      {/* Edit Button */}
                       <button
                         type="button"
-                        className={styles.pmActionBtn}
+                        className="pmActionBtn"
                         onClick={() => handleEdit(product)}
                       >
                         <IconEdit aria-hidden="true" />
                         Edit
                       </button>
 
+                      {/* Deactivate Button */}
                       {product.active ? (
                         <button
                           type="button"
-                          className={[styles.pmActionBtn, styles.pmActionDanger].join(' ')}
+                          className="pmActionBtn pmActionDanger"
                           onClick={() => onRequestDeactivate(product)}
                         >
                           <IconPower aria-hidden="true" />
                           Deactivate
                         </button>
                       ) : (
-                        <button
-                          type="button"
-                          className={[styles.pmActionBtn, styles.pmActionMuted].join(' ')}
-                          onClick={() => handleToggleActive(product)}
-                        >
-                          <IconPower aria-hidden="true" />
-                          Activate
-                        </button>
+                        <div className="pmInactiveNote">Inactive</div>
                       )}
                     </div>
                   </motion.div>
@@ -482,7 +428,7 @@ const ProductManagement = () => {
       <AnimatePresence>
         {pendingDeactivate && (
           <motion.div
-            className={styles.pmOverlay}
+            className="pmOverlay"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
@@ -490,7 +436,7 @@ const ProductManagement = () => {
             role="presentation"
           >
             <motion.div
-              className={styles.pmDialog}
+              className="pmDialog"
               initial={{ y: 10, scale: 0.98, opacity: 0 }}
               animate={{ y: 0, scale: 1, opacity: 1 }}
               exit={{ y: 8, scale: 0.98, opacity: 0 }}
@@ -500,19 +446,19 @@ const ProductManagement = () => {
               aria-modal="true"
               aria-label="Confirm deactivate product"
             >
-              <div className={styles.pmDialogTitle}>Deactivate product?</div>
-              <div className={styles.pmDialogBody}>
-                “{pendingDeactivate.name}” will become unavailable in POS. You can re-activate it later.
+              <div className="pmDialogTitle">Deactivate product?</div>
+              <div className="pmDialogBody">
+                "{pendingDeactivate.name}" will become unavailable in POS. You can reactivate it later.
               </div>
-              <div className={styles.pmDialogActions}>
-                <button type="button" className={styles.pmDialogBtn} onClick={onCloseDeactivate}>
+              <div className="pmDialogActions">
+                <button type="button" className="pmDialogBtn" onClick={onCloseDeactivate}>
                   Cancel
                 </button>
-                <button type="button" className={[styles.pmDialogBtn, styles.pmDialogBtnPrimary].join(' ')} onClick={handleConfirmDeactivate}>
+                <button type="button" className={["pmDialogBtn", "pmDialogBtnPrimary"].join(' ')} onClick={handleConfirmDeactivate}>
                   Deactivate
                 </button>
               </div>
-              <div className={styles.pmDialogTip}>
+              <div className="pmDialogTip">
                 Tip: Deactivating keeps historical sales intact.
               </div>
             </motion.div>

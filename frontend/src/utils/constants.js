@@ -2,11 +2,9 @@
 
 // Product categories
 export const PRODUCT_CATEGORIES = {
-  COLD: 'COLD',
-  PAAN: 'PAAN',
-  SNACK: 'SNACK',
-  FOOD: 'FOOD',
-  OTHER: 'OTHER'
+  COLDRINK: 'coldrink',
+  PAAN: 'paan',
+  OTHER: 'other'
 };
 
 // Product statuses - centralized status management
@@ -40,19 +38,15 @@ export const PRODUCT_STATUS_CONFIG = {
 
 // Category display names
 export const CATEGORY_NAMES = {
-  [PRODUCT_CATEGORIES.COLD]: 'Cold Drinks',
+  [PRODUCT_CATEGORIES.COLDRINK]: 'Cold Drinks',
   [PRODUCT_CATEGORIES.PAAN]: 'Paan',
-  [PRODUCT_CATEGORIES.SNACK]: 'Snacks',
-  [PRODUCT_CATEGORIES.FOOD]: 'Food',
   [PRODUCT_CATEGORIES.OTHER]: 'Other'
 };
 
 // Category colors - using unified theme system
 export const CATEGORY_COLORS = {
-  [PRODUCT_CATEGORIES.COLD]: '#0284C7', // primary[600]
+  [PRODUCT_CATEGORIES.COLDRINK]: '#0284C7', // primary[600]
   [PRODUCT_CATEGORIES.PAAN]: '#16A34A',   // semantic.success[600]
-  [PRODUCT_CATEGORIES.SNACK]: '#D97706', // semantic.warning[600]
-  [PRODUCT_CATEGORIES.FOOD]: '#DC2626',   // semantic.error[600]
   [PRODUCT_CATEGORIES.OTHER]: '#525252'  // neutral[600]
 };
 

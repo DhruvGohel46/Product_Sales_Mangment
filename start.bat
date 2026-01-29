@@ -16,8 +16,8 @@ start "POS Frontend" cmd /k "npm start"
 
 echo.
 echo Both servers are starting...
-echo Backend: http://localhost:5000
-echo Frontend: http://localhost:3000
+echo Backend: http://localhost:5050
+echo Frontend: http://localhost:3050
 echo.
 echo Press any key to exit this window...
 pause >nul

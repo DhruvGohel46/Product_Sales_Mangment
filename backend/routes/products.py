@@ -15,10 +15,10 @@ def create_product():
         data = request.get_json()
         
         # Validate required fields
-        if not all(key in data for key in ['name', 'price', 'category']):
+        if not all(key in data for key in ['product_id', 'name', 'price', 'category']):
             return jsonify({
                 'success': False,
-                'message': 'Missing required fields: name, price, category'
+                'message': 'Missing required fields: product_id, name, price, category'
             }), 400
         
         name = data['name']

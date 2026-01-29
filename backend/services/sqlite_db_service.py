@@ -4,7 +4,7 @@ from typing import List, Dict, Optional, Any
 import json
 
 class SQLiteDatabaseService:
-    def __init__(self, db_path: str = 'backend/data/products.db'):
+    def __init__(self, db_path: str = 'data/products.db'):
         self.db_path = db_path
         self.init_database()
     

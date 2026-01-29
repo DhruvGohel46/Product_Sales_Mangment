@@ -96,10 +96,10 @@ if __name__ == '__main__':
     
     print("Starting POS Backend Server...")
     print(f"Data directory: {app.config['DATA_DIR']}")
-    print(f"Server running on: http://localhost:5000")
+    print(f"Server running on: http://localhost:5050")
     
     app.run(
         host='0.0.0.0',
-        port=5000,
+        port=5050,
         debug=app.config['DEBUG']
     )

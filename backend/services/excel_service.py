@@ -7,7 +7,7 @@ import csv
 class ExcelService:
     """Excel export service for daily sales reports"""
     
-    def __init__(self, data_dir: str = "data"):
+    def __init__(self, data_dir: str = "./backend/data"):
         self.data_dir = data_dir
         self.export_dir = os.path.join(data_dir, "exports")
         os.makedirs(self.export_dir, exist_ok=True)
@@ -166,4 +166,99 @@ class ExcelService:
             
         except Exception as e:
             print(f"Error creating detailed sales report: {e}")
+            return None
+
+    def generate_bills_xml(self, bills: List[Dict]) -> str:
+        """Generate XML content for bills"""
+        try:
+            xml_lines = ['<?xml version="1.0" encoding="UTF-8"?>', '<bills>']
+            
+            for bill in bills:
+                xml_lines.append(f'  <bill id="{bill["bill_no"]}" total="{bill["total"]}" date="{bill["created_at"]}">')
+                
+                if 'products' in bill:
+                    for product in bill['products']:
+                        xml_lines.append(f'    <product id="{product["product_id"]}" name="{product["name"]}" price="{product["price"]}" quantity="{product["quantity"]}" />')
+                
+                xml_lines.append('  </bill>')
+            
+            xml_lines.append('</bills>')
+            
+            return '\n'.join(xml_lines)
+            
+        except Exception as e:
+            print(f"Error generating XML: {e}")
+            return '<?xml version="1.0" encoding="UTF-8"?><bills><error>Failed to generate XML</error></bills>'
+
+    def create_sample_report(self) -> str:
+        """Create a sample sales report for demonstration when no bills exist"""
+        try:
+            today_str = date.today().strftime("%Y-%m-%d")
+            filename = f"sample_sales_report_{today_str}.csv"
+            filepath = os.path.join(self.export_dir, filename)
+            
+            with open(filepath, 'w', newline='', encoding='utf-8') as csvfile:
+                writer = csv.writer(csvfile)
+                
+                # Write summary section
+                writer.writerow(["=== DAILY SALES SUMMARY ==="])
+                writer.writerow(["Date", today_str])
+                writer.writerow(["Total Bills", 0])
+                writer.writerow(["Total Sales", "0.00"])
+                writer.writerow(["First Bill Time", "N/A"])
+                writer.writerow(["Last Bill Time", "N/A"])
+                
+                # Category-wise totals
+                writer.writerow(["", ""])  # Empty row
+                writer.writerow(["=== CATEGORY WISE SALES ==="])
+                writer.writerow(["Category", "Total Sales"])
+                writer.writerow(["coldrink", "0.00"])
+                writer.writerow(["paan", "0.00"])
+                writer.writerow(["other", "0.00"])
+                
+                # Detailed bills section
+                writer.writerow(["", ""])  # Empty row
+                writer.writerow(["=== DETAILED BILLS ==="])
+                writer.writerow(["Note: No bills found for today. This is a sample report format."])
+                
+                # Detailed headers
+                detailed_headers = [
+                    "Bill No", "Date", "Time", "Product ID", "Product Name", 
+                    "Quantity", "Unit Price", "Line Total", "Bill Total"
+                ]
+                writer.writerow(detailed_headers)
+                
+                # Sample data
+                sample_bills = [
+                    {
+                        "bill_no": "SAMPLE001",
+                        "date": today_str,
+                        "time": "12:00:00",
+                        "products": [
+                            {"product_id": "SAMPLE001", "name": "Sample Cold Drink", "quantity": 2, "price": 25.00},
+                            {"product_id": "SAMPLE002", "name": "Sample Paan", "quantity": 1, "price": 15.00}
+                        ],
+                        "total": 65.00
+                    }
+                ]
+                
+                for bill in sample_bills:
+                    for product in bill["products"]:
+                        row = [
+                            bill["bill_no"],
+                            bill["date"],
+                            bill["time"],
+                            product["product_id"],
+                            product["name"],
+                            product["quantity"],
+                            f"{product['price']:.2f}",
+                            f"{product['price'] * product['quantity']:.2f}",
+                            f"{bill['total']:.2f}"
+                        ]
+                        writer.writerow(row)
+            
+            return filepath
+            
+        except Exception as e:
+            print(f"Error creating sample report: {e}")
             return None

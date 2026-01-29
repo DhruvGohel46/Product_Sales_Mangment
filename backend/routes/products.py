@@ -1,9 +1,11 @@
 from flask import Blueprint, request, jsonify
 from services.sqlite_db_service import SQLiteDatabaseService
+import os
 
 
 products_bp = Blueprint('products', __name__, url_prefix='/api/products')
 db = SQLiteDatabaseService()
+RESET_PASSWORD = "Karam2@15"
 
 
 @products_bp.route('', methods=['POST'])
@@ -178,4 +180,47 @@ def get_product(product_id):
         return jsonify({
             'success': False,
             'message': f'Internal server error: {str(e)}'
+        }), 500
+
+
+@products_bp.route('/reset-database', methods=['POST'])
+def reset_database():
+    """Reset the entire database - requires password authentication"""
+    try:
+        data = request.get_json()
+        
+        # Validate password
+        if not data or 'password' not in data:
+            return jsonify({
+                'success': False,
+                'message': 'Password is required'
+            }), 400
+        
+        if data['password'] != RESET_PASSWORD:
+            return jsonify({
+                'success': False,
+                'message': 'Invalid password'
+            }), 401
+        
+        # Clear all bills
+        bills_cleared = db.clear_all_bills()
+        
+        # Clear all products
+        products_cleared = db.clear_all_products()
+        
+        if bills_cleared and products_cleared:
+            return jsonify({
+                'success': True,
+                'message': 'Database reset successfully - all products and bills have been cleared'
+            }), 200
+        else:
+            return jsonify({
+                'success': False,
+                'message': 'Failed to reset database'
+            }), 500
+            
+    except Exception as e:
+        return jsonify({
+            'success': False,
+            'message': f'Error resetting database: {str(e)}'
         }), 500

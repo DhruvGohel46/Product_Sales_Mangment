@@ -928,11 +928,11 @@ const Reports = () => {
               }}
             >
               <DownloadIcon color={isDark ? '#f1f5f9' : '#475569'} />
-              {downloading.excel ? 'Downloading...' : 'Excel Report'}
+              {downloading.excel ? 'Downloading...' : 'Detailed Excel Report'}
             </Button>
 
             <Button
-              onClick={() => handleDownload('csv', 'detailed', `sales_report_${safeSummary.date || 'today'}.csv`)}
+              onClick={() => handleDownload('csv', 'simple', `simple_sales_report_${safeSummary.date || 'today'}.xlsx`)}
               disabled={downloading.csv}
               variant="secondary"
               style={{
@@ -949,7 +949,7 @@ const Reports = () => {
               }}
             >
               <DownloadIcon color={isDark ? '#f1f5f9' : '#475569'} />
-              {downloading.csv ? 'Downloading...' : 'CSV Report'}
+              {downloading.csv ? 'Downloading...' : 'Simple Excel Report'}
             </Button>
           </div>
         </div>

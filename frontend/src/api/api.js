@@ -66,6 +66,10 @@ export const reportsAPI = {
   exportTodayExcel: (reportType = 'detailed') => 
     api.get(`/api/reports/excel/today?type=${reportType}`, { responseType: 'blob' }),
   
+  // Export today's CSV report
+  exportTodayCSV: (reportType = 'simple') => 
+    api.get(`/api/reports/excel/today?type=${reportType}`, { responseType: 'blob' }),
+  
   // Export today's XML report
   exportTodayXML: () => 
     api.get('/api/reports/xml/today', { responseType: 'blob' }),

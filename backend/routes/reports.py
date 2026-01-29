@@ -1,6 +1,7 @@
 from flask import Blueprint, request, jsonify, send_file
 from services.sqlite_db_service import SQLiteDatabaseService
 from services.excel_service import ExcelService
+from services.excel_xlsx_service import ExcelXLSXService
 from services.summary_service import SummaryService
 import os
 from datetime import date
@@ -9,12 +10,13 @@ from datetime import date
 reports_bp = Blueprint('reports', __name__, url_prefix='/api/reports')
 db = SQLiteDatabaseService()
 excel_service = ExcelService()
+excel_xlsx_service = ExcelXLSXService()
 summary_service = SummaryService(db)
 
 
 @reports_bp.route('/excel/today', methods=['GET'])
 def export_today_excel():
-    """Export today's sales data to Excel (CSV format)"""
+    """Export today's sales data to Excel (.xlsx format)"""
     try:
         # Get today's bills
         all_bills = db.get_all_bills()
@@ -24,10 +26,20 @@ def export_today_excel():
         bills = [bill for bill in all_bills if bill['created_at'].split(' ')[0] == today]
         
         if not bills:
-            return jsonify({
-                'success': False,
-                'message': 'No bills found for today'
-            }), 404
+            # Return a sample Excel file when no bills exist
+            sample_filepath = excel_xlsx_service.create_sample_report()
+            if sample_filepath:
+                return send_file(
+                    sample_filepath,
+                    as_attachment=True,
+                    download_name=f"sample_sales_report_{today}.xlsx",
+                    mimetype='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+                )
+            else:
+                return jsonify({
+                    'success': False,
+                    'message': 'No bills found for today and failed to create sample report'
+                }), 500
         
         # Get summary data
         summary = summary_service.get_today_summary()
@@ -36,11 +48,11 @@ def export_today_excel():
         report_type = request.args.get('type', 'detailed')  # detailed, summary, or simple
         
         if report_type == 'summary':
-            filepath = excel_service.export_summary_to_csv(summary)
+            filepath = excel_xlsx_service.export_summary_report(summary)
         elif report_type == 'simple':
-            filepath = excel_service.export_today_sales_to_csv(bills)
+            filepath = excel_xlsx_service.export_simple_sales_report(bills)
         else:  # detailed (default)
-            filepath = excel_service.create_detailed_sales_report(bills, summary)
+            filepath = excel_xlsx_service.export_detailed_sales_report(bills, summary)
         
         if not filepath:
             return jsonify({
@@ -53,7 +65,7 @@ def export_today_excel():
             filepath,
             as_attachment=True,
             download_name=os.path.basename(filepath),
-            mimetype='text/csv'
+            mimetype='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
         )
         
     except Exception as e:
@@ -109,7 +121,12 @@ def export_today_csv():
 def preview_excel_data():
     """Preview Excel data without downloading"""
     try:
-        bills = xml_db.get_today_bills()
+        # Get today's bills
+        all_bills = db.get_all_bills()
+        
+        # Filter bills for today
+        today = date.today().strftime('%Y-%m-%d')
+        bills = [bill for bill in all_bills if bill['created_at'].split(' ')[0] == today]
         
         if not bills:
             return jsonify({
@@ -147,13 +164,21 @@ def preview_excel_data():
 def preview_xml_data():
     """Preview XML data without downloading"""
     try:
-        xml_content = xml_db.get_today_xml_content()
+        # Get today's bills
+        all_bills = db.get_all_bills()
         
-        if not xml_content or xml_content == "<bills></bills>":
+        # Filter bills for today
+        today = date.today().strftime('%Y-%m-%d')
+        bills = [bill for bill in all_bills if bill['created_at'].split(' ')[0] == today]
+        
+        if not bills:
             return jsonify({
                 'success': False,
                 'message': 'No bills found for today'
             }), 404
+        
+        # Generate XML content
+        xml_content = excel_service.generate_bills_xml(bills)
         
         return jsonify({
             'success': True,
@@ -196,9 +221,9 @@ def get_available_reports():
             'xml_reports': [
                 {
                     'name': 'Today\'s Bills XML',
-                    'endpoint': '/api/reports/xml/today',
-                    'description': 'Raw XML data of today\'s bills',
-                    'format': 'XML'
+                    'endpoint': '/api/reports/csv/today',
+                    'description': 'Raw CSV data of today\'s bills',
+                    'format': 'CSV'
                 }
             ],
             'preview_endpoints': [

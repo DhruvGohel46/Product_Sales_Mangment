@@ -4,7 +4,7 @@ from typing import List, Dict, Optional, Any
 import json
 
 class SQLiteDatabaseService:
-    def __init__(self, db_path: str = 'data/products.db'):
+    def __init__(self, db_path: str = 'backend/data/products.db'):
         self.db_path = db_path
         self.init_database()
     
@@ -218,4 +218,22 @@ class SQLiteDatabaseService:
             
         except Exception as e:
             print(f"Error clearing bills: {e}")
+            return False
+
+    def clear_all_products(self):
+        """Clear all products from the database"""
+        try:
+            conn = self.get_connection()
+            cursor = conn.cursor()
+            
+            # Delete all products
+            cursor.execute('DELETE FROM products')
+            
+            conn.commit()
+            conn.close()
+            
+            return True
+            
+        except Exception as e:
+            print(f"Error clearing products: {e}")
             return False

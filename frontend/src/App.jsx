@@ -47,6 +47,7 @@ import { ThemeProvider } from './context/ThemeContext';
 import { ToastProvider } from './context/ToastContext';
 import { useTheme } from './context/ThemeContext';
 import { useAnimation } from './hooks/useAnimation';
+import { formatCurrency } from './utils/api';
 import './styles/fonts.css';
 import './styles/global.css';
 
@@ -100,6 +101,10 @@ function AppContent() {
     setTimeout(() => {
       setLastBill(null);
     }, 5000);
+  };
+
+  const closeNotification = () => {
+    setLastBill(null);
   };
 
   const renderCurrentScreen = () => {
@@ -305,115 +310,139 @@ function AppContent() {
         {renderCurrentScreen()}
       </main>
 
-      {/* Last Bill Notification */}
+      {/* Last Bill Notification with Spotlight Effect */}
       <AnimatePresence>
         {lastBill && (
-          <motion.div
-            initial={{ opacity: 0, y: 50, scale: 0.9 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: 50, scale: 0.9 }}
-            transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
-            style={{
-              position: 'fixed',
-              bottom: currentTheme.spacing[6],
-              right: currentTheme.spacing[6],
-              zIndex: 1000,
-            }}
-          >
-            <div style={{
-              background: isDark ? 'rgba(30, 41, 59, 0.98)' : 'rgba(255, 255, 255, 0.98)',
-              backdropFilter: 'blur(20px)',
-              border: `1px solid ${isDark ? 'rgba(34, 197, 94, 0.3)' : 'rgba(34, 197, 94, 0.2)'}`,
-              borderRadius: '16px',
-              padding: `${currentTheme.spacing[4]} ${currentTheme.spacing[5]}`,
-              boxShadow: isDark 
-                ? '0 8px 32px rgba(34, 197, 94, 0.15), 0 4px 16px rgba(0, 0, 0, 0.3)'
-                : '0 8px 32px rgba(34, 197, 94, 0.1), 0 4px 16px rgba(0, 0, 0, 0.1)',
-              minWidth: '320px',
-              position: 'relative',
-              overflow: 'hidden',
-            }}>
-              {/* Success Indicator */}
-              <div style={{
-                position: 'absolute',
+          <>
+            {/* Blur Backdrop */}
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.2 }}
+              style={{
+                position: 'fixed',
                 top: 0,
                 left: 0,
-                width: '4px',
-                height: '100%',
-                background: `linear-gradient(180deg, ${currentTheme.colors.success[500]}, ${currentTheme.colors.success[600]})`,
-              }} />
-              
-              {/* Header */}
+                right: 0,
+                bottom: 0,
+                backgroundColor: 'rgba(0, 0, 0, 0.5)',
+                backdropFilter: 'blur(4px)',
+                zIndex: 999,
+                cursor: 'pointer',
+              }}
+              onClick={closeNotification}
+            />
+            
+            {/* Notification Card */}
+            <motion.div
+              initial={{ opacity: 0, y: -50, scale: 0.9 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, y: -50, scale: 0.9 }}
+              transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
+              style={{
+                position: 'fixed',
+                top: currentTheme.spacing[6],
+                right: currentTheme.spacing[6],
+                zIndex: 1000,
+              }}
+            >
               <div style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: currentTheme.spacing[3],
-                marginBottom: currentTheme.spacing[2],
+                background: isDark ? 'rgba(30, 41, 59, 0.98)' : 'rgba(255, 255, 255, 0.98)',
+                backdropFilter: 'blur(20px)',
+                border: `1px solid ${isDark ? 'rgba(34, 197, 94, 0.3)' : 'rgba(34, 197, 94, 0.2)'}`,
+                borderRadius: '16px',
+                padding: `${currentTheme.spacing[4]} ${currentTheme.spacing[5]}`,
+                boxShadow: isDark 
+                  ? '0 8px 32px rgba(34, 197, 94, 0.15), 0 4px 16px rgba(0, 0, 0, 0.3)'
+                  : '0 8px 32px rgba(34, 197, 94, 0.1), 0 4px 16px rgba(0, 0, 0, 0.1)',
+                minWidth: '320px',
+                position: 'relative',
+                overflow: 'hidden',
+                cursor: 'default',
               }}>
+                {/* Success Indicator */}
                 <div style={{
-                  width: '32px',
-                  height: '32px',
-                  borderRadius: '50%',
-                  background: `linear-gradient(135deg, ${currentTheme.colors.success[500]}, ${currentTheme.colors.success[600]})`,
+                  position: 'absolute',
+                  top: 0,
+                  left: 0,
+                  width: '4px',
+                  height: '100%',
+                  background: `linear-gradient(180deg, ${currentTheme.colors.success[500]}, ${currentTheme.colors.success[600]})`,
+                }} />
+                
+                {/* Header */}
+                <div style={{
                   display: 'flex',
                   alignItems: 'center',
-                  justifyContent: 'center',
-                  boxShadow: `0 4px 12px ${isDark ? 'rgba(34, 197, 94, 0.3)' : 'rgba(34, 197, 94, 0.2)'}`,
+                  gap: currentTheme.spacing[3],
+                  marginBottom: currentTheme.spacing[2],
                 }}>
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M20 6L9 17L4 12" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                  </svg>
-                </div>
-                <div>
-                  <h4 style={{ 
-                    fontSize: '0.95rem',
-                    fontWeight: 600,
-                    color: currentTheme.colors.text.primary,
-                    margin: 0,
-                    lineHeight: 1.2,
+                  <div style={{
+                    width: '32px',
+                    height: '32px',
+                    borderRadius: '50%',
+                    background: `linear-gradient(135deg, ${currentTheme.colors.success[500]}, ${currentTheme.colors.success[600]})`,
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    boxShadow: `0 4px 12px ${isDark ? 'rgba(34, 197, 94, 0.3)' : 'rgba(34, 197, 94, 0.2)'}`,
                   }}>
-                    Bill Created Successfully!
-                  </h4>
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                      <path d="M20 6L9 17L4 12" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                    </svg>
+                  </div>
+                  <div>
+                    <h4 style={{ 
+                      fontSize: '0.95rem',
+                      fontWeight: 600,
+                      color: currentTheme.colors.text.primary,
+                      margin: 0,
+                      lineHeight: 1.2,
+                    }}>
+                      Bill Created Successfully!
+                    </h4>
+                  </div>
                 </div>
-              </div>
-              
-              {/* Bill Details */}
-              <div style={{
-                display: 'flex',
-                flexDirection: 'column',
-                gap: currentTheme.spacing[1],
-                paddingLeft: '44px', // Align with header text
-              }}>
-                <p style={{ 
-                  fontSize: '0.875rem',
-                  color: currentTheme.colors.text.secondary,
-                  margin: 0,
-                  lineHeight: 1.4,
+                
+                {/* Bill Details */}
+                <div style={{
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: currentTheme.spacing[1],
+                  paddingLeft: '44px', // Align with header text
                 }}>
-                  <span style={{ fontWeight: 600 }}>Bill #{lastBill.bill_no}</span>
-                </p>
-                <p style={{ 
-                  fontSize: '0.875rem',
-                  color: currentTheme.colors.text.secondary,
-                  margin: 0,
-                  lineHeight: 1.4,
-                }}>
-                  Total: <span style={{ fontWeight: 600, color: currentTheme.colors.success[600] }}>{lastBill.total}</span>
-                </p>
+                  <p style={{ 
+                    fontSize: '0.875rem',
+                    color: currentTheme.colors.text.secondary,
+                    margin: 0,
+                    lineHeight: 1.4,
+                  }}>
+                    <span style={{ fontWeight: 600 }}>Bill #{lastBill.bill_no}</span>
+                  </p>
+                  <p style={{ 
+                    fontSize: '0.875rem',
+                    color: currentTheme.colors.text.secondary,
+                    margin: 0,
+                    lineHeight: 1.4,
+                  }}>
+                    Total: <span style={{ fontWeight: 600, color: currentTheme.colors.success[600] }}>{formatCurrency(lastBill.total)}</span>
+                  </p>
+                </div>
+                
+                {/* Auto-dismiss indicator */}
+                <div style={{
+                  position: 'absolute',
+                  bottom: 0,
+                  left: 0,
+                  height: '2px',
+                  width: '100%',
+                  background: `linear-gradient(90deg, ${currentTheme.colors.success[500]}, ${currentTheme.colors.success[600]})`,
+                  transformOrigin: 'left',
+                }} />
               </div>
-              
-              {/* Auto-dismiss indicator */}
-              <div style={{
-                position: 'absolute',
-                bottom: 0,
-                left: 0,
-                height: '2px',
-                width: '100%',
-                background: `linear-gradient(90deg, ${currentTheme.colors.success[500]}, ${currentTheme.colors.success[600]})`,
-                transformOrigin: 'left',
-              }} />
-            </div>
-          </motion.div>
+            </motion.div>
+          </>
         )}
       </AnimatePresence>
     </div>

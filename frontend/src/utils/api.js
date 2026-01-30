@@ -23,7 +23,6 @@ api.interceptors.request.use(
     return Promise.reject(error);
   }
 );
-
 // Response interceptor for error handling
 api.interceptors.response.use(
   (response) => {
@@ -182,7 +181,6 @@ export const formatCurrency = (amount) => {
   return new Intl.NumberFormat('en-IN', {
     style: 'currency',
     currency: 'INR',
-    minimumFractionDigits: 2,
   }).format(amount);
 };
 

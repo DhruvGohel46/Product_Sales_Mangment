@@ -129,9 +129,7 @@ class PrinterService:
                     init_commands = b'\x1B@'  # Initialize printer
                     
                     # Set character size to normal with bold
-                    char_size_cmd = b'\x1B!\x08'  # Bold text
-                    # Set character size to normal without bold
-                    char_size_normal = b'\x1D!\x00'
+                    char_size_cmd = b'\x1B!\x18'  # Bold text
                     
                     # Convert text to bytes with proper encoding
                     text_bytes = text.encode('utf-8')
@@ -145,7 +143,7 @@ class PrinterService:
                     else:
                         cut_command = b''  # No cutter
                     
-                    # Combine all commands with bold formatting
+                    # Combine all commands
                     full_command = init_commands + char_size_cmd + text_bytes + feed_lines + cut_command
                     
                     # Send to printer

@@ -174,7 +174,7 @@ const WorkingPOSInterface = ({ onBillCreated }) => {
       if (onBillCreated) {
         onBillCreated({
           bill_no: response.data.bill.bill_no,
-          total: formatCurrency(response.data.bill.total_amount || 0)
+          total: response.data.bill.total_amount || 0
         });
       }
       
@@ -209,7 +209,7 @@ const WorkingPOSInterface = ({ onBillCreated }) => {
       if (onBillCreated) {
         onBillCreated({
           bill_no: response.data.bill.bill_no,
-          total: formatCurrency(response.data.bill.total_amount || 0)
+          total: response.data.bill.total_amount || 0
         });
       }
       

@@ -153,9 +153,7 @@ export const semantic = {
 export const category = {
   COLD: primary[600],      // cold drinks
   PAAN: semantic.success[600],  // Green for paan
-  SNACK: semantic.warning[600], // Amber for snacks
-  FOOD: semantic.error[600],    // Red for food
-  OTHER: neutral[600],       // Gray for other
+  OTHER: semantic.warning[600], // Amber for other
 };
 
 // Unified color system

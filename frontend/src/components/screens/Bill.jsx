@@ -1,6 +1,62 @@
+/**
+ * =============================================================================
+ * POINT OF SALE / BILLING INTERFACE - BILL.JSX
+ * =============================================================================
+ * 
+ * ROLE: Main Point of Sale (POS) system for product billing and order management
+ * 
+ * RESPONSIBILITIES:
+ * - Product catalog display with category filtering
+ * - Shopping cart management and order processing
+ * - Bill creation with multiple payment options
+ * - Real-time order calculations and tax handling
+ * - Product search and selection interface
+ * - Print and save bill functionality
+ * 
+ * KEY FEATURES:
+ * - Product grid with hover effects and category indicators
+ * - Dynamic shopping cart with add/remove/update operations
+ * - Multiple payment methods (Cash, Card, UPI)
+ * - Real-time total calculations with tax
+ * - Bill printing and saving capabilities
+ * - Responsive design for tablets and desktops
+ * 
+ * COMPONENTS:
+ * - ProductCard: Individual product display with hover effects
+ * - ShoppingCart: Order management interface
+ * - PaymentModal: Payment method selection
+ * - BillPreview: Bill preview before printing
+ * 
+ * STATE MANAGEMENT:
+ * - orderItems: Current shopping cart items
+ * - selectedCategory: Active product category filter
+ * - searchQuery: Product search functionality
+ * - paymentMethod: Selected payment option
+ * 
+ * API INTEGRATION:
+ * - productsAPI: Product catalog management
+ * - billingAPI: Bill creation and management
+ * - formatCurrency: Currency formatting utility
+ * 
+ * DESIGN PATTERNS:
+ * - Functional component with multiple hooks
+ * - Event-driven architecture for user interactions
+ * - Theme-aware styling with hover states
+ * - Framer Motion animations for interactions
+ * - Responsive grid layout for products
+ * 
+ * USER WORKFLOW:
+ * 1. Select products from catalog
+ * 2. Add to shopping cart
+ * 3. Review order and select payment method
+ * 4. Create and save/print bill
+ * 5. Auto-navigate back to products
+ * =============================================================================
+ */
 import React, { useState, useEffect, useRef } from 'react';
 import { motion } from 'framer-motion';
 import { useTheme } from '../../context/ThemeContext';
+import { useToast } from '../../context/ToastContext';
 import { productsAPI, billingAPI } from '../../utils/api';
 import { handleAPIError, formatCurrency } from '../../utils/api';
 import { CATEGORY_COLORS } from '../../utils/constants';
@@ -8,8 +64,9 @@ import Button from '../ui/Button';
 import Card from '../ui/Card';
 import Input from '../ui/Input';
 
-const WorkingPOSInterface = () => {
+const WorkingPOSInterface = ({ onBillCreated }) => {
   const { currentTheme, isDark } = useTheme();
+  const { showSuccess } = useToast();
   
   const [products, setProducts] = useState([]);
   const [selectedCategory, setSelectedCategory] = useState('all');
@@ -105,14 +162,56 @@ const WorkingPOSInterface = () => {
         products: orderItems.map(item => ({
           product_id: item.product_id,
           quantity: item.quantity
-        }))
+        })),
+        print: false  // Don't print for save only
       };
 
       const response = await billingAPI.createBill(billData);
       
       setOrderItems([]);
       
-      alert(`Order saved successfully! Bill #${response.data.bill.bill_no}`);
+      // Trigger bill notification in parent (this shows the card notification)
+      if (onBillCreated) {
+        onBillCreated({
+          bill_no: response.data.bill.bill_no,
+          total: formatCurrency(response.data.bill.total_amount || 0)
+        });
+      }
+      
+    } catch (err) {
+      const apiError = handleAPIError(err);
+      setError(apiError.message);
+    }
+  };
+
+  const handleSaveAndPrintOrder = async () => {
+    if (orderItems.length === 0) {
+      setError('Please add items to the order');
+      return;
+    }
+
+    try {
+      setError('');
+      
+      const billData = {
+        products: orderItems.map(item => ({
+          product_id: item.product_id,
+          quantity: item.quantity
+        })),
+        print: true  // Print for save and print
+      };
+
+      const response = await billingAPI.createBill(billData);
+      
+      setOrderItems([]);
+      
+      // Trigger bill notification in parent (this shows the card notification)
+      if (onBillCreated) {
+        onBillCreated({
+          bill_no: response.data.bill.bill_no,
+          total: formatCurrency(response.data.bill.total_amount || 0)
+        });
+      }
       
     } catch (err) {
       const apiError = handleAPIError(err);
@@ -204,10 +303,10 @@ const WorkingPOSInterface = () => {
                     ? `1px solid ${currentTheme.colors.primary[200]}`
                     : `1px solid ${currentTheme.colors.border}`,
                   backgroundColor: selectedCategory === category.id 
-                    ? (isDark ? '#4A4A4A' : '#E9E9E9')
+                    ? (isDark ? '#444444ff' : '#E9E9E9')
                     : (isDark ? '#1A1A1A' : '#F1F1F1'),
                     
-                  
+                   boxShadow: isDark ? currentTheme.shadows.cardDark : currentTheme.shadows.card,
                   transition: 'all 0.2s cubic-bezier(0, 0, 0.2, 1)',
                 }}
                 onClick={() => setSelectedCategory(category.id)}
@@ -227,6 +326,9 @@ const WorkingPOSInterface = () => {
                       {category.name}
                     </div>
                     <div style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
                       fontSize: currentTheme.typography.fontSize.xs,
                       color: currentTheme.colors.text.secondary,
                       letterSpacing: currentTheme.typography.letterSpacing.normal,
@@ -329,7 +431,7 @@ const WorkingPOSInterface = () => {
             style={{
               display: 'grid',
               gridTemplateColumns: 'repeat(auto-fill, minmax(180px, 1fr))',
-              gap: currentTheme.spacing[4],
+              gap: currentTheme.spacing[8],
             }}
           >
             {filteredProducts.map((product) => (
@@ -340,23 +442,40 @@ const WorkingPOSInterface = () => {
                   animate: { opacity: 1, y: 0 }
                 }}
                 whileHover={{ 
-                  y: -1,
-                  transition: { duration: 0.14, ease: [0, 0, 0.2, 1] }
+                  y: -4,
+                  scale: 1.02,
+                  transition: { duration: 0.2, ease: [0.16, 1, 0.3, 1] }
                 }}
                 whileTap={{ y: 0 }}
+                onHoverStart={() => {
+                  // Add hover class or state
+                  const element = document.getElementById(`product-${product.product_id}`);
+                  if (element) {
+                    element.style.border = '1px solid var(--primary-300)';
+                  }
+                }}
+                onHoverEnd={() => {
+                  // Remove hover class or state
+                  const element = document.getElementById(`product-${product.product_id}`);
+                  if (element) {
+                    element.style.border = `1px solid ${currentTheme.colors.border}`;
+                  }
+                }}
                 onClick={(e) => handleAddItem(product, e)}
                 style={{
                   cursor: 'pointer',
                   textAlign: 'center',
-                  minHeight: '140px',
+                  minHeight: '120px',
                   display: 'flex',
                   flexDirection: 'column',
                   justifyContent: 'center',
                   borderTop: `2px solid ${CATEGORY_COLORS[product.category]}`,
-                  backgroundColor: currentTheme.colors.border,
+                  backgroundColor: currentTheme.colors.Card,
                   borderRadius: '15px',
                   border: `1px solid ${currentTheme.colors.border}`,
                   padding: currentTheme.spacing.lg,
+                  boxShadow: isDark ? currentTheme.shadows.cardDark : currentTheme.shadows.card,
+                  id: `product-${product.product_id}`,
                 }}
               >
                 <h4 style={{ 
@@ -369,7 +488,7 @@ const WorkingPOSInterface = () => {
                   {product.name}
                 </h4>
                 <div style={{
-                  fontSize: currentTheme.typography.fontSize['xl'],
+                  fontSize: currentTheme.typography.fontSize['2xl'],
                   fontWeight: currentTheme.typography.fontWeight.bold,
                   color: CATEGORY_COLORS[product.category],
                 }}>
@@ -570,7 +689,7 @@ const WorkingPOSInterface = () => {
             <Button variant="secondary" onClick={handleSaveOrder}>
               Save
             </Button>
-            <Button variant="primary" onClick={() => handleSaveOrder()}>
+            <Button variant="primary" onClick={handleSaveAndPrintOrder}>
               Save & Print
             </Button>
           </div>

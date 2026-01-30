@@ -12,8 +12,14 @@
   align-items: center;
   justify-content: center;
   font-size: calc(10px + 2vmin);
+  box-shadow:whitesmoke;
 }
-
+[data-theme="dark"] .App-header {
+  box-shadow: 0 8px 32px rgba(255, 255, 255, 0.1);
+}
+[data-theme="dark"] .App-header:hover {
+  box-shadow: 0 8px 32px rgba(255, 255, 255, 0.05);
+}
 .App-header ul {
   font-size: 16px;
   text-align: left;

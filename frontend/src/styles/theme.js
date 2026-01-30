@@ -1,3 +1,68 @@
+/**
+ * =============================================================================
+ * THEME SYSTEM - THEME.JSX
+ * =============================================================================
+ * 
+ * ROLE: Centralized design system and theme management for the application
+ * 
+ * RESPONSIBILITIES:
+ * - Define color palettes for light and dark themes
+ * - Typography system with consistent font scales
+ * - Spacing system for consistent layouts
+ * - Shadow definitions for depth and hierarchy
+ * - Breakpoint system for responsive design
+ * - Component-specific styling tokens
+ * 
+ * KEY FEATURES:
+ * - Dual theme support (light/dark modes)
+ * - Comprehensive color system with semantic naming
+ * - Typography scale with proper hierarchy
+ * - Consistent spacing system (rem-based)
+ * - Professional shadow system for depth
+ * - Responsive breakpoint definitions
+ * - CSS custom properties generation
+ * 
+ * COLOR SYSTEM:
+ * - Semantic colors: primary, secondary, success, error, warning, info
+ * - Neutral colors: gray scale for text and backgrounds
+ * - Surface colors: cards, modals, overlays
+ * - Interactive states: hover, focus, disabled
+ * 
+ * TYPOGRAPHY:
+ * - Font sizes: xs to 9xl scale
+ * - Font weights: light to bold
+ * - Line heights for readability
+ * - Letter spacing for emphasis
+ * 
+ * SPACING SYSTEM:
+ * - Consistent rem-based spacing (0.25rem to 6rem)
+ * - Semantic naming (xs, sm, md, lg, xl, etc.)
+ * - Layout utilities and gaps
+ * 
+ * SHADOWS:
+ * - Subtle to dramatic shadow scale
+ * - Theme-aware shadows (dark/light)
+ * - Component-specific shadows
+ * - Colored shadows for accents
+ * 
+ * BREAKPOINTS:
+ * - Mobile-first responsive design
+ * - Standard breakpoint definitions
+ * - Container max-widths
+ * 
+ * DESIGN PATTERNS:
+ * - CSS custom properties for dynamic theming
+ * - Systematic design tokens
+ * - Consistent naming conventions
+ * - Developer-friendly API
+ * 
+ * USAGE:
+ * - Import theme object in components
+ * - Use theme.colors, theme.spacing, etc.
+ * - Automatic theme switching support
+ * =============================================================================
+ */
+
 // Unified Design System Theme for POS Application
 // Professional enterprise color system with consistent usage across all screens
 
@@ -86,7 +151,7 @@ export const semantic = {
 
 // Category colors - consistent with semantic colors
 export const category = {
-  COLD: primary[600],      // Blue for cold drinks
+  COLD: primary[600],      // cold drinks
   PAAN: semantic.success[600],  // Green for paan
   SNACK: semantic.warning[600], // Amber for snacks
   FOOD: semantic.error[600],    // Red for food
@@ -228,6 +293,15 @@ export const shadows = {
   lg: '0 8px 12px -2px rgba(0, 0, 0, 0.08), 0 4px 8px -2px rgba(0, 0, 0, 0.04)',
   xl: '0 12px 20px -4px rgba(0, 0, 0, 0.1), 0 6px 12px -2px rgba(0, 0, 0, 0.05)',
   '2xl': '0 20px 32px -8px rgba(0, 0, 0, 0.12), 0 10px 20px -4px rgba(0, 0, 0, 0.06)',
+  
+  // Strong shadows for cards (matching Management.css)
+  card: '0 8px 32px rgba(0, 0, 0, 0.12)',
+  cardHover: '0 8px 32px rgba(0, 0, 0, 0.08)',
+  
+  // Dark theme card shadows
+  cardDark: '0 8px 32px rgba(255, 255, 255, 0.1)',
+  cardDarkHover: '0 8px 32px rgba(255, 255, 255, 0.05)',
+  
   inner: 'inset 0 1px 2px 0 rgba(0, 0, 0, 0.03)',
   
   // Colored shadows for accent elements

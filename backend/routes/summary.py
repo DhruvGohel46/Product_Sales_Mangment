@@ -125,7 +125,8 @@ def get_product_sales():
     """Get detailed sales breakdown by individual products"""
     try:
         db = summary_service.db_service
-        all_bills = db.get_all_bills()
+        # Get today's bills only for daily refresh
+        all_bills = db.get_todays_bills()
         
         # Calculate product sales from all bills
         product_sales = {}

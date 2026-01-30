@@ -1,11 +1,11 @@
 from flask import Blueprint, request, jsonify
 from services.sqlite_db_service import SQLiteDatabaseService
+from config import config
 import os
 
 
 products_bp = Blueprint('products', __name__, url_prefix='/api/products')
 db = SQLiteDatabaseService()
-RESET_PASSWORD = "Karam2@15"
 
 
 @products_bp.route('', methods=['POST'])
@@ -195,6 +195,9 @@ def reset_database():
                 'success': False,
                 'message': 'Password is required'
             }), 400
+        
+        # Use password from config
+        RESET_PASSWORD = config['default'].RESET_PASSWORD
         
         if data['password'] != RESET_PASSWORD:
             return jsonify({

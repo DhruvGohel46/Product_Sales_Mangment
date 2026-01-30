@@ -15,19 +15,20 @@ class SummaryService:
         Returns summary data including totals, category breakdown, and timing info
         """
         try:
-            # Get all bills and filter for today
-            all_bills = self.db_service.get_all_bills()
+            # Get today's bills
+            bills = self.db_service.get_todays_bills()
             today = date.today().strftime('%Y-%m-%d')
-            bills = [bill for bill in all_bills if bill['created_at'].split(' ')[0] == today]
             
             # If no bills today, check for the most recent bills and show them instead
-            if not bills and all_bills:
-                # Get the most recent date with bills
-                dates_with_bills = set(bill['created_at'].split(' ')[0] for bill in all_bills)
-                if dates_with_bills:
-                    most_recent_date = max(dates_with_bills)
-                    bills = [bill for bill in all_bills if bill['created_at'].split(' ')[0] == most_recent_date]
-                    today = most_recent_date  # Update today to show the actual data date
+            if not bills:
+                all_bills = self.db_service.get_all_bills()
+                if all_bills:
+                    # Get the most recent date with bills
+                    dates_with_bills = set(bill['created_at'].split(' ')[0] for bill in all_bills)
+                    if dates_with_bills:
+                        most_recent_date = max(dates_with_bills)
+                        bills = [bill for bill in all_bills if bill['created_at'].split(' ')[0] == most_recent_date]
+                        today = most_recent_date  # Update today to show the actual data date
             
             if not bills:
                 return {

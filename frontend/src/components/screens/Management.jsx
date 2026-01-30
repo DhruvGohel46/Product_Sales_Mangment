@@ -1,3 +1,61 @@
+/**
+ * =============================================================================
+ * PRODUCT MANAGEMENT SYSTEM - MANAGEMENT.JSX
+ * =============================================================================
+ * 
+ * ROLE: Comprehensive product catalog management with CRUD operations
+ * 
+ * RESPONSIBILITIES:
+ * - Product catalog management (Create, Read, Update, Delete)
+ * - Product status management (Active/Inactive)
+ * - Category-based product organization
+ * - Advanced search and filtering capabilities
+ * - Bulk operations and data management
+ * - Product form validation and error handling
+ * 
+ * KEY FEATURES:
+ * - Interactive product grid with status indicators
+ * - Add/Edit product modal with form validation
+ * - Category filtering and search functionality
+ * - Product activation/deactivation with confirmation
+ * - Real-time product updates and sync
+ * - Responsive design for mobile and desktop
+ * - Professional header with action buttons
+ * 
+ * COMPONENTS:
+ * - ProductGrid: Display products with status and actions
+ * - ProductForm: Add/Edit product interface
+ * - SearchBar: Product search and filtering
+ * - CategoryFilter: Category-based filtering
+ * - StatusToggle: Product activation controls
+ * 
+ * STATE MANAGEMENT:
+ * - products: Complete product catalog
+ * - loading: Async operation states
+ * - error: Error handling and display
+ * - filters: Search and category filters
+ * - formData: Product form data
+ * 
+ * API INTEGRATION:
+ * - productsAPI: Product CRUD operations
+ * - handleAPIError: Centralized error handling
+ * - formatCurrency: Price formatting
+ * 
+ * DESIGN PATTERNS:
+ * - Functional component with hooks
+ * - CSS modules for styling (Management.css)
+ * - Framer Motion animations
+ * - Form validation patterns
+ * - Confirmation dialogs for destructive actions
+ * 
+ * USER WORKFLOW:
+ * 1. View product catalog with filters
+ * 2. Add new products or edit existing ones
+ * 3. Manage product status (active/inactive)
+ * 4. Search and filter products
+ * 5. Bulk operations and data management
+ * =============================================================================
+ */
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAnimation } from '../../hooks/useAnimation';
@@ -183,7 +241,7 @@ const ProductManagement = () => {
       <div className="pmHeader">
         <div className="pmHeaderLeft">
           <div className="pmTitleRow">
-            <div className="pmTitle">Product Management</div>
+            <div className="pmTitle">Management</div>
           </div>
         </div>
 

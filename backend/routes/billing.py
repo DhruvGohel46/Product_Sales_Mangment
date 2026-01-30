@@ -1,6 +1,7 @@
 from flask import Blueprint, request, jsonify
 from services.sqlite_db_service import SQLiteDatabaseService
 from services.printer_service import PrinterService
+from config import config
 
 
 billing_bp = Blueprint('billing', __name__, url_prefix='/api/bill')
@@ -95,11 +96,15 @@ def create_bill():
             'total': total
         }
         
-        # Print bill (non-blocking - don't fail if printer doesn't work)
-        try:
-            printer_service.print_bill(bill_response)
-        except Exception as e:
-            print(f"Printer error (non-critical): {e}")
+        # Check if printing is requested
+        should_print = data.get('print', False)
+        
+        # Print bill only if requested (non-blocking - don't fail if printer doesn't work)
+        if should_print:
+            try:
+                printer_service.print_bill(bill_response)
+            except Exception as e:
+                print(f"Printer error (non-critical): {e}")
         
         return jsonify({
             'success': True,
@@ -227,8 +232,26 @@ def print_bill(bill_no):
 
 @billing_bp.route('/clear', methods=['DELETE'])
 def clear_all_bills():
-    """Clear all bills from the database"""
+    """Clear all bills from the database - requires password authentication"""
     try:
+        data = request.get_json()
+        
+        # Validate password
+        if not data or 'password' not in data:
+            return jsonify({
+                'success': False,
+                'message': 'Password is required'
+            }), 400
+        
+        # Use same password as products reset from config
+        RESET_PASSWORD = config['default'].RESET_PASSWORD
+        
+        if data['password'] != RESET_PASSWORD:
+            return jsonify({
+                'success': False,
+                'message': 'Invalid password'
+            }), 401
+        
         db = SQLiteDatabaseService()
         success = db.clear_all_bills()
         

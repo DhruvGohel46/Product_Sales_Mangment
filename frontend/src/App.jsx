@@ -1,3 +1,46 @@
+/**
+ * =============================================================================
+ * MAIN APPLICATION COMPONENT - APP.JSX
+ * =============================================================================
+ * 
+ * ROLE: Central application entry point and routing controller
+ * 
+ * RESPONSIBILITIES:
+ * - Theme management and dark/light mode switching
+ * - Screen navigation between POS, Analytics, and Management modules
+ * - Bill notification system with auto-dismiss functionality
+ * - Global layout structure and responsive design
+ * - State management for current screen and bill notifications
+ * 
+ * KEY FEATURES:
+ * - ThemeProvider wrapper for consistent theming
+ * - Navigation system with screen state management
+ * - Bill creation notification with glassmorphism design
+ * - Auto-dismiss notifications (5 seconds)
+ * - Responsive layout with proper spacing
+ * 
+ * SCREENS:
+ * - 'pos': Point of Sale / Billing interface
+ * - 'summary': Analytics dashboard with reports
+ * - 'management': Product management system
+ * 
+ * COMPONENTS USED:
+ * - WorkingPOSInterface: Main billing/POS functionality
+ * - Reports: Analytics and reporting dashboard
+ * - ProductManagement: Product CRUD operations
+ * 
+ * STATE MANAGEMENT:
+ * - currentScreen: Active screen identifier
+ * - lastBill: Bill notification data for display
+ * - Theme context integration
+ * 
+ * DESIGN PATTERNS:
+ * - Functional component with hooks
+ * - Conditional rendering based on screen state
+ * - Framer Motion animations for notifications
+ * - Theme-aware styling throughout
+ * =============================================================================
+ */
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ThemeProvider } from './context/ThemeContext';
@@ -15,6 +58,7 @@ import ProductManagement from './components/screens/Management';
 // Import UI components
 import Button from './components/ui/Button';
 import Card from './components/ui/Card';
+import { darkTheme } from './styles/theme';
 
 function AppContent() {
   const { currentTheme, toggleTheme, isDark } = useTheme();
@@ -51,18 +95,23 @@ function AppContent() {
   const handleBillCreated = (bill) => {
     setLastBill(bill);
     setCurrentScreen('products'); // Go back to products after creating bill
+    
+    // Auto-dismiss notification after 5 seconds
+    setTimeout(() => {
+      setLastBill(null);
+    }, 5000);
   };
 
   const renderCurrentScreen = () => {
     switch (currentScreen) {
       case 'pos':
-        return <WorkingPOSInterface />;
+        return <WorkingPOSInterface onBillCreated={handleBillCreated} />;
       case 'summary':
         return <Reports />;
       case 'management':
         return <ProductManagement />;
       default:
-        return <WorkingPOSInterface />;
+        return <WorkingPOSInterface onBillCreated={handleBillCreated} />;
     }
   };
 
@@ -94,7 +143,7 @@ function AppContent() {
             backgroundColor: currentTheme.colors.card || currentTheme.colors.surface,
             border: `1px solid ${currentTheme.colors.border}`,
             borderRadius: currentTheme.borderRadius['2xl'],
-            boxShadow: currentTheme.shadows.md,
+            boxShadow: isDark ? currentTheme.shadows.cardDark : currentTheme.shadows.card,
             padding: `${currentTheme.spacing[3]} ${currentTheme.spacing[4]}`,
           }}>
             <div style={{
@@ -260,9 +309,10 @@ function AppContent() {
       <AnimatePresence>
         {lastBill && (
           <motion.div
-            initial={{ opacity: 0, y: 50 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: 50 }}
+            initial={{ opacity: 0, y: 50, scale: 0.9 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: 50, scale: 0.9 }}
+            transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
             style={{
               position: 'fixed',
               bottom: currentTheme.spacing[6],
@@ -270,25 +320,99 @@ function AppContent() {
               zIndex: 1000,
             }}
           >
-            <Card variant="success" padding="md" style={{ minWidth: '300px' }}>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: currentTheme.spacing[2] }}>
-                <h4 style={{ 
-                  fontSize: currentTheme.typography.fontSize.base,
-                  fontWeight: currentTheme.typography.fontWeight.semibold,
-                  color: currentTheme.colors.success[600],
-                  margin: 0,
+            <div style={{
+              background: isDark ? 'rgba(30, 41, 59, 0.98)' : 'rgba(255, 255, 255, 0.98)',
+              backdropFilter: 'blur(20px)',
+              border: `1px solid ${isDark ? 'rgba(34, 197, 94, 0.3)' : 'rgba(34, 197, 94, 0.2)'}`,
+              borderRadius: '16px',
+              padding: `${currentTheme.spacing[4]} ${currentTheme.spacing[5]}`,
+              boxShadow: isDark 
+                ? '0 8px 32px rgba(34, 197, 94, 0.15), 0 4px 16px rgba(0, 0, 0, 0.3)'
+                : '0 8px 32px rgba(34, 197, 94, 0.1), 0 4px 16px rgba(0, 0, 0, 0.1)',
+              minWidth: '320px',
+              position: 'relative',
+              overflow: 'hidden',
+            }}>
+              {/* Success Indicator */}
+              <div style={{
+                position: 'absolute',
+                top: 0,
+                left: 0,
+                width: '4px',
+                height: '100%',
+                background: `linear-gradient(180deg, ${currentTheme.colors.success[500]}, ${currentTheme.colors.success[600]})`,
+              }} />
+              
+              {/* Header */}
+              <div style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: currentTheme.spacing[3],
+                marginBottom: currentTheme.spacing[2],
+              }}>
+                <div style={{
+                  width: '32px',
+                  height: '32px',
+                  borderRadius: '50%',
+                  background: `linear-gradient(135deg, ${currentTheme.colors.success[500]}, ${currentTheme.colors.success[600]})`,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  boxShadow: `0 4px 12px ${isDark ? 'rgba(34, 197, 94, 0.3)' : 'rgba(34, 197, 94, 0.2)'}`,
                 }}>
-                  Bill Created Successfully!
-                </h4>
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M20 6L9 17L4 12" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                  </svg>
+                </div>
+                <div>
+                  <h4 style={{ 
+                    fontSize: '0.95rem',
+                    fontWeight: 600,
+                    color: currentTheme.colors.text.primary,
+                    margin: 0,
+                    lineHeight: 1.2,
+                  }}>
+                    Bill Created Successfully!
+                  </h4>
+                </div>
+              </div>
+              
+              {/* Bill Details */}
+              <div style={{
+                display: 'flex',
+                flexDirection: 'column',
+                gap: currentTheme.spacing[1],
+                paddingLeft: '44px', // Align with header text
+              }}>
                 <p style={{ 
-                  fontSize: currentTheme.typography.fontSize.sm,
-                  color: currentTheme.colors.success[500],
+                  fontSize: '0.875rem',
+                  color: currentTheme.colors.text.secondary,
                   margin: 0,
+                  lineHeight: 1.4,
                 }}>
-                  Bill #{lastBill.bill_no} • Total: {lastBill.total}
+                  <span style={{ fontWeight: 600 }}>Bill #{lastBill.bill_no}</span>
+                </p>
+                <p style={{ 
+                  fontSize: '0.875rem',
+                  color: currentTheme.colors.text.secondary,
+                  margin: 0,
+                  lineHeight: 1.4,
+                }}>
+                  Total: <span style={{ fontWeight: 600, color: currentTheme.colors.success[600] }}>{lastBill.total}</span>
                 </p>
               </div>
-            </Card>
+              
+              {/* Auto-dismiss indicator */}
+              <div style={{
+                position: 'absolute',
+                bottom: 0,
+                left: 0,
+                height: '2px',
+                width: '100%',
+                background: `linear-gradient(90deg, ${currentTheme.colors.success[500]}, ${currentTheme.colors.success[600]})`,
+                transformOrigin: 'left',
+              }} />
+            </div>
           </motion.div>
         )}
       </AnimatePresence>

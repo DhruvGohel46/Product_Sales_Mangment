@@ -1,0 +1,59 @@
+{
+  "name": "product-sales-management",
+  "version": "1.0.0",
+  "main": "electron/main.js",
+  "scripts": {
+    "start": "cd frontend && set PORT=3050 && react-scripts start",
+    "build": "cd frontend && npm run build",
+    "test": "cd frontend && npm test",
+    "eject": "cd frontend && npm run eject",
+    "electron": "electron .",
+    "electron-dev": "concurrently \"npm start\" \"wait-on http://localhost:3050 && electron .\"",
+    "electron-pack": "npm run build && electron-builder",
+    "preelectron-pack": "npm run build",
+    "backend": "cd backend && python app.py",
+    "dev": "concurrently \"npm run backend\" \"npm run electron-dev\"",
+    "build-all": "npm run build && electron-builder --win --x64 --publish=never"
+  },
+  "dependencies": {
+    "electron-updater": "^6.7.3"
+  },
+  "devDependencies": {
+    "concurrently": "^8.2.2",
+    "electron": "^28.0.0",
+    "electron-builder": "^24.9.1",
+    "wait-on": "^7.2.0"
+  },
+  "build": {
+    "appId": "com.burgerbhau.product-sales-management",
+    "productName": "Product Sales Management",
+    "directories": {
+      "output": "dist",
+      "buildResources": "build"
+    },
+    "files": [
+      "frontend/build/**/*",
+      "electron/**/*",
+      "node_modules/**/*"
+    ],
+    "win": {
+      "target": [
+        {
+          "target": "nsis",
+          "arch": [
+            "x64"
+          ]
+        }
+      ],
+      "icon": "electron/assets/icon.ico"
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "allowElevation": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "shortcutName": "Product Sales Management"
+    }
+  }
+}

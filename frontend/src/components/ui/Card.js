@@ -36,16 +36,16 @@ const Card = React.forwardRef(({
   const variantStyles = {
     default: {
       border: `1px solid ${currentTheme.colors.border}`,
-      boxShadow: currentTheme.shadows.sm,
+      boxShadow: currentTheme.isDark ? currentTheme.shadows.cardDark : currentTheme.shadows.card,
     },
     elevated: {
       border: 'none',
-      boxShadow: currentTheme.shadows[shadow],
+      boxShadow: currentTheme.isDark ? currentTheme.shadows.cardDark : currentTheme.shadows.card,
     },
     outlined: {
       border: `2px solid ${currentTheme.colors.primary[200]}`,
       backgroundColor: currentTheme.colors.primary[50],
-      boxShadow: currentTheme.shadows.none,
+      boxShadow: currentTheme.shadows.sm,
     },
     success: {
       border: `1px solid ${currentTheme.colors.success[200]}`,
@@ -74,7 +74,7 @@ const Card = React.forwardRef(({
     cursor: onClick ? 'pointer' : 'default',
     '&:hover': {
       transform: 'translateY(-2px)',
-      boxShadow: shadow === 'none' ? currentTheme.shadows.md : currentTheme.shadows.lg,
+      boxShadow: currentTheme.isDark ? currentTheme.shadows.cardDarkHover : currentTheme.shadows.cardHover,
     },
     '&:active': {
       transform: 'translateY(-1px)',
@@ -96,7 +96,7 @@ const Card = React.forwardRef(({
     transition: cardTransition,
     whileHover: hover ? { 
       y: -2,
-      boxShadow: shadow === 'none' ? currentTheme.shadows.md : currentTheme.shadows.lg,
+      boxShadow: currentTheme.isDark ? currentTheme.shadows.cardDarkHover : currentTheme.shadows.cardHover,
     } : undefined,
     whileTap: onClick ? { scale: 0.98 } : undefined,
   } : {};

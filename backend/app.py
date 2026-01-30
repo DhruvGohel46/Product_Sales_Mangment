@@ -1,13 +1,32 @@
 from flask import Flask, jsonify
 from flask_cors import CORS
 import os
+import threading
+from dotenv import load_dotenv
 from config import config
+
+# Load environment variables from .env file
+load_dotenv()
 
 # Import route blueprints
 from routes.products import products_bp
 from routes.billing import billing_bp
 from routes.summary import summary_bp
 from routes.reports import reports_bp
+
+# Import dashboard refresher
+from dashboard_refresher import DashboardRefresher
+
+
+def start_dashboard_refresher():
+    """Start the dashboard refresher in a separate thread"""
+    try:
+        refresher = DashboardRefresher()
+        print("🔄 Dashboard Refresher started - Daily refresh at 12:01 AM")
+        print(f"📁 Archive directory: {refresher.archive_dir}")
+        refresher.start_scheduler()
+    except Exception as e:
+        print(f"❌ Failed to start dashboard refresher: {e}")
 
 
 def create_app(config_name='default'):
@@ -94,12 +113,18 @@ if __name__ == '__main__':
     os.makedirs(app.config['ARCHIVE_DIR'], exist_ok=True)
     os.makedirs(app.config['EXPORT_DIR'], exist_ok=True)
     
+    # Start dashboard refresher in background thread
+    refresher_thread = threading.Thread(target=start_dashboard_refresher, daemon=True)
+    refresher_thread.start()
+    
     print("Starting POS Backend Server...")
     print(f"Data directory: {app.config['DATA_DIR']}")
     print(f"Server running on: http://localhost:5050")
+    print("🔄 Dashboard Refresher is running in background")
     
     app.run(
         host='0.0.0.0',
         port=5050,
-        debug=app.config['DEBUG']
+        debug=app.config['DEBUG'],
+        use_reloader=False  # Prevent duplicate refresher threads
     )

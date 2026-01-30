@@ -32,12 +32,25 @@ class SQLiteDatabaseService:
             # Create bills table
             cursor.execute('''
                 CREATE TABLE IF NOT EXISTS bills (
-                    bill_no INTEGER PRIMARY KEY AUTOINCREMENT,
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    bill_no INTEGER NOT NULL,
                     customer_name TEXT,
                     total_amount REAL NOT NULL,
                     items TEXT NOT NULL, -- JSON string of items
                     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
                 )
+            ''')
+            
+            # Create index for faster queries
+            cursor.execute('''
+                CREATE INDEX IF NOT EXISTS idx_bills_date 
+                ON bills (date(created_at))
+            ''')
+            
+            # Create unique constraint for daily bill numbers
+            cursor.execute('''
+                CREATE UNIQUE INDEX IF NOT EXISTS idx_daily_bill 
+                ON bills (bill_no, date(created_at))
             ''')
             
             conn.commit()
@@ -146,7 +159,7 @@ class SQLiteDatabaseService:
             return False
     
     def create_bill(self, bill_data: Dict[str, Any]) -> int:
-        """Create a new bill"""
+        """Create a new bill with daily numbering starting from 1"""
         # Enrich items with product names from database
         enriched_items = []
         for item in bill_data['items']:
@@ -161,22 +174,36 @@ class SQLiteDatabaseService:
         
         with self.get_connection() as conn:
             cursor = conn.cursor()
+            
+            # Get the next bill number for today
             cursor.execute('''
-                INSERT INTO bills (customer_name, total_amount, items)
-                VALUES (?, ?, ?)
+                SELECT COALESCE(MAX(bill_no), 0) + 1 
+                FROM bills 
+                WHERE date(created_at) = date('now')
+            ''')
+            next_bill_no = cursor.fetchone()[0]
+            
+            # Insert the bill with today's bill number
+            cursor.execute('''
+                INSERT INTO bills (bill_no, customer_name, total_amount, items)
+                VALUES (?, ?, ?, ?)
             ''', (
+                next_bill_no,
                 bill_data.get('customer_name', ''),
                 float(bill_data['total_amount']),
                 json.dumps(enriched_items)
             ))
             conn.commit()
-            return cursor.lastrowid
+            return next_bill_no
     
     def get_bill(self, bill_no: int) -> Optional[Dict[str, Any]]:
-        """Get a specific bill by number"""
+        """Get a specific bill by number for today"""
         with self.get_connection() as conn:
             cursor = conn.cursor()
-            cursor.execute('SELECT * FROM bills WHERE bill_no = ?', (bill_no,))
+            cursor.execute('''
+                SELECT * FROM bills 
+                WHERE bill_no = ? AND date(created_at) = date('now')
+            ''', (bill_no,))
             row = cursor.fetchone()
             
             if row:
@@ -184,6 +211,24 @@ class SQLiteDatabaseService:
                 bill['items'] = json.loads(bill['items'])
                 return bill
             return None
+    
+    def get_todays_bills(self) -> List[Dict[str, Any]]:
+        """Get all bills for today"""
+        with self.get_connection() as conn:
+            cursor = conn.cursor()
+            cursor.execute('''
+                SELECT * FROM bills 
+                WHERE date(created_at) = date('now') 
+                ORDER BY bill_no ASC
+            ''')
+            
+            bills = []
+            for row in cursor.fetchall():
+                bill = dict(row)
+                bill['items'] = json.loads(bill['items'])
+                bills.append(bill)
+            
+            return bills
     
     def get_all_bills(self) -> List[Dict[str, Any]]:
         """Get all bills"""

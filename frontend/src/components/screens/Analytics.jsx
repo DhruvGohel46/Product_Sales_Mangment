@@ -1,3 +1,63 @@
+/**
+ * =============================================================================
+ * ANALYTICS DASHBOARD - ANALYTICS.JSX
+ * =============================================================================
+ * 
+ * ROLE: Business intelligence dashboard for sales analytics and reporting
+ * 
+ * RESPONSIBILITIES:
+ * - Real-time sales data visualization and KPI tracking
+ * - Product sales breakdown with pie chart representation
+ * - Daily summary reports with key metrics
+ * - Data export functionality (CSV reports)
+ * - Interactive charts and responsive design
+ * - Data management (clear/refresh operations)
+ * 
+ * KEY FEATURES:
+ * - Total sales and bill count KPI cards
+ * - Interactive pie chart for category-wise sales
+ * - Daily revenue tracking and trends
+ * - Export reports in CSV format
+ * - Data refresh and clear functionality
+ * - Management-style header design
+ * - Responsive grid layout for KPIs
+ * 
+ * DATA VISUALIZATIONS:
+ * - PieChart: Category-wise sales distribution
+ * - KPI Cards: Total sales, total bills, revenue metrics
+ * - Progress indicators and trend analysis
+ * 
+ * API INTEGRATION:
+ * - summaryAPI: Daily sales summaries and KPIs
+ * - reportsAPI: Report generation and data export
+ * - loadProductSales: Detailed product sales data
+ * 
+ * STATE MANAGEMENT:
+ * - summary: Daily sales summary data
+ * - productSales: Individual product sales data
+ * - availableReports: Generated report list
+ * - loading/error states for async operations
+ * 
+ * COMPONENTS:
+ * - KPI Cards: Animated metric displays
+ * - PieChart: Interactive sales visualization
+ * - Export buttons: CSV download functionality
+ * - Management-style header: Consistent design
+ * 
+ * DESIGN PATTERNS:
+ * - Functional component with animation hooks
+ * - Staggered animations for visual appeal
+ * - Theme-aware styling throughout
+ * - Responsive grid layouts
+ * - Error boundaries and loading states
+ * 
+ * USER INTERACTIONS:
+ * - Real-time data refresh
+ * - Report generation and download
+ * - Data clearing with confirmation
+ * - Interactive chart exploration
+ * =============================================================================
+ */
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useTheme } from '../../context/ThemeContext';
@@ -58,12 +118,19 @@ const Reports = () => {
   const [summary, setSummary] = useState(null);
   const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
   const [loading, setLoading] = useState(true);
+  const [currentDate] = useState(new Date().toLocaleDateString('en-US', { 
+    weekday: 'long', 
+    year: 'numeric', 
+    month: 'long', 
+    day: 'numeric' 
+  }));
   
   // Reports state
   const [availableReports, setAvailableReports] = useState(null);
   const [downloading, setDownloading] = useState({});
   const [error, setError] = useState('');
   const [showClearConfirm, setShowClearConfirm] = useState(false);
+  const [clearPassword, setClearPassword] = useState('');
   const [clearingData, setClearingData] = useState(false);
   const [productSales, setProductSales] = useState([]);
 
@@ -162,16 +229,22 @@ const Reports = () => {
         headers: {
           'Content-Type': 'application/json',
         },
+        body: JSON.stringify({
+          password: clearPassword
+        }),
       });
+      
+      const result = await response.json();
       
       if (response.ok) {
         setShowClearConfirm(false);
+        setClearPassword('');
         // Reload data after clearing
         await loadSummary();
         await loadAvailableReports();
         await loadProductSales();
       } else {
-        throw new Error('Failed to clear bills data');
+        throw new Error(result.message || 'Failed to clear bills data');
       }
       
     } catch (err) {
@@ -318,95 +391,118 @@ const Reports = () => {
           marginBottom: currentTheme.spacing[8],
         }}
       >
-        <div style={{
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'flex-end',
-          marginBottom: currentTheme.spacing[2],
-        }}>
-          <div>
-            <h1 style={{ 
-              fontSize: '2.5rem',
-              fontWeight: 700,
-              color: isDark ? '#ffffff' : '#1e293b',
-              marginBottom: currentTheme.spacing[2],
-              letterSpacing: '-0.02em',
-              lineHeight: 1.2,
+        {/* Management-style Header */}
+        <motion.div
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            gap: '12px',
+            padding: '30px',
+            border: `1px solid ${isDark ? '#334155' : '#e2e8f0'}`,
+            borderRadius: '20px',
+            backgroundColor: currentTheme.colors.Surface,
+            margin: '0px',
+            boxShadow: '0 4px 12px rgba(0,0,0,0.08)',
+            transition: 'all 0.2s ease',
+          }}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.borderColor = 'var(--primary-300)';
+            e.currentTarget.style.boxShadow = '0 6px 16px rgba(0,0,0,0.12)';
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.borderColor = isDark ? '#334155' : '#e2e8f0';
+            e.currentTarget.style.boxShadow = '0 4px 12px rgba(0,0,0,0.08)';
+          }}
+        >
+          <div style={{ minWidth: 0 }}>
+            <div style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '10px',
+              minWidth: 0,
             }}>
-              Analytics Dashboard
-            </h1>
-            <p style={{ 
-              fontSize: '1rem',
-              color: isDark ? '#94a3b8' : '#64748b',
-              fontWeight: 400,
-              margin: 0,
-            }}>
-              Sales overview for {safeSummary.date || 'Today'}
-            </p>
+              <div style={{
+                fontSize: '30px',
+                lineHeight: 1.2,
+                letterSpacing: '-0.01em',
+                fontWeight: 650,
+                color: currentTheme.colors.text.primary,
+              }}>
+                Analytics
+              </div>
+            </div>
           </div>
-          
+
           <div style={{
             display: 'flex',
-            gap: currentTheme.spacing[3],
+            alignItems: 'center',
+            gap: '12px',
           }}>
-            <motion.div
-              whileHover={{ scale: 1.02 }}
-              whileTap={{ scale: 0.98 }}
-            >
-              <Button 
-                onClick={() => setShowClearConfirm(true)}
-                variant="secondary" 
-                size="lg"
+            {/* Clear Data Button */}
+            <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
+              <Button onClick={() => setShowClearConfirm(true)} variant="secondary" size="lg"
                 style={{
-                  background: isDark ? '#dc2626' : '#ef4444',
-                  border: `1px solid ${isDark ? '#b91c1c' : '#dc2626'}`,
-                  color: '#ffffff',
-                  borderRadius: '12px',
+                  background: `linear-gradient(135deg, ${isDark ? (currentTheme.colors.error?.[600] || '#DC2626') : (currentTheme.colors.error?.[500] || '#EF4444')}, ${isDark ? (currentTheme.colors.error?.[700] || '#B91C1C') : (currentTheme.colors.error?.[600] || '#DC2626')})`,
+                  border: 'none', color: '#ffffff', borderRadius: '12px',
                   padding: `${currentTheme.spacing[3]} ${currentTheme.spacing[6]}`,
-                  fontWeight: 500,
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: currentTheme.spacing[2],
+                  fontWeight: 600, fontSize: '0.875rem',
+                  display: 'flex', alignItems: 'center', gap: currentTheme.spacing[2],
+                  boxShadow: isDark ? '0 4px 12px rgba(220, 38, 38, 0.2)' : '0 4px 12px rgba(239, 68, 68, 0.15)',
+                  transition: 'all 0.2s ease', textTransform: 'uppercase', letterSpacing: '0.05em',
+                }}
+                onMouseEnter={(e) => {
+                  e.target.style.transform = 'translateY(-1px)';
+                  e.target.style.boxShadow = isDark ? '0 6px 16px rgba(220, 38, 38, 0.3)' : '0 6px 16px rgba(239, 68, 68, 0.25)';
+                }}
+                onMouseLeave={(e) => {
+                  e.target.style.transform = 'translateY(0)';
+                  e.target.style.boxShadow = isDark ? '0 4px 12px rgba(220, 38, 38, 0.2)' : '0 4px 12px rgba(239, 68, 68, 0.15)';
                 }}
               >
-                <TrashIcon color="#ffffff" />
+                <div style={{ width: '20px', height: '20px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <TrashIcon color="#ffffff" />
+                </div>
                 Clear Data
               </Button>
             </motion.div>
             
-            <motion.div
-              whileHover={{ scale: 1.02 }}
-              whileTap={{ scale: 0.98 }}
-            >
-              <Button 
-                onClick={() => {
-                  loadSummary();
-                  loadAvailableReports();
-                }} 
-                variant="secondary" 
-                size="lg"
+            {/* Refresh Data Button */}
+            <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
+              <Button onClick={() => { loadSummary(); loadAvailableReports(); }} variant="secondary" size="lg"
                 style={{
-                  background: isDark ? '#1e293b' : '#ffffff',
-                  border: `1px solid ${isDark ? '#334155' : '#e2e8f0'}`,
-                  color: isDark ? '#f1f5f9' : '#475569',
-                  borderRadius: '12px',
+                  background: `linear-gradient(135deg, ${isDark ? currentTheme.colors.primary[600] : currentTheme.colors.primary[500]}, ${isDark ? currentTheme.colors.primary[700] : currentTheme.colors.primary[600]})`,
+                  border: 'none', color: '#ffffff', borderRadius: '12px',
                   padding: `${currentTheme.spacing[3]} ${currentTheme.spacing[6]}`,
-                  fontWeight: 500,
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: currentTheme.spacing[2],
+                  fontWeight: 600, fontSize: '0.875rem',
+                  display: 'flex', alignItems: 'center', gap: currentTheme.spacing[2],
+                  boxShadow: isDark ? '0 4px 12px rgba(14, 165, 233, 0.2)' : '0 4px 12px rgba(59, 130, 246, 0.15)',
+                  transition: 'all 0.2s ease', textTransform: 'uppercase', letterSpacing: '0.05em',
+                }}
+                onMouseEnter={(e) => {
+                  e.target.style.transform = 'translateY(-1px)';
+                  e.target.style.boxShadow = isDark ? '0 6px 16px rgba(14, 165, 233, 0.3)' : '0 6px 16px rgba(59, 130, 246, 0.25)';
+                }}
+                onMouseLeave={(e) => {
+                  e.target.style.transform = 'translateY(0)';
+                  e.target.style.boxShadow = isDark ? '0 4px 12px rgba(14, 165, 233, 0.2)' : '0 4px 12px rgba(59, 130, 246, 0.15)';
                 }}
               >
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                  <path d="M1 4V10H7" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                  <path d="M23 20V14H17" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                  <path d="M20.49 9A9 9 0 0 0 5.64 5.64L1 10M23 14L18.36 18.36A9 9 0 0 1 3.51 15" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                </svg>
+                <div style={{ width: '20px', height: '20px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M1 4V10H7" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                    <path d="M23 20V14H17" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                    <path d="M20.49 9A9 9 0 0 0 5.64 5.64L1 10M23 14L18.36 18.36A9 9 0 0 1 3.51 15" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                  </svg>
+                </div>
                 Refresh Data
               </Button>
             </motion.div>
           </div>
-        </div>
+        </motion.div>
       </motion.div>
 
       {/* KPI Cards Section */}
@@ -428,16 +524,14 @@ const Reports = () => {
             <motion.div
               whileHover={{ 
                 y: -8,
-                transition: { duration: 0.2, ease: [0.16, 1, 0.3, 1] }
+                transition: { duration: 0.2, ease: [0.16, 1, 0.3, 1] },
               }}
               style={{
-                background: isDark ? '#1e293b' : '#ffffff',
+                backgroundColor: currentTheme.colors.Card,
                 borderRadius: '16px',
                 padding: currentTheme.spacing[8],
                 border: `1px solid ${isDark ? '#334155' : '#e2e8f0'}`,
-                boxShadow: isDark 
-                  ? '0 1px 3px 0 rgba(0, 0, 0, 0.3), 0 1px 2px 0 rgba(0, 0, 0, 0.2)'
-                  : '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)',
+                boxShadow: isDark ? currentTheme.shadows.cardDark : currentTheme.shadows.card,
                 position: 'relative',
                 overflow: 'hidden',
               }}
@@ -450,13 +544,13 @@ const Reports = () => {
                 width: '48px',
                 height: '48px',
                 borderRadius: '12px',
-                background: 'linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%)',
+                background: '#5898ffff',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                opacity: 0.1,
+                opacity: 0.5,
               }}>
-                <TrendingUpIcon color="#3b82f6" />
+                <TrendingUpIcon  color="#001effff" />
               </div>
               
               {/* Content */}
@@ -500,16 +594,14 @@ const Reports = () => {
             <motion.div
               whileHover={{ 
                 y: -8,
-                transition: { duration: 0.2, ease: [0.16, 1, 0.3, 1] }
+                transition: { duration: 0.2, ease: [0.16, 1, 0.3, 1] },
               }}
               style={{
-                background: isDark ? '#1e293b' : '#ffffff',
+                backgroundColor: currentTheme.colors.Card,
                 borderRadius: '16px',
                 padding: currentTheme.spacing[8],
                 border: `1px solid ${isDark ? '#334155' : '#e2e8f0'}`,
-                boxShadow: isDark 
-                  ? '0 1px 3px 0 rgba(0, 0, 0, 0.3), 0 1px 2px 0 rgba(0, 0, 0, 0.2)'
-                  : '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)',
+                boxShadow: isDark ? currentTheme.shadows.cardDark : currentTheme.shadows.card,
                 position: 'relative',
                 overflow: 'hidden',
               }}
@@ -522,13 +614,13 @@ const Reports = () => {
                 width: '48px',
                 height: '48px',
                 borderRadius: '12px',
-                background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
+                background: ' #6bffceff',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                opacity: 0.1,
+                opacity: 0.4,
               }}>
-                <ReceiptIcon color="#10b981" />
+                <ReceiptIcon color="#00764fff" />
               </div>
               
               {/* Content */}
@@ -580,39 +672,41 @@ const Reports = () => {
           }}
         >
           <div style={{
-            background: isDark ? '#1e293b' : '#ffffff',
+            backgroundColor: currentTheme.colors.Surface,
             borderRadius: '20px',
             border: `1px solid ${isDark ? '#334155' : '#e2e8f0'}`,
-            boxShadow: isDark 
-              ? '0 20px 25px -5px rgba(0, 0, 0, 0.3), 0 10px 10px -5px rgba(0, 0, 0, 0.2)'
-              : '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.05)',
+            boxShadow: isDark ? currentTheme.shadows.cardDark : currentTheme.shadows.card,
             padding: currentTheme.spacing[8],
             overflow: 'hidden',
           }}>
             {/* Gradient Header */}
             <div style={{
-              background: `linear-gradient(135deg, ${isDark ? '#3b82f6' : '#1d4ed8'} 0%, ${isDark ? '#1e40af' : '#3b82f6'} 100%)`,
-              margin: `-${currentTheme.spacing[8]} -${currentTheme.spacing[8]} calc(100% + ${currentTheme.spacing[16]})`,
-              padding: currentTheme.spacing[8],
+              background: isDark ? 'rgba(30, 41, 59, 0.98)' : 'rgba(255, 255, 255, 0.98)',
+              backdropFilter: 'blur(20px)',
+              margin: `-${currentTheme.spacing[8]} -${currentTheme.spacing[8]} ${currentTheme.spacing[8]}`,
+              padding: `${currentTheme.spacing[5]} ${currentTheme.spacing[8]}`,
               marginBottom: currentTheme.spacing[8],
+              display: 'flex',
+              justifyContent: 'center',
+              alignItems: 'center',
+              borderBottom: `2px solid ${isDark ? 'rgba(255, 255, 255, 0.15)' : 'rgba(0, 0, 0, 0.08)'}`,
+              boxShadow: isDark 
+                ? '0 4px 20px rgba(0, 0, 0, 0.3)'
+                : '0 4px 20px rgba(0, 0, 0, 0.1)',
+              position: 'relative',
             }}>
               <h2 style={{
-                fontSize: '1.5rem',
-                fontWeight: 700,
-                color: '#ffffff',
+                fontSize: '1.25rem',
+                fontWeight: 600,
+                color: isDark ? '#f1f5f9' : '#1e293b',
                 margin: 0,
-                marginBottom: currentTheme.spacing[2],
+                textTransform: 'uppercase',
+                letterSpacing: '0.1em',
+                position: 'relative',
+                zIndex: 1,
               }}>
-                📊 Top Products
+                Sales Report
               </h2>
-              <p style={{
-                fontSize: '1rem',
-                color: 'rgba(255, 255, 255, 0.9)',
-                margin: 0,
-                fontWeight: 400,
-              }}>
-                Best performing products by revenue
-              </p>
             </div>
 
             {/* Pie Chart and Products Grid */}
@@ -873,38 +967,7 @@ const Reports = () => {
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.6, delay: 0.4, ease: [0.16, 1, 0.3, 1] }}
-      >
-        <div style={{
-          background: isDark ? '#1e293b' : '#ffffff',
-          borderRadius: '16px',
-          border: `1px solid ${isDark ? '#334155' : '#e2e8f0'}`,
-          boxShadow: isDark 
-            ? '0 1px 3px 0 rgba(0, 0, 0, 0.3), 0 1px 2px 0 rgba(0, 0, 0, 0.2)'
-            : '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)',
-          padding: currentTheme.spacing[8],
-        }}
-        >
-          <div style={{
-            marginBottom: currentTheme.spacing[6],
-          }}>
-            <h2 style={{
-              fontSize: '1.25rem',
-              fontWeight: 600,
-              color: isDark ? '#f1f5f9' : '#1e293b',
-              margin: 0,
-              marginBottom: currentTheme.spacing[1],
-            }}>
-              Export Reports
-            </h2>
-            <p style={{
-              fontSize: '0.875rem',
-              color: isDark ? '#94a3b8' : '#64748b',
-              margin: 0,
-            }}>
-              Download detailed sales reports in various formats
-            </p>
-          </div>
-
+      > 
           <div style={{
             display: 'grid',
             gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
@@ -915,7 +978,8 @@ const Reports = () => {
               disabled={downloading.excel}
               variant="secondary"
               style={{
-                background: isDark ? '#334155' : '#f8fafc',
+                backgroundColor: currentTheme.colors.Card,
+                boxShadow: isDark ? currentTheme.shadows.cardDark : currentTheme.shadows.card,
                 border: `1px solid ${isDark ? '#475569' : '#e2e8f0'}`,
                 color: isDark ? '#f1f5f9' : '#475569',
                 borderRadius: '12px',
@@ -925,34 +989,14 @@ const Reports = () => {
                 justifyContent: 'center',
                 gap: currentTheme.spacing[2],
                 fontWeight: 500,
+                
               }}
             >
               <DownloadIcon color={isDark ? '#f1f5f9' : '#475569'} />
-              {downloading.excel ? 'Downloading...' : 'Detailed Excel Report'}
-            </Button>
-
-            <Button
-              onClick={() => handleDownload('csv', 'simple', `simple_sales_report_${safeSummary.date || 'today'}.xlsx`)}
-              disabled={downloading.csv}
-              variant="secondary"
-              style={{
-                background: isDark ? '#334155' : '#f8fafc',
-                border: `1px solid ${isDark ? '#475569' : '#e2e8f0'}`,
-                color: isDark ? '#f1f5f9' : '#475569',
-                borderRadius: '12px',
-                padding: currentTheme.spacing[4],
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                gap: currentTheme.spacing[2],
-                fontWeight: 500,
-              }}
-            >
-              <DownloadIcon color={isDark ? '#f1f5f9' : '#475569'} />
-              {downloading.csv ? 'Downloading...' : 'Simple Excel Report'}
+              {downloading.excel ? 'Downloading...' : 'Excel Sales Report'}
             </Button>
           </div>
-        </div>
+        
       </motion.div>
 
       {/* Clear Data Confirmation Modal */}
@@ -974,7 +1018,10 @@ const Reports = () => {
               justifyContent: 'center',
               zIndex: 1000,
             }}
-            onClick={() => setShowClearConfirm(false)}
+            onClick={() => {
+              setShowClearConfirm(false);
+              setClearPassword('');
+            }}
           >
             <motion.div
               initial={{ scale: 0.9, opacity: 0 }}
@@ -1061,13 +1108,48 @@ const Reports = () => {
                 </p>
               </div>
               
+              {/* Password Input */}
+              <div style={{
+                marginBottom: currentTheme.spacing[6],
+              }}>
+                <label style={{
+                  display: 'block',
+                  fontSize: '0.875rem',
+                  fontWeight: 500,
+                  color: isDark ? '#f1f5f9' : '#1e293b',
+                  marginBottom: currentTheme.spacing[2],
+                }}>
+                  Enter Password
+                </label>
+                <input
+                  type="password"
+                  value={clearPassword}
+                  onChange={(e) => setClearPassword(e.target.value)}
+                  placeholder="Enter admin password"
+                  style={{
+                    width: '100%',
+                    padding: currentTheme.spacing[3],
+                    border: `1px solid ${isDark ? '#475569' : '#e2e8f0'}`,
+                    borderRadius: '8px',
+                    fontSize: '0.875rem',
+                    backgroundColor: isDark ? '#1e293b' : '#ffffff',
+                    color: isDark ? '#f1f5f9' : '#1e293b',
+                    outline: 'none',
+                    boxSizing: 'border-box',
+                  }}
+                />
+              </div>
+              
               <div style={{
                 display: 'flex',
                 gap: currentTheme.spacing[3],
                 justifyContent: 'flex-end',
               }}>
                 <Button
-                  onClick={() => setShowClearConfirm(false)}
+                  onClick={() => {
+                    setShowClearConfirm(false);
+                    setClearPassword('');
+                  }}
                   disabled={clearingData}
                   variant="secondary"
                   style={{
@@ -1086,8 +1168,8 @@ const Reports = () => {
                   disabled={clearingData}
                   variant="secondary"
                   style={{
-                    background: isDark ? '#dc2626' : '#ef4444',
-                    border: `1px solid ${isDark ? '#b91c1c' : '#dc2626'}`,
+                    background: isDark ? (currentTheme.colors.error?.[600] || '#DC2626') : (currentTheme.colors.error?.[500] || '#EF4444'),
+                    border: `1px solid ${isDark ? (currentTheme.colors.error?.[700] || '#B91C1C') : (currentTheme.colors.error?.[600] || '#DC2626')}`,
                     color: '#ffffff',
                     borderRadius: '12px',
                     padding: `${currentTheme.spacing[3]} ${currentTheme.spacing[6]}`,

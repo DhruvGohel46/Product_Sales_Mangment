@@ -345,10 +345,6 @@ const WorkingPOSInterface = ({ onBillCreated }) => {
 
       <div style={middleSectionStyle}>
         <div style={{
-          backgroundColor: currentTheme.colors.surface,
-          borderRadius: currentTheme.borderRadius.xl,
-          border: `1px solid ${currentTheme.colors.border}`,
-          boxShadow: currentTheme.shadows.sm,
           padding: currentTheme.spacing[5],
           minHeight: 'calc(100% - 3rem)',
         }}>

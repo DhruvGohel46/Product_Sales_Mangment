@@ -238,3 +238,152 @@ class SummaryService:
         except Exception as e:
             print(f"Error getting top selling products: {e}")
             return []
+
+    def get_monthly_product_summary(self, month: int, year: int) -> Dict:
+        """
+        Generate monthly product-wise sales summary
+        Returns list of products with aggregated sales data
+        """
+        try:
+            bills = self.db_service.get_monthly_bills(month, year)
+            
+            if not bills:
+                return {
+                    "month": month,
+                    "year": year,
+                    "total_sales": 0.0,
+                    "products": []
+                }
+            
+            product_sales = {}
+            import json
+            
+            # Cache products for category lookup
+            all_products = self.db_service.get_all_products(include_inactive=True)
+            product_map = {p['product_id']: p for p in all_products}
+            
+            for bill in bills:
+                items = json.loads(bill['items']) if isinstance(bill['items'], str) else bill['items']
+                
+                for item in items:
+                    product_id = item['product_id']
+                    
+                    if product_id not in product_sales:
+                        # Get category from map or fallback to unknown
+                        product_info = product_map.get(product_id)
+                        category = product_info['category'] if product_info else 'unknown'
+                        
+                        product_sales[product_id] = {
+                            'product_id': product_id,
+                            'name': item['name'],
+                            'category': category,
+                            'total_quantity': 0,
+                            'total_revenue': 0.0
+                        }
+                    
+                    product_sales[product_id]['total_quantity'] += item['quantity']
+                    product_sales[product_id]['total_revenue'] += (item['price'] * item['quantity'])
+            
+            # Convert to list and sort by total revenue (descending)
+            sorted_products = sorted(
+                product_sales.values(),
+                key=lambda x: x['total_revenue'],
+                reverse=True
+            )
+            
+            total_sales = sum(p['total_revenue'] for p in sorted_products)
+            
+            return {
+                "month": month,
+                "year": year,
+                "total_sales": total_sales,
+                "products": sorted_products
+            }
+            
+        except Exception as e:
+            print(f"Error generating monthly summary: {e}")
+            return {
+                "month": month,
+                "year": year,
+                "error": str(e)
+            }
+
+    def get_weekly_product_summary(self, reference_date: str) -> Dict:
+        """
+        Generate weekly product-wise sales summary (Mon-Sun) based on reference date
+        Returns summary with products and week date range
+        """
+        try:
+            from datetime import timedelta
+            
+            # Parse reference date
+            ref_date = datetime.strptime(reference_date, '%Y-%m-%d').date()
+            
+            # Calculate start (Monday) and end (Sunday) of the week
+            start_date = ref_date - timedelta(days=ref_date.weekday())
+            end_date = start_date + timedelta(days=6)
+            
+            start_str = start_date.strftime('%Y-%m-%d')
+            end_str = end_date.strftime('%Y-%m-%d')
+            
+            # Fetch bills for date range
+            bills = self.db_service.get_bills_by_date_range(start_str, end_str)
+            
+            if not bills:
+                return {
+                    "start_date": start_str,
+                    "end_date": end_str,
+                    "total_sales": 0.0,
+                    "products": []
+                }
+            
+            # Reuse aggregation logic (duplicated for safety/independence as per plan)
+            product_sales = {}
+            import json
+            
+            # Cache products for category lookup
+            all_products = self.db_service.get_all_products(include_inactive=True)
+            product_map = {p['product_id']: p for p in all_products}
+            
+            for bill in bills:
+                items = json.loads(bill['items']) if isinstance(bill['items'], str) else bill['items']
+                
+                for item in items:
+                    product_id = item['product_id']
+                    
+                    if product_id not in product_sales:
+                        product_info = product_map.get(product_id)
+                        category = product_info['category'] if product_info else 'unknown'
+                        
+                        product_sales[product_id] = {
+                            'product_id': product_id,
+                            'name': item['name'],
+                            'category': category,
+                            'total_quantity': 0,
+                            'total_revenue': 0.0
+                        }
+                    
+                    product_sales[product_id]['total_quantity'] += item['quantity']
+                    product_sales[product_id]['total_revenue'] += (item['price'] * item['quantity'])
+            
+            # Sort by revenue
+            sorted_products = sorted(
+                product_sales.values(),
+                key=lambda x: x['total_revenue'],
+                reverse=True
+            )
+            
+            total_sales = sum(p['total_revenue'] for p in sorted_products)
+            
+            return {
+                "start_date": start_str,
+                "end_date": end_str,
+                "total_sales": total_sales,
+                "products": sorted_products
+            }
+            
+        except Exception as e:
+            print(f"Error generating weekly summary: {e}")
+            return {
+                "error": str(e)
+            }

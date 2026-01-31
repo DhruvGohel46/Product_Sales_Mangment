@@ -196,6 +196,104 @@ def get_next_bill_number():
         }), 500
 
 
+
+@billing_bp.route('/management/all', methods=['GET'])
+def get_all_bills_management():
+    """Get ALL bills for management (including cancelled)"""
+    try:
+        bills = db.get_all_bills_management()
+        return jsonify({
+            'success': True,
+            'bills': bills
+        }), 200
+    except Exception as e:
+        return jsonify({
+            'success': False,
+            'message': f'Internal server error: {str(e)}'
+        }), 500
+
+
+@billing_bp.route('/<int:bill_no>/cancel', methods=['PUT'])
+def cancel_bill(bill_no):
+    """Cancel a specific bill"""
+    try:
+        success = db.cancel_bill(bill_no)
+        if success:
+            return jsonify({
+                'success': True,
+                'message': f'Bill {bill_no} cancelled successfully'
+            }), 200
+        else:
+            return jsonify({
+                'success': False,
+                'message': f'Failed to cancel bill {bill_no}'
+            }), 400
+    except Exception as e:
+        return jsonify({
+            'success': False,
+            'message': f'Internal server error: {str(e)}'
+        }), 500
+
+
+@billing_bp.route('/<int:bill_no>/update', methods=['PUT'])
+def update_bill(bill_no):
+    """Update an existing bill"""
+    try:
+        data = request.get_json()
+        
+        products = data.get('products', [])
+        total = 0.0
+        validated_products = []
+        
+        if products:
+             for product_data in products:
+                product_id = product_data['product_id']
+                quantity = int(product_data['quantity'])
+                
+                # Get product details from database
+                product_found = db.get_product(product_id)
+                
+                if not product_found:
+                    return jsonify({
+                        'success': False,
+                        'message': f'Product with ID {product_id} not found'
+                    }), 404
+                
+                line_total = product_found['price'] * quantity
+                validated_products.append({
+                    'product_id': product_id,
+                    'name': product_found['name'],
+                    'price': product_found['price'],
+                    'quantity': quantity
+                })
+                total += line_total
+        
+        bill_update_data = {
+            'customer_name': data.get('customer_name', ''),
+            'total_amount': total if products else data.get('total_amount', 0),
+            'items': validated_products
+        }
+        
+        success = db.update_bill(bill_no, bill_update_data)
+        
+        if success:
+             return jsonify({
+                'success': True,
+                'message': f'Bill {bill_no} updated successfully'
+            }), 200
+        else:
+            return jsonify({
+                'success': False,
+                'message': 'Failed to update bill'
+            }), 400
+            
+    except Exception as e:
+        return jsonify({
+            'success': False,
+            'message': f'Internal server error: {str(e)}'
+        }), 500
+
+
 @billing_bp.route('/print/<int:bill_no>', methods=['POST'])
 def print_bill(bill_no):
     """Print an existing bill"""

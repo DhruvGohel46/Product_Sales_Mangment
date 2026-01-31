@@ -1,67 +1,8 @@
-/**
- * =============================================================================
- * PRODUCT MANAGEMENT SYSTEM - MANAGEMENT.JSX
- * =============================================================================
- * 
- * ROLE: Comprehensive product catalog management with CRUD operations
- * 
- * RESPONSIBILITIES:
- * - Product catalog management (Create, Read, Update, Delete)
- * - Product status management (Active/Inactive)
- * - Category-based product organization
- * - Advanced search and filtering capabilities
- * - Bulk operations and data management
- * - Product form validation and error handling
- * 
- * KEY FEATURES:
- * - Interactive product grid with status indicators
- * - Add/Edit product modal with form validation
- * - Category filtering and search functionality
- * - Product activation/deactivation with confirmation
- * - Real-time product updates and sync
- * - Responsive design for mobile and desktop
- * - Professional header with action buttons
- * 
- * COMPONENTS:
- * - ProductGrid: Display products with status and actions
- * - ProductForm: Add/Edit product interface
- * - SearchBar: Product search and filtering
- * - CategoryFilter: Category-based filtering
- * - StatusToggle: Product activation controls
- * 
- * STATE MANAGEMENT:
- * - products: Complete product catalog
- * - loading: Async operation states
- * - error: Error handling and display
- * - filters: Search and category filters
- * - formData: Product form data
- * 
- * API INTEGRATION:
- * - productsAPI: Product CRUD operations
- * - handleAPIError: Centralized error handling
- * - formatCurrency: Price formatting
- * 
- * DESIGN PATTERNS:
- * - Functional component with hooks
- * - CSS modules for styling (Management.css)
- * - Framer Motion animations
- * - Form validation patterns
- * - Confirmation dialogs for destructive actions
- * 
- * USER WORKFLOW:
- * 1. View product catalog with filters
- * 2. Add new products or edit existing ones
- * 3. Manage product status (active/inactive)
- * 4. Search and filter products
- * 5. Bulk operations and data management
- * =============================================================================
- */
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAnimation } from '../../hooks/useAnimation';
-import { productsAPI } from '../../utils/api';
-import { handleAPIError, formatCurrency } from '../../utils/api';
-import { PRODUCT_CATEGORIES, CATEGORY_NAMES, PRODUCT_STATUS, PRODUCT_STATUS_CONFIG } from '../../utils/constants';
+import { productsAPI, categoriesAPI, handleAPIError, formatCurrency } from '../../utils/api';
+import CategoryManagement from './CategoryManagement';
 import '../../styles/Management.css';
 
 const IconPlus = (props) => (
@@ -86,8 +27,9 @@ const IconPower = (props) => (
 
 const ProductManagement = () => {
   const { staggerContainer, staggerItem } = useAnimation();
-  
+
   const [products, setProducts] = useState([]);
+  const [categories, setCategories] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [showAddForm, setShowAddForm] = useState(false);
@@ -99,20 +41,22 @@ const ProductManagement = () => {
   const [formData, setFormData] = useState({
     name: '',
     price: '',
-    category: PRODUCT_CATEGORIES.OTHER,
+    category_id: '',
+    category: '', // Legacy support
     active: true
   });
 
-  // Load products on mount
+  // Load data on mount
   useEffect(() => {
     loadProducts();
+    loadCategories();
   }, []);
 
   const loadProducts = async () => {
     try {
       setError('');
       setLoading(true);
-      const response = await productsAPI.getAllProducts();
+      const response = await productsAPI.getAllProductsWithInactive();
       setProducts(response.data.products || []);
     } catch (err) {
       const apiError = handleAPIError(err);
@@ -122,11 +66,30 @@ const ProductManagement = () => {
     }
   };
 
+  const loadCategories = async () => {
+    try {
+      const response = await categoriesAPI.getAllCategories();
+      const cats = response.data.categories || [];
+      setCategories(cats);
+      // If categories available, set default for form if empty
+      if (cats.length > 0 && !formData.category_id) {
+        setFormData(prev => ({
+          ...prev,
+          category_id: cats[0].id,
+          category: cats[0].name
+        }));
+      }
+    } catch (err) {
+      console.error('Error loading categories:', err);
+    }
+  };
+
   const resetForm = () => {
     setFormData({
       name: '',
       price: '',
-      category: PRODUCT_CATEGORIES.OTHER,
+      category_id: categories.length > 0 ? categories[0].id : '',
+      category: categories.length > 0 ? categories[0].name : '',
       active: true
     });
     setEditingProduct(null);
@@ -134,15 +97,24 @@ const ProductManagement = () => {
   };
 
   const handleInputChange = (field, value) => {
-    setFormData(prev => ({
-      ...prev,
-      [field]: value
-    }));
+    if (field === 'category_id') {
+      const cat = categories.find(c => c.id === parseInt(value));
+      setFormData(prev => ({
+        ...prev,
+        category_id: value,
+        category: cat ? cat.name : ''
+      }));
+    } else {
+      setFormData(prev => ({
+        ...prev,
+        [field]: value
+      }));
+    }
   };
 
-  const generateProductId = () => {
-    const category = formData.category || 'other';
-    const categoryCode = category.toUpperCase().slice(0, 4);
+  const generateProductId = (name, categoryName) => {
+    const categoryCode = (categoryName || 'OTHE').toUpperCase().slice(0, 4).padEnd(4, 'X');
+    // Using simple random for demo, real system would check DB for uniqueness
     const randomNum = Math.floor(Math.random() * 1000).toString().padStart(3, '0');
     return `${categoryCode}${randomNum}`;
   };
@@ -153,13 +125,16 @@ const ProductManagement = () => {
       setError('');
       const productData = {
         ...formData,
-        product_id: generateProductId() // Auto-generate ID
+        price: parseFloat(formData.price),
+        category_id: parseInt(formData.category_id)
       };
-      
+
       if (editingProduct) {
         await productsAPI.updateProduct(editingProduct.product_id, productData);
       } else {
-        await productsAPI.createProduct(productData);
+        // Auto-generate ID if name and category are present
+        const id = generateProductId(formData.name, formData.category);
+        await productsAPI.createProduct({ ...productData, product_id: id });
       }
       resetForm();
       loadProducts();
@@ -174,14 +149,14 @@ const ProductManagement = () => {
     setFormData({
       name: product.name,
       price: product.price,
-      category: product.category,
+      category_id: product.category_id || '',
+      category: product.category || '',
       active: product.active
     });
     setShowAddForm(true);
   };
 
   const onRequestDeactivate = (product) => setPendingDeactivate(product);
-
   const onCloseDeactivate = () => setPendingDeactivate(null);
 
   const handleConfirmDeactivate = async () => {
@@ -197,65 +172,30 @@ const ProductManagement = () => {
     }
   };
 
-  const getStatusConfig = (product) => {
-    if (!product.active) {
-      return PRODUCT_STATUS_CONFIG.OUT_OF_STOCK || PRODUCT_STATUS_CONFIG.ACTIVE;
-    }
-    return PRODUCT_STATUS_CONFIG.ACTIVE || {
-      label: 'Active',
-      color: '#10B981',
-      bgColor: '#D1FAE5',
-      borderColor: '#10B981'
-    };
-  };
-
-  const activeCount = products.filter(p => p.active).length;
-  const inactiveCount = products.filter(p => !p.active).length;
-
   const filteredProducts = products
     .filter((p) => {
-      const searchMatch = !query || 
+      const searchMatch = !query ||
         p.name.toLowerCase().includes(query.toLowerCase()) ||
         p.product_id.toLowerCase().includes(query.toLowerCase());
       return searchMatch;
     })
-    .filter((p) => (categoryFilter === 'all' ? true : p.category === categoryFilter))
+    .filter((p) => (categoryFilter === 'all' ? true : p.category_id === parseInt(categoryFilter)))
     .filter((p) => {
       if (statusFilter === 'active') return !!p.active;
       if (statusFilter === 'inactive') return !p.active;
       return true;
     });
 
-  const getBadgeClass = (category) => {
-    if (category === PRODUCT_CATEGORIES.COLDRINK) return "pmBadgeCold";
-    if (category === PRODUCT_CATEGORIES.PAAN) return "pmBadgePaan";
-    return "pmBadgeOther";
-  };
-
-  const getCardToneClass = (active) => (active ? "pmCardToneActive" : "pmCardToneInactive");
-
   return (
-    <div className="pmShell">
-      <div className="pmPage">
-      {/* Header */}
-      <div className="pmHeader">
+    <div className="pmSectionContent">
+      {/* Header Actions */}
+      <div className="pmHeader" style={{ border: 'none', boxShadow: 'none', background: 'transparent', padding: 0, margin: '0 0 20px 0' }}>
         <div className="pmHeaderLeft">
           <div className="pmTitleRow">
-            <div className="pmTitle">Management</div>
+            <div className="pmTitle" style={{ fontSize: '24px' }}>Product Catalog</div>
           </div>
         </div>
 
-        <div className="pmHeaderActions">
-          <button
-            type="button"
-            className="pmPrimaryCta"
-            onClick={() => setShowAddForm(true)}
-            disabled={showAddForm}
-          >
-            <IconPlus aria-hidden="true" />
-            Add Product
-          </button>
-        </div>
       </div>
 
       {/* Controls */}
@@ -268,7 +208,6 @@ const ProductManagement = () => {
               value={query}
               onChange={(e) => setQuery(e.target.value)}
               placeholder="Search by name or ID…"
-              aria-label="Search products"
             />
           </div>
 
@@ -278,11 +217,10 @@ const ProductManagement = () => {
               className="pmSelect"
               value={categoryFilter}
               onChange={(e) => setCategoryFilter(e.target.value)}
-              aria-label="Filter by category"
             >
               <option value="all">All categories</option>
-              {Object.entries(CATEGORY_NAMES).map(([value, label]) => (
-                <option key={value} value={value}>{label}</option>
+              {categories.map(cat => (
+                <option key={cat.id} value={cat.id}>{cat.name}</option>
               ))}
             </select>
           </div>
@@ -293,7 +231,6 @@ const ProductManagement = () => {
               className="pmSelect"
               value={statusFilter}
               onChange={(e) => setStatusFilter(e.target.value)}
-              aria-label="Filter by status"
             >
               <option value="all">All</option>
               <option value="active">Active</option>
@@ -301,12 +238,7 @@ const ProductManagement = () => {
             </select>
           </div>
 
-          <button
-            type="button"
-            className="pmControlButton"
-            onClick={loadProducts}
-            aria-label="Refresh products"
-          >
+          <button type="button" className="pmControlButton" onClick={loadProducts}>
             Refresh
           </button>
         </div>
@@ -315,217 +247,161 @@ const ProductManagement = () => {
       {/* Add/Edit Form */}
       <AnimatePresence>
         {showAddForm && (
-          <motion.div
-            initial={{ opacity: 0, height: 0 }}
-            animate={{ opacity: 1, height: 'auto' }}
-            exit={{ opacity: 0, height: 0 }}
-            transition={{ duration: 0.18, ease: [0.4, 0, 0.2, 1] }}
-          >
-            <div className="pmFormWrap">
-              <div className="pmFormHeader">
-                <div className="pmFormTitle">
-                  {editingProduct ? 'Edit Product' : 'Add New Product'}
+          <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} exit={{ opacity: 0, height: 0 }} className="pmFormWrap">
+            <div className="pmFormHeader">
+              <div className="pmFormTitle">{editingProduct ? 'Edit Product' : 'Add New Product'}</div>
+            </div>
+            <form onSubmit={handleSubmit}>
+              <div className="pmFormGrid">
+                <div className="pmField">
+                  <div className="pmLabel">Product Name</div>
+                  <input className="pmInput" value={formData.name} onChange={(e) => handleInputChange('name', e.target.value)} required />
+                </div>
+                <div className="pmField">
+                  <div className="pmLabel">Price</div>
+                  <input className="pmInput" type="number" step="0.01" value={formData.price} onChange={(e) => handleInputChange('price', e.target.value)} required />
+                </div>
+                <div className="pmField">
+                  <div className="pmLabel">Category</div>
+                  <select className="pmSelect" value={formData.category_id} onChange={(e) => handleInputChange('category_id', e.target.value)} required>
+                    {categories.map(cat => (
+                      <option key={cat.id} value={cat.id}>{cat.name}</option>
+                    ))}
+                  </select>
                 </div>
               </div>
-
-              <form onSubmit={handleSubmit}>
-                <div className="pmFormGrid">
-                  <div className="pmField">
-                    <div className="pmLabel">Product name</div>
-                    <input
-                      className="pmInput"
-                      type="text"
-                      value={formData.name}
-                      onChange={(e) => handleInputChange('name', e.target.value)}
-                      placeholder="e.g., Coca Cola"
-                      required
-                    />
-                  </div>
-
-                  <div className="pmField">
-                    <div className="pmLabel">Price</div>
-                    <input
-                      className="pmInput"
-                      type="number"
-                      value={formData.price}
-                      onChange={(e) => handleInputChange('price', e.target.value)}
-                      placeholder="e.g., 25.00"
-                      step="0.01"
-                      min="0.01"
-                      required
-                    />
-                  </div>
-
-                  <div className="pmField">
-                    <div className="pmLabel">Category</div>
-                    <select
-                      className="pmSelect"
-                      value={formData.category}
-                      onChange={(e) => handleInputChange('category', e.target.value)}
-                    >
-                      {Object.entries(CATEGORY_NAMES).map(([value, label]) => (
-                        <option key={value} value={value}>{label}</option>
-                      ))}
-                    </select>
-                  </div>
-                </div>
-
-                <div className="pmFormActions">
-                  <button type="button" className="pmSecondaryBtn" onClick={resetForm}>
-                    Cancel
-                  </button>
-                  <button type="submit" className="pmPrimaryCta">
-                    {editingProduct ? 'Update Product' : 'Add Product'}
-                  </button>
-                </div>
-              </form>
-            </div>
+              <div className="pmFormActions">
+                <button type="button" className="pmSecondaryBtn" onClick={resetForm}>Cancel</button>
+                <button type="submit" className="pmPrimaryCta">
+                  {editingProduct ? 'Update Product' : 'Add Product'}
+                </button>
+              </div>
+            </form>
           </motion.div>
         )}
       </AnimatePresence>
 
-      {/* Error Display */}
+      {/* Error */}
       {error && <div className="pmError">{error}</div>}
 
       {/* Products Grid */}
       <div className="pmPanel">
         <div className="pmGridHeader">
-          <div className="pmGridTitle">
-            Products
-          </div>
-          <div className="pmGridHint">
-            {loading ? 'Refreshing…' : `${filteredProducts.length} shown`}
-          </div>
+          <div className="pmGridTitle" style={{ fontSize: '20px' }}>Products</div>
+          <div className="pmGridHint">{loading ? 'Refreshing…' : `${filteredProducts.length} shown`}</div>
+          <div className="pmHeaderActions">
+          <button
+            type="button"
+            className="pmPrimaryCta"
+            onClick={() => setShowAddForm(true)}
+            disabled={showAddForm}
+          >
+            <IconPlus aria-hidden="true" />
+            Add Product
+          </button>
+        </div>
         </div>
 
         {loading ? (
           <div className="pmEmpty">Loading products…</div>
         ) : filteredProducts.length === 0 ? (
-          <div className="pmEmpty">
-            No matching products. Try clearing filters or add a new product.
-          </div>
+          <div className="pmEmpty">No matching products found.</div>
         ) : (
-          <motion.div
-            className="pmGrid"
-            variants={staggerContainer}
-            initial="initial"
-            animate="animate"
-          >
-            {filteredProducts.map((product) => {
-              const statusConfig = getStatusConfig(product);
-              const safeStatusConfig = statusConfig || {
-                label: product.active ? 'Active' : 'Inactive',
-                color: product.active ? '#10B981' : '#F59E0B',
-                bgColor: product.active ? '#D1FAE5' : '#FEF3C7',
-                borderColor: product.active ? '#10B981' : '#F59E0B'
-              };
-              const cardClass = [
-                "pmCard",
-                getCardToneClass(product.active),
-                !product.active ? "pmCardInactive" : '',
-              ].filter(Boolean).join(' ');
-
-              return (
-                <motion.div key={product.product_id} variants={staggerItem}>
-                  <motion.div
-                    className={cardClass}
-                    layout
-                  >
-                    <div className="pmCardTop">
-                      <div className="pmName" title={product.name}>
-                        {product.name}
-                      </div>
-                      <div className="pmPrice">
-                        {formatCurrency(product.price)}
-                      </div>
-                    </div>
-
-                    <div className="pmMetaRow">
-                      <div className={["pmBadge", getBadgeClass(product.category)].join(' ')}>
-                        {CATEGORY_NAMES[product.category] || 'Others'}
-                      </div>
-                      <div className="pmId" title={product.product_id}>
-                        ID: {product.product_id}
-                      </div>
-                    </div>
-
-                    <div className="pmActions">
-                      {/* Edit Button */}
-                      <button
-                        type="button"
-                        className="pmActionBtn"
-                        onClick={() => handleEdit(product)}
-                      >
-                        <IconEdit aria-hidden="true" />
-                        Edit
-                      </button>
-
-                      {/* Deactivate Button */}
-                      {product.active ? (
-                        <button
-                          type="button"
-                          className="pmActionBtn pmActionDanger"
-                          onClick={() => onRequestDeactivate(product)}
-                        >
-                          <IconPower aria-hidden="true" />
-                          Deactivate
-                        </button>
-                      ) : (
-                        <div className="pmInactiveNote">Inactive</div>
-                      )}
-                    </div>
-                  </motion.div>
-                </motion.div>
-              );
-            })}
+          <motion.div className="pmGrid" variants={staggerContainer} initial="initial" animate="animate">
+            {filteredProducts.map((product) => (
+              <motion.div key={product.product_id} variants={staggerItem} className={`pmCard ${!product.active ? 'pmCardInactive' : ''}`}>
+                <div className="pmCardTop">
+                  <div className="pmName">{product.name}</div>
+                  <div className="pmPrice">{formatCurrency(product.price)}</div>
+                </div>
+                <div className="pmMetaRow">
+                  <div className="pmBadge">{product.category_name || product.category || 'Other'}</div>
+                  <div className="pmId">ID: {product.product_id}</div>
+                </div>
+                <div className="pmActions" style={{ marginTop: '10px' }}>
+                  <button className="pmActionBtn" onClick={() => handleEdit(product)}>
+                    <IconEdit /> Edit
+                  </button>
+                  {product.active ? (
+                    <button className="pmActionBtn pmActionDanger" onClick={() => onRequestDeactivate(product)}>
+                      <IconPower /> Deactivate
+                    </button>
+                  ) : (
+                    <div className="pmInactiveNote">Inactive</div>
+                  )}
+                </div>
+              </motion.div>
+            ))}
           </motion.div>
         )}
       </div>
 
-      {/* Confirm Deactivate */}
+      {/* Deactivate Modal */}
       <AnimatePresence>
         {pendingDeactivate && (
-          <motion.div
-            className="pmOverlay"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            onClick={onCloseDeactivate}
-            role="presentation"
-          >
-            <motion.div
-              className="pmDialog"
-              initial={{ y: 10, scale: 0.98, opacity: 0 }}
-              animate={{ y: 0, scale: 1, opacity: 1 }}
-              exit={{ y: 8, scale: 0.98, opacity: 0 }}
-              transition={{ duration: 0.16, ease: [0.4, 0, 0.2, 1] }}
-              onClick={(e) => e.stopPropagation()}
-              role="dialog"
-              aria-modal="true"
-              aria-label="Confirm deactivate product"
-            >
+          <motion.div className="pmOverlay" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={onCloseDeactivate}>
+            <motion.div className="pmDialog" initial={{ y: 10, scale: 0.98, opacity: 0 }} animate={{ y: 0, scale: 1, opacity: 1 }} exit={{ y: 8, scale: 0.98, opacity: 0 }} onClick={(e) => e.stopPropagation()}>
               <div className="pmDialogTitle">Deactivate product?</div>
-              <div className="pmDialogBody">
-                "{pendingDeactivate.name}" will become unavailable in POS. You can reactivate it later.
-              </div>
+              <div className="pmDialogBody">"{pendingDeactivate.name}" will become unavailable in POS.</div>
               <div className="pmDialogActions">
-                <button type="button" className="pmDialogBtn" onClick={onCloseDeactivate}>
-                  Cancel
-                </button>
-                <button type="button" className={["pmDialogBtn", "pmDialogBtnPrimary"].join(' ')} onClick={handleConfirmDeactivate}>
-                  Deactivate
-                </button>
-              </div>
-              <div className="pmDialogTip">
-                Tip: Deactivating keeps historical sales intact.
+                <button className="pmDialogBtn" onClick={onCloseDeactivate}>Cancel</button>
+                <button className="pmDialogBtn pmDialogBtnPrimary" onClick={handleConfirmDeactivate}>Deactivate</button>
               </div>
             </motion.div>
           </motion.div>
         )}
       </AnimatePresence>
+    </div>
+  );
+};
+
+const Management = () => {
+  const [activeTab, setActiveTab] = useState('products');
+
+  return (
+    <div className="pmShell">
+      <div className="pmPage">
+        {/* Main Title & Tabs */}
+        <div className="pmHeader">
+          <div className="pmHeaderLeft">
+            <div className="pmTitleRow">
+              <div className="pmTitle">Store Management</div>
+            </div>
+          </div>
+
+          <div className="pmHeaderActions" style={{ background: 'var(--bg-secondary)', padding: '4px', borderRadius: '12px', border: '1px solid var(--border-primary)' }}>
+            <button
+              className={`pmControlButton ${activeTab === 'products' ? 'pmActiveTab' : ''}`}
+              onClick={() => setActiveTab('products')}
+              style={{
+                border: 'none',
+                background: activeTab === 'products' ? 'var(--accent)' : 'transparent',
+                color: activeTab === 'products' ? 'white' : 'var(--text-secondary)',
+                boxShadow: activeTab === 'products' ? '0 4px 12px rgba(0,0,0,0.1)' : 'none'
+              }}
+            >
+              Products
+            </button>
+            <button
+              className={`pmControlButton ${activeTab === 'categories' ? 'pmActiveTab' : ''}`}
+              onClick={() => setActiveTab('categories')}
+              style={{
+                border: 'none',
+                background: activeTab === 'categories' ? 'var(--accent)' : 'transparent',
+                color: activeTab === 'categories' ? 'white' : 'var(--text-secondary)',
+                boxShadow: activeTab === 'categories' ? '0 4px 12px rgba(0,0,0,0.1)' : 'none'
+              }}
+            >
+              Categories
+            </button>
+          </div>
+        </div>
+
+        {/* Tab Content */}
+        {activeTab === 'products' ? <ProductManagement /> : <CategoryManagement />}
       </div>
     </div>
   );
 };
 
-export default ProductManagement;
+export default Management;

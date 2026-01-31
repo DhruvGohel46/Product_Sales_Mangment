@@ -400,3 +400,196 @@ class ExcelXLSXService:
         except Exception as e:
             print(f"Error creating sample Excel report: {e}")
             return None
+
+    def export_monthly_product_sales_report(self, report_data: Dict) -> str:
+        """Create a monthly product-wise sales report"""
+        try:
+            month = report_data.get('month')
+            year = report_data.get('year')
+            products = report_data.get('products', [])
+            
+            filename = f"Monthly_Sales_Report_{month:02d}_{year}.xlsx"
+            filepath = os.path.join(self.export_dir, filename)
+            
+            # Create workbook and worksheet
+            wb = openpyxl.Workbook()
+            ws = wb.active
+            ws.title = f"Sales {month:02d}-{year}"
+            
+            # Set column widths
+            ws.column_dimensions['A'].width = 15  # Product ID
+            ws.column_dimensions['B'].width = 30  # Product Name
+            ws.column_dimensions['C'].width = 15  # Category
+            ws.column_dimensions['D'].width = 15  # Quantity
+            ws.column_dimensions['E'].width = 15  # Revenue
+            
+            current_row = 1
+            
+            # === HEADER SECTION ===
+            ws.merge_cells(f'A{current_row}:E{current_row}')
+            ws[f'A{current_row}'] = f"MONTHLY SALES REPORT - {month:02d}/{year}"
+            ws[f'A{current_row}'].font = Font(bold=True, size=16, color="FFFFFF")
+            ws[f'A{current_row}'].fill = PatternFill(start_color="366092", end_color="366092", fill_type="solid")
+            ws[f'A{current_row}'].alignment = Alignment(horizontal="center", vertical="center")
+            current_row += 2
+            
+            # Summary stats
+            ws.merge_cells(f'A{current_row}:E{current_row}')
+            ws[f'A{current_row}'] = f"Total Revenue: {report_data.get('total_sales', 0):.2f}"
+            ws[f'A{current_row}'].font = Font(bold=True, size=12)
+            ws[f'A{current_row}'].alignment = Alignment(horizontal="right")
+            current_row += 2
+            
+            # === TABLE HEADERS ===
+            headers = ["Product ID", "Product Name", "Category", "Total Quantity", "Total Revenue"]
+            for col, header in enumerate(headers, 1):
+                cell = ws.cell(row=current_row, column=col, value=header)
+                cell.font = self.header_font
+                cell.fill = self.header_fill
+                cell.alignment = self.header_alignment
+                cell.border = self.border
+            current_row += 1
+            
+            # === DATA ROWS ===
+            if not products:
+                ws.merge_cells(f'A{current_row}:E{current_row}')
+                ws[f'A{current_row}'] = "No sales data found for this month."
+                ws[f'A{current_row}'].font = Font(italic=True)
+                ws[f'A{current_row}'].alignment = Alignment(horizontal="center")
+            else:
+                for product in products:
+                    ws[f'A{current_row}'] = product.get('product_id', '')
+                    ws[f'B{current_row}'] = product.get('name', '')
+                    ws[f'C{current_row}'] = product.get('category', '').capitalize()
+                    ws[f'D{current_row}'] = product.get('total_quantity', 0)
+                    ws[f'E{current_row}'] = f"{product.get('total_revenue', 0):.2f}"
+                    
+                    # Apply formatting
+                    for col in range(1, 6):
+                        cell = ws.cell(row=current_row, column=col)
+                        cell.font = self.data_font
+                        cell.border = self.border
+                        if col >= 4: # Quantity and Revenue
+                             cell.alignment = self.currency_alignment
+                        else:
+                             cell.alignment = self.data_alignment
+                    
+                    current_row += 1
+            
+            # Footer
+            current_row += 1
+            ws.merge_cells(f'A{current_row}:E{current_row}')
+            ws[f'A{current_row}'] = f"Generated on {date.today().strftime('%Y-%m-%d')}"
+            ws[f'A{current_row}'].font = Font(italic=True, size=8)
+            ws[f'A{current_row}'].alignment = Alignment(horizontal="right")
+            
+            # Save the workbook
+            wb.save(filepath)
+            return filepath
+            
+        except Exception as e:
+            print(f"Error creating monthly report: {e}")
+            return None
+
+    def export_weekly_product_sales_report(self, report_data: Dict) -> str:
+        """Create a weekly product-wise sales report"""
+        try:
+            start_date = report_data.get('start_date')
+            end_date = report_data.get('end_date')
+            products = report_data.get('products', [])
+            
+            # Format dates for filename (DDMMYYYY)
+            s_date = datetime.strptime(start_date, '%Y-%m-%d')
+            e_date = datetime.strptime(end_date, '%Y-%m-%d')
+            s_str = s_date.strftime('%d%m%Y')
+            e_str = e_date.strftime('%d%m%Y')
+            
+            filename = f"Weekly_Sales_Report_{s_str}_to_{e_str}.xlsx"
+            filepath = os.path.join(self.export_dir, filename)
+            
+            # Create workbook and worksheet
+            wb = openpyxl.Workbook()
+            ws = wb.active
+            ws.title = "Weekly Sales"
+            
+            # Set column widths
+            ws.column_dimensions['A'].width = 15  # Product ID
+            ws.column_dimensions['B'].width = 30  # Product Name
+            ws.column_dimensions['C'].width = 15  # Category
+            ws.column_dimensions['D'].width = 15  # Quantity
+            ws.column_dimensions['E'].width = 15  # Revenue
+            
+            current_row = 1
+            
+            # === HEADER SECTION ===
+            ws.merge_cells(f'A{current_row}:E{current_row}')
+            ws[f'A{current_row}'] = "WEEKLY SALES REPORT"
+            ws[f'A{current_row}'].font = Font(bold=True, size=16, color="FFFFFF")
+            ws[f'A{current_row}'].fill = PatternFill(start_color="366092", end_color="366092", fill_type="solid")
+            ws[f'A{current_row}'].alignment = Alignment(horizontal="center", vertical="center")
+            current_row += 1
+            
+            ws.merge_cells(f'A{current_row}:E{current_row}')
+            ws[f'A{current_row}'] = f"Period: {s_date.strftime('%d-%m-%Y')} to {e_date.strftime('%d-%m-%Y')}"
+            ws[f'A{current_row}'].font = Font(bold=True, size=12, color="FFFFFF")
+            ws[f'A{current_row}'].fill = PatternFill(start_color="366092", end_color="366092", fill_type="solid")
+            ws[f'A{current_row}'].alignment = Alignment(horizontal="center", vertical="center")
+            current_row += 2
+            
+            # Summary stats
+            ws.merge_cells(f'A{current_row}:E{current_row}')
+            ws[f'A{current_row}'] = f"Total Revenue: {report_data.get('total_sales', 0):.2f}"
+            ws[f'A{current_row}'].font = Font(bold=True, size=12)
+            ws[f'A{current_row}'].alignment = Alignment(horizontal="right")
+            current_row += 2
+            
+            # === TABLE HEADERS ===
+            headers = ["Product ID", "Product Name", "Category", "Total Quantity", "Total Revenue"]
+            for col, header in enumerate(headers, 1):
+                cell = ws.cell(row=current_row, column=col, value=header)
+                cell.font = self.header_font
+                cell.fill = self.header_fill
+                cell.alignment = self.header_alignment
+                cell.border = self.border
+            current_row += 1
+            
+            # === DATA ROWS ===
+            if not products:
+                ws.merge_cells(f'A{current_row}:E{current_row}')
+                ws[f'A{current_row}'] = "No sales data found for this week."
+                ws[f'A{current_row}'].font = Font(italic=True)
+                ws[f'A{current_row}'].alignment = Alignment(horizontal="center")
+            else:
+                for product in products:
+                    ws[f'A{current_row}'] = product.get('product_id', '')
+                    ws[f'B{current_row}'] = product.get('name', '')
+                    ws[f'C{current_row}'] = product.get('category', '').capitalize()
+                    ws[f'D{current_row}'] = product.get('total_quantity', 0)
+                    ws[f'E{current_row}'] = f"{product.get('total_revenue', 0):.2f}"
+                    
+                    # Apply formatting
+                    for col in range(1, 6):
+                        cell = ws.cell(row=current_row, column=col)
+                        cell.font = self.data_font
+                        cell.border = self.border
+                        if col >= 4: # Quantity and Revenue
+                             cell.alignment = self.currency_alignment
+                        else:
+                             cell.alignment = self.data_alignment
+                    
+                    current_row += 1
+            
+            # Footer
+            current_row += 1
+            ws.merge_cells(f'A{current_row}:E{current_row}')
+            ws[f'A{current_row}'] = f"Generated on {date.today().strftime('%Y-%m-%d')}"
+            ws[f'A{current_row}'].font = Font(italic=True, size=8)
+            ws[f'A{current_row}'].alignment = Alignment(horizontal="right")
+            
+            # Save the workbook
+            wb.save(filepath)
+            return filepath
+            
+        except Exception as e:
+            print(f"Error creating weekly report: {e}")
+            return None

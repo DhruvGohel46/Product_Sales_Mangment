@@ -54,33 +54,57 @@
  * =============================================================================
  */
 import React, { useState, useEffect, useRef } from 'react';
-import { motion } from 'framer-motion';
+import { useLocation, useNavigate } from 'react-router-dom';
+import { motion, AnimatePresence } from 'framer-motion';
 import { useTheme } from '../../context/ThemeContext';
 import { useToast } from '../../context/ToastContext';
-import { productsAPI, billingAPI } from '../../utils/api';
+import { productsAPI, billingAPI, categoriesAPI } from '../../utils/api';
 import { handleAPIError, formatCurrency } from '../../utils/api';
 import { CATEGORY_COLORS } from '../../utils/constants';
 import Button from '../ui/Button';
 import Card from '../ui/Card';
 import Input from '../ui/Input';
 
+
+const TrashIcon = ({ color }) => (
+  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style={{ color }}>
+    <path d="M3 6H5H21M8 6V20C8 21.1046 8.89543 22 10 22H14C15.1046 22 16 21.1046 16 20V6M19 6V20C19 21.1046 19.1046 22 18 22H10C8.89543 22 8 21.1046 8 20V6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+    <path d="M10 11L14 11M10 15L14 15" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+  </svg>
+);
+
 const WorkingPOSInterface = ({ onBillCreated }) => {
   const { currentTheme, isDark } = useTheme();
   const { showSuccess } = useToast();
-  
+
   const [products, setProducts] = useState([]);
+  const [categories, setCategories] = useState([{ id: 'all', name: 'All Items' }]);
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [searchTerm, setSearchTerm] = useState('');
   const [orderItems, setOrderItems] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
-  
+  const [showClearConfirm, setShowClearConfirm] = useState(false);
+
+  // Edit Mode State
+  const location = useLocation();
+  const navigate = useNavigate();
+  const [editingBill, setEditingBill] = useState(null);
+
   // Ref to prevent multiple rapid clicks
   const lastClickTime = useRef(0);
 
   useEffect(() => {
     loadProducts();
-  }, []);
+    loadCategories();
+
+    // Check for edit mode
+    if (location.state?.bill) {
+      const bill = location.state.bill;
+      setEditingBill(bill);
+      setOrderItems(bill.items || []);
+    }
+  }, [location.state]);
 
   const loadProducts = async () => {
     try {
@@ -96,8 +120,23 @@ const WorkingPOSInterface = ({ onBillCreated }) => {
     }
   };
 
+  const loadCategories = async () => {
+    try {
+      const response = await categoriesAPI.getAllCategories();
+      const dynamicCategories = response.data.categories || [];
+      setCategories([
+        { id: 'all', name: 'All Items' },
+        ...dynamicCategories.map(c => ({ id: c.id, name: c.name }))
+      ]);
+    } catch (err) {
+      console.error('Failed to load categories', err);
+    }
+  };
+
   const filteredProducts = products.filter(product => {
-    const categoryMatch = selectedCategory === 'all' || product.category === selectedCategory;
+    const categoryMatch = selectedCategory === 'all' ||
+      product.category_id === selectedCategory ||
+      product.category === selectedCategory;
     const searchMatch = product.name.toLowerCase().includes(searchTerm.toLowerCase());
     return categoryMatch && searchMatch;
   });
@@ -108,19 +147,19 @@ const WorkingPOSInterface = ({ onBillCreated }) => {
       event.stopPropagation();
       event.preventDefault();
     }
-    
+
     const now = Date.now();
-    
+
     // Prevent multiple clicks within 200ms
     if (now - lastClickTime.current < 200) {
       return;
     }
-    
+
     lastClickTime.current = now;
-    
+
     setOrderItems(prev => {
       const existingIndex = prev.findIndex(item => item.product_id === product.product_id);
-      
+
       if (existingIndex >= 0) {
         const updated = [...prev];
         updated[existingIndex].quantity += 1;
@@ -135,9 +174,9 @@ const WorkingPOSInterface = ({ onBillCreated }) => {
     if (quantity <= 0) {
       setOrderItems(prev => prev.filter(item => item.product_id !== productId));
     } else {
-      setOrderItems(prev => 
-        prev.map(item => 
-          item.product_id === productId 
+      setOrderItems(prev =>
+        prev.map(item =>
+          item.product_id === productId
             ? { ...item, quantity }
             : item
         )
@@ -157,27 +196,31 @@ const WorkingPOSInterface = ({ onBillCreated }) => {
 
     try {
       setError('');
-      
+
       const billData = {
         products: orderItems.map(item => ({
           product_id: item.product_id,
           quantity: item.quantity
         })),
-        print: false  // Don't print for save only
+        print: false,
+        customer_name: editingBill ? editingBill.customer_name : ''
       };
 
-      const response = await billingAPI.createBill(billData);
-      
-      setOrderItems([]);
-      
-      // Trigger bill notification in parent (this shows the card notification)
-      if (onBillCreated) {
-        onBillCreated({
-          bill_no: response.data.bill.bill_no,
-          total: response.data.bill.total_amount || 0
-        });
+      if (editingBill) {
+        await billingAPI.updateBill(editingBill.bill_no, billData);
+        showSuccess ? showSuccess('Bill updated successfully') : alert('Bill updated successfully');
+        navigate('/analytics');
+      } else {
+        const response = await billingAPI.createBill(billData);
+        setOrderItems([]);
+        if (onBillCreated) {
+          onBillCreated({
+            bill_no: response.data.bill.bill_no,
+            total: calculateTotal()
+          });
+        }
       }
-      
+
     } catch (err) {
       const apiError = handleAPIError(err);
       setError(apiError.message);
@@ -192,38 +235,54 @@ const WorkingPOSInterface = ({ onBillCreated }) => {
 
     try {
       setError('');
-      
+
       const billData = {
         products: orderItems.map(item => ({
           product_id: item.product_id,
           quantity: item.quantity
         })),
-        print: true  // Print for save and print
+        print: true,
+        customer_name: editingBill ? editingBill.customer_name : ''
       };
 
-      const response = await billingAPI.createBill(billData);
-      
-      setOrderItems([]);
-      
-      // Trigger bill notification in parent (this shows the card notification)
-      if (onBillCreated) {
-        onBillCreated({
-          bill_no: response.data.bill.bill_no,
-          total: response.data.bill.total_amount || 0
-        });
+      if (editingBill) {
+        await billingAPI.updateBill(editingBill.bill_no, billData);
+        // Print logic for update if needed - assumed API handles it if 'print: true' or separate call
+        // But backend update_bill doesn't seem to have print logic integrated yet in previous step.
+        // Wait, update_bill method in backend didn't handle printing. 
+        // So for "Update & Print", we might need to call print separately.
+
+        await billingAPI.printBill(editingBill.bill_no); // Call print explicitly
+
+        showSuccess ? showSuccess('Bill updated and printed') : alert('Bill updated and printed');
+        navigate('/analytics');
+      } else {
+        const response = await billingAPI.createBill(billData);
+        setOrderItems([]);
+        if (onBillCreated) {
+          onBillCreated({
+            bill_no: response.data.bill.bill_no,
+            total: calculateTotal()
+          });
+        }
       }
-      
+
     } catch (err) {
       const apiError = handleAPIError(err);
       setError(apiError.message);
     }
   };
 
-  const categories = [
-    { id: 'all', name: 'All Items' },
-    { id: 'coldrink', name: 'Cold Drinks' },
-    { id: 'paan', name: 'Paan' },
-  ];
+  const handleClearClick = () => {
+    if (orderItems.length > 0) {
+      setShowClearConfirm(true);
+    }
+  };
+
+  const confirmClear = () => {
+    setOrderItems([]);
+    setShowClearConfirm(false);
+  };
 
   const mainContainerStyle = {
     display: 'flex',
@@ -262,7 +321,7 @@ const WorkingPOSInterface = ({ onBillCreated }) => {
   return (
     <div style={mainContainerStyle}>
       <div style={leftSidebarStyle}>
-        <div style={{ 
+        <div style={{
           padding: currentTheme.spacing[5],
           borderBottom: `1px solid ${currentTheme.colors.border}`,
         }}>
@@ -275,7 +334,7 @@ const WorkingPOSInterface = ({ onBillCreated }) => {
           />
         </div>
 
-        <div style={{ 
+        <div style={{
           flex: 1,
           overflowY: 'auto',
           padding: `0 ${currentTheme.spacing[6]} ${currentTheme.spacing[6]}`,
@@ -302,11 +361,11 @@ const WorkingPOSInterface = ({ onBillCreated }) => {
                   border: selectedCategory === category.id
                     ? `1px solid ${currentTheme.colors.primary[200]}`
                     : `1px solid ${currentTheme.colors.border}`,
-                  backgroundColor: selectedCategory === category.id 
+                  backgroundColor: selectedCategory === category.id
                     ? (isDark ? '#444444ff' : '#E9E9E9')
                     : (isDark ? '#1A1A1A' : '#F1F1F1'),
-                    
-                   boxShadow: isDark ? currentTheme.shadows.cardDark : currentTheme.shadows.card,
+
+                  boxShadow: isDark ? currentTheme.shadows.cardDark : currentTheme.shadows.card,
                   transition: 'all 0.2s cubic-bezier(0, 0, 0.2, 1)',
                 }}
                 onClick={() => setSelectedCategory(category.id)}
@@ -333,7 +392,7 @@ const WorkingPOSInterface = ({ onBillCreated }) => {
                       color: currentTheme.colors.text.secondary,
                       letterSpacing: currentTheme.typography.letterSpacing.normal,
                     }}>
-                      {products.filter(p => category.id === 'all' || p.category === category.id).length} items
+                      {products.filter(p => category.id === 'all' || p.category_id === category.id || p.category === category.id).length} items
                     </div>
                   </div>
                 </div>
@@ -349,163 +408,199 @@ const WorkingPOSInterface = ({ onBillCreated }) => {
           minHeight: 'calc(100% - 3rem)',
         }}>
           {loading ? (
-          <div style={{ 
-            display: 'flex',
-            flexDirection: 'column',
-            justifyContent: 'center',
-            alignItems: 'center',
-            minHeight: '400px',
-            gap: currentTheme.spacing[4],
-          }}>
-            <motion.div
-              style={{
-                width: '48px',
-                height: '48px',
-                border: `3px solid ${currentTheme.colors.border}`,
-                borderTop: `3px solid ${currentTheme.colors.primary[600]}`,
-                borderRadius: '50%',
-              }}
-              animate={{ rotate: 360 }}
-              transition={{
-                duration: 1,
-                ease: 'linear',
-                repeat: Infinity,
-              }}
-            />
             <div style={{
-              fontSize: currentTheme.typography.fontSize.lg,
-              color: currentTheme.colors.text.secondary,
-              fontWeight: currentTheme.typography.fontWeight.medium,
+              display: 'flex',
+              flexDirection: 'column',
+              justifyContent: 'center',
+              alignItems: 'center',
+              minHeight: '400px',
+              gap: currentTheme.spacing[4],
             }}>
-              Loading products...
-            </div>
-          </div>
-        ) : filteredProducts.length === 0 ? (
-          <div style={{ 
-            textAlign: 'center',
-            padding: currentTheme.spacing[12],
-            color: currentTheme.colors.text.secondary
-          }}>
-            <div style={{
-              width: '56px',
-              height: '56px',
-              borderRadius: currentTheme.borderRadius.full,
-              border: `1px solid ${currentTheme.colors.border}`,
-              backgroundColor: currentTheme.colors.surface,
-              margin: `0 auto ${currentTheme.spacing[6]}`,
-            }} />
-            <div style={{
-              fontSize: currentTheme.typography.fontSize['2xl'],
-              fontWeight: currentTheme.typography.fontWeight.semibold,
-              color: currentTheme.colors.text.primary,
-              marginBottom: currentTheme.spacing[2],
-            }}>
-              No Products Found
-            </div>
-            <p style={{
-              fontSize: currentTheme.typography.fontSize.base,
-              color: currentTheme.colors.text.secondary,
-              maxWidth: '300px',
-              margin: '0 auto',
-            }}>
-              Try adjusting your search or category filter
-            </p>
-          </div>
-        ) : (
-          <motion.div
-            initial="initial"
-            animate="animate"
-            variants={{
-              initial: { opacity: 0 },
-              animate: {
-                opacity: 1,
-                transition: {
-                  staggerChildren: 0.05
-                }
-              }
-            }}
-            style={{
-              display: 'grid',
-              gridTemplateColumns: 'repeat(auto-fill, minmax(180px, 1fr))',
-              gap: currentTheme.spacing[8],
-            }}
-          >
-            {filteredProducts.map((product) => (
               <motion.div
-                key={product.product_id}
-                variants={{
-                  initial: { opacity: 0, y: 20 },
-                  animate: { opacity: 1, y: 0 }
-                }}
-                whileHover={{ 
-                  y: -4,
-                  scale: 1.02,
-                  transition: { duration: 0.2, ease: [0.16, 1, 0.3, 1] }
-                }}
-                whileTap={{ y: 0 }}
-                onHoverStart={() => {
-                  // Add hover class or state
-                  const element = document.getElementById(`product-${product.product_id}`);
-                  if (element) {
-                    element.style.border = '1px solid var(--primary-300)';
-                  }
-                }}
-                onHoverEnd={() => {
-                  // Remove hover class or state
-                  const element = document.getElementById(`product-${product.product_id}`);
-                  if (element) {
-                    element.style.border = `1px solid ${currentTheme.colors.border}`;
-                  }
-                }}
-                onClick={(e) => handleAddItem(product, e)}
                 style={{
-                  cursor: 'pointer',
-                  textAlign: 'center',
-                  minHeight: '120px',
-                  display: 'flex',
-                  flexDirection: 'column',
-                  justifyContent: 'center',
-                  borderTop: `2px solid ${CATEGORY_COLORS[product.category]}`,
-                  backgroundColor: currentTheme.colors.Card,
-                  borderRadius: '15px',
-                  border: `1px solid ${currentTheme.colors.border}`,
-                  padding: currentTheme.spacing.lg,
-                  boxShadow: isDark ? currentTheme.shadows.cardDark : currentTheme.shadows.card,
-                  id: `product-${product.product_id}`,
+                  width: '48px',
+                  height: '48px',
+                  border: `3px solid ${currentTheme.colors.border}`,
+                  borderTop: `3px solid ${currentTheme.colors.primary[600]}`,
+                  borderRadius: '50%',
                 }}
-              >
-                <h4 style={{ 
-                  fontSize: currentTheme.typography.fontSize['2xl'],
-                  fontWeight: currentTheme.typography.fontWeight.semibold,
-                  color: currentTheme.colors.text.primary,
-                  marginBottom: currentTheme.spacing[2],
-                  lineHeight: currentTheme.typography.lineHeight.tight,
-                }}>
-                  {product.name}
-                </h4>
-                <div style={{
-                  fontSize: currentTheme.typography.fontSize['2xl'],
-                  fontWeight: currentTheme.typography.fontWeight.bold,
-                  color: CATEGORY_COLORS[product.category],
-                }}>
-                  {formatCurrency(product.price)}
-                </div>
-              </motion.div>
-            ))}
-          </motion.div>
-        )}
+                animate={{ rotate: 360 }}
+                transition={{
+                  duration: 1,
+                  ease: 'linear',
+                  repeat: Infinity,
+                }}
+              />
+              <div style={{
+                fontSize: currentTheme.typography.fontSize.lg,
+                color: currentTheme.colors.text.secondary,
+                fontWeight: currentTheme.typography.fontWeight.medium,
+              }}>
+                Loading products...
+              </div>
+            </div>
+          ) : filteredProducts.length === 0 ? (
+            <div style={{
+              textAlign: 'center',
+              padding: currentTheme.spacing[12],
+              color: currentTheme.colors.text.secondary
+            }}>
+              <div style={{
+                width: '56px',
+                height: '56px',
+                borderRadius: currentTheme.borderRadius.full,
+                border: `1px solid ${currentTheme.colors.border}`,
+                backgroundColor: currentTheme.colors.surface,
+                margin: `0 auto ${currentTheme.spacing[6]}`,
+              }} />
+              <div style={{
+                fontSize: currentTheme.typography.fontSize['2xl'],
+                fontWeight: currentTheme.typography.fontWeight.semibold,
+                color: currentTheme.colors.text.primary,
+                marginBottom: currentTheme.spacing[2],
+              }}>
+                No Products Found
+              </div>
+              <p style={{
+                fontSize: currentTheme.typography.fontSize.base,
+                color: currentTheme.colors.text.secondary,
+                maxWidth: '300px',
+                margin: '0 auto',
+              }}>
+                Try adjusting your search or category filter
+              </p>
+            </div>
+          ) : (
+            <motion.div
+              initial="initial"
+              animate="animate"
+              variants={{
+                initial: { opacity: 0 },
+                animate: {
+                  opacity: 1,
+                  transition: {
+                    staggerChildren: 0.05
+                  }
+                }
+              }}
+              style={{
+                display: 'grid',
+                gridTemplateColumns: 'repeat(auto-fill, minmax(180px, 1fr))',
+                gap: currentTheme.spacing[8],
+              }}
+            >
+              {filteredProducts.map((product) => (
+                <motion.div
+                  key={product.product_id}
+                  variants={{
+                    initial: { opacity: 0, y: 20 },
+                    animate: { opacity: 1, y: 0 }
+                  }}
+                  whileHover={{
+                    y: -4,
+                    scale: 1.02,
+                    transition: { duration: 0.2, ease: [0.16, 1, 0.3, 1] }
+                  }}
+                  whileTap={{ y: 0 }}
+                  onHoverStart={() => {
+                    // Add hover class or state
+                    const element = document.getElementById(`product-${product.product_id}`);
+                    if (element) {
+                      element.style.border = '1px solid var(--primary-300)';
+                    }
+                  }}
+                  onHoverEnd={() => {
+                    // Remove hover class or state
+                    const element = document.getElementById(`product-${product.product_id}`);
+                    if (element) {
+                      element.style.border = `1px solid ${currentTheme.colors.border}`;
+                    }
+                  }}
+                  onClick={(e) => handleAddItem(product, e)}
+                  style={{
+                    cursor: 'pointer',
+                    textAlign: 'center',
+                    minHeight: '120px',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    justifyContent: 'center',
+                    borderTop: `2px solid ${CATEGORY_COLORS[product.category] || '#3b82f6'}`,
+                    backgroundColor: currentTheme.colors.Card,
+                    borderRadius: '15px',
+                    border: `1px solid ${currentTheme.colors.border}`,
+                    padding: currentTheme.spacing.lg,
+                    boxShadow: isDark ? currentTheme.shadows.cardDark : currentTheme.shadows.card,
+                    id: `product-${product.product_id}`,
+                  }}
+                >
+                  <h4 style={{
+                    fontSize: currentTheme.typography.fontSize['2xl'],
+                    fontWeight: currentTheme.typography.fontWeight.semibold,
+                    color: currentTheme.colors.text.primary,
+                    marginBottom: currentTheme.spacing[2],
+                    lineHeight: currentTheme.typography.lineHeight.tight,
+                  }}>
+                    {product.name}
+                  </h4>
+                  <div style={{
+                    fontSize: currentTheme.typography.fontSize['2xl'],
+                    fontWeight: currentTheme.typography.fontWeight.bold,
+                    color: CATEGORY_COLORS[product.category] || '#3b82f6',
+                  }}>
+                    {formatCurrency(product.price)}
+                  </div>
+                </motion.div>
+              ))}
+            </motion.div>
+          )}
         </div>
       </div>
 
       <div style={rightSectionStyle}>
-        <div style={{ 
+        <div style={{
           flex: 1,
           padding: currentTheme.spacing[4],
           overflowY: 'auto',
           borderBottom: `1px solid ${currentTheme.colors.border}`,
         }}>
+          {/* Header for Right Section */}
+          <div style={{
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            marginBottom: currentTheme.spacing[4],
+            paddingBottom: currentTheme.spacing[2],
+            borderBottom: `1px solid ${currentTheme.colors.border}`,
+          }}>
+            <h3 style={{
+              margin: 0,
+              fontSize: currentTheme.typography.fontSize.lg,
+              fontWeight: currentTheme.typography.fontWeight.semibold,
+              color: currentTheme.colors.text.primary,
+            }}>
+              {editingBill ? `Editing Bill #${editingBill.bill_no}` : 'Current Bill'}
+            </h3>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={handleClearClick}
+              disabled={orderItems.length === 0}
+              style={{
+                color: orderItems.length === 0 ? currentTheme.colors.text.disabled : (isDark ? '#ef4444' : '#dc2626'),
+                opacity: orderItems.length === 0 ? 0.5 : 1,
+                padding: '4px 8px',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '4px',
+              }}
+            >
+              <TrashIcon color="currentColor" />
+              <span style={{ fontSize: '0.8rem' }}>Clear All</span>
+            </Button>
+          </div>
+
           {orderItems.length === 0 ? (
-            <div style={{ 
+            <div style={{
               textAlign: 'center',
               padding: currentTheme.spacing[8],
               color: currentTheme.colors.text.secondary
@@ -596,21 +691,21 @@ const WorkingPOSInterface = ({ onBillCreated }) => {
                   borderBottom: `1px solid ${currentTheme.colors.border}`,
                 }}>
                   <div>
-                    <div style={{ 
+                    <div style={{
                       fontSize: currentTheme.typography.fontSize.sm,
                       fontWeight: currentTheme.typography.fontWeight.medium,
                       color: currentTheme.colors.text.primary,
                     }}>
                       {item.name}
                     </div>
-                    <div style={{ 
+                    <div style={{
                       fontSize: currentTheme.typography.fontSize.xs,
                       color: currentTheme.colors.text.secondary,
                     }}>
                       {formatCurrency(item.price)} each
                     </div>
                   </div>
-                  
+
                   <div style={{ textAlign: 'center' }}>
                     <div style={{
                       display: 'flex',
@@ -639,7 +734,7 @@ const WorkingPOSInterface = ({ onBillCreated }) => {
                       </Button>
                     </div>
                   </div>
-                  
+
                   <div style={{ textAlign: 'right' }}>
                     {formatCurrency(item.price * item.quantity)}
                   </div>
@@ -649,7 +744,7 @@ const WorkingPOSInterface = ({ onBillCreated }) => {
           )}
         </div>
 
-        <div style={{ 
+        <div style={{
           borderTop: `1px solid ${currentTheme.colors.border}`,
           padding: currentTheme.spacing[4],
         }}>
@@ -683,10 +778,10 @@ const WorkingPOSInterface = ({ onBillCreated }) => {
             gap: currentTheme.spacing[2],
           }}>
             <Button variant="secondary" onClick={handleSaveOrder}>
-              Save
+              {editingBill ? 'Update Bill' : 'Save'}
             </Button>
             <Button variant="primary" onClick={handleSaveAndPrintOrder}>
-              Save & Print
+              {editingBill ? 'Update & Print' : 'Save & Print'}
             </Button>
           </div>
         </div>
@@ -709,6 +804,89 @@ const WorkingPOSInterface = ({ onBillCreated }) => {
           </Card>
         </div>
       )}
+
+      {/* Clear Confirmation Modal */}
+      <AnimatePresence>
+        {showClearConfirm && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            style={{
+              position: 'fixed',
+              top: 0,
+              left: 0,
+              right: 0,
+              bottom: 0,
+              background: 'rgba(0, 0, 0, 0.5)',
+              backdropFilter: 'blur(4px)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              zIndex: 1100,
+            }}
+            onClick={() => setShowClearConfirm(false)}
+          >
+            <motion.div
+              initial={{ scale: 0.9, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.9, opacity: 0 }}
+              transition={{ duration: 0.2 }}
+              style={{
+                background: currentTheme.colors.surface,
+                borderRadius: '16px',
+                padding: currentTheme.spacing[6],
+                maxWidth: '400px',
+                width: '90%',
+                border: `1px solid ${currentTheme.colors.border}`,
+                boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)',
+              }}
+              onClick={(e) => e.stopPropagation()}
+            >
+              <h3 style={{
+                fontSize: '1.25rem',
+                fontWeight: 600,
+                color: currentTheme.colors.text.primary,
+                marginBottom: currentTheme.spacing[2],
+                marginTop: 0,
+              }}>
+                Clear Current Bill?
+              </h3>
+              <p style={{
+                fontSize: '0.875rem',
+                color: currentTheme.colors.text.secondary,
+                marginBottom: currentTheme.spacing[6],
+                lineHeight: 1.5,
+              }}>
+                This will remove all items from the current order. This action cannot be undone.
+              </p>
+              <div style={{
+                display: 'flex',
+                gap: currentTheme.spacing[3],
+                justifyContent: 'flex-end',
+              }}>
+                <Button
+                  variant="secondary"
+                  onClick={() => setShowClearConfirm(false)}
+                >
+                  Cancel
+                </Button>
+                <Button
+                  variant="primary" // Ideally danger variant, but using primary with red style manually if needed or standard primary
+                  style={{
+                    backgroundColor: isDark ? '#ef4444' : '#dc2626',
+                    borderColor: isDark ? '#ef4444' : '#dc2626',
+                    color: '#ffffff',
+                  }}
+                  onClick={confirmClear}
+                >
+                  Yes, Clear Bill
+                </Button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 };

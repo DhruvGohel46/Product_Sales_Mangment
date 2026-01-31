@@ -23,22 +23,28 @@ def create_product():
         
         name = data['name']
         price = float(data['price'])
-        category = data['category']
+        category_id = data.get('category_id')
+        category_name = data.get('category')
         active = data.get('active', True)
         
-        # Validate category
-        if category not in ['coldrink', 'paan', 'other']:
-            return jsonify({
-                'success': False,
-                'message': 'Invalid category. Must be: coldrink, paan, or other'
-            }), 400
+        # If category_id is not provided but name is, find the ID
+        if not category_id and category_name:
+            cat = db.get_category_by_name(category_name)
+            if cat:
+                category_id = cat['id']
+            else:
+                # Create category on the fly if it doesn't exist?
+                # For safety, let's keep it restricted or use 'other'
+                other_cat = db.get_category_by_name('other')
+                category_id = other_cat['id'] if other_cat else None
         
-        # Create product with auto-generated ID
+        # Create product data
         product_data = {
             'product_id': data['product_id'],
             'name': name,
             'price': price,
-            'category': category,
+            'category_id': category_id,
+            'category': category_name, # Legacy field
             'active': active
         }
         
@@ -116,14 +122,16 @@ def update_product(product_id):
                 }), 400
             update_data['price'] = price
         
-        if 'category' in data:
-            category = data['category']
-            if category not in ['coldrink', 'paan', 'other']:
-                return jsonify({
-                    'success': False,
-                    'message': 'Invalid category. Must be: coldrink, paan, or other'
-                }), 400
-            update_data['category'] = category
+        if 'category_id' in data:
+            update_data['category_id'] = data['category_id']
+            
+        if 'category' in data: # Legacy name update
+            category_name = data['category']
+            update_data['category'] = category_name
+            # Also update category_id if name matches
+            cat = db.get_category_by_name(category_name)
+            if cat:
+                update_data['category_id'] = cat['id']
         
         if 'active' in data:
             active = data['active']

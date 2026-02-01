@@ -57,3 +57,4 @@ backend/data/exports/
 # Logs
 *.log
 logs/
+backend/data/products.db

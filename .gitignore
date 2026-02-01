@@ -57,3 +57,11 @@ backend/data/exports/
 # Logs
 *.log
 logs/
+# Database
+*.db
+*.sqlite3
+
+# Data directories
+backend/data/bills/
+backend/data/archive/
+backend/data/images/

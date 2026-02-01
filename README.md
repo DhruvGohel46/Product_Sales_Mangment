@@ -62,9 +62,9 @@ The setup script will:
 
 1. **Run the startup script**:
    ```bash
-   start.bat
+   Product_Sales_Start.bat
    ```
-2. **Open your browser** and go to: http://localhost:3000
+2. **Open your browser** and go to: http://localhost:3050
 
 ### Manual Start
 
@@ -81,8 +81,8 @@ The setup script will:
    ```
 
 3. **Access the application**:
-   - Frontend: http://localhost:3000
-   - Backend API: http://localhost:5000
+   - Frontend: http://localhost:3050
+   - Backend API: http://localhost:5050
 
 ## 📊 Database Migration
 
@@ -158,7 +158,7 @@ project-root/
 │       ├── components/        # React components
 │       ├── screens/           # Main screens
 │       └── utils/             # Utilities
-├── start.bat                  # Daily startup script
+├── Product_Sales_Start.bat    # Daily startup script
 ├── first_time_start.bat       # First-time setup
 └── README.md                  # This file
 ```

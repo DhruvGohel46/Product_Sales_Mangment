@@ -1178,7 +1178,271 @@ const Reports = () => {
         </Card >
       </motion.div >
 
-      {/* Reports Section */}
+      
+
+      {/* Bill Management Section */}
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.6, delay: 0.3, ease: [0.16, 1, 0.3, 1] }}
+        style={{
+          marginBottom: currentTheme.spacing[8],
+          marginTop: currentTheme.spacing[8],
+        }}
+      >
+        <Card>
+          <div style={{
+            display: 'flex',
+            alignItems: 'center',
+            marginBottom: currentTheme.spacing[6],
+          }}>
+            <div style={{
+              position: 'relative',
+              paddingLeft: currentTheme.spacing[4],
+            }}>
+              <div style={{
+                position: 'absolute',
+                left: 0,
+                top: '50%',
+                transform: 'translateY(-50%)',
+                width: '4px',
+                height: '24px',
+                background: 'linear-gradient(to bottom, #3b82f6, #06b6d4)',
+                borderRadius: '2px',
+              }} />
+              <h2 style={{
+                fontSize: '1.25rem',
+                fontWeight: 600,
+                color: isDark ? '#f1f5f9' : '#1e293b',
+                margin: 0,
+                textTransform: 'uppercase',
+                letterSpacing: '0.1em',
+              }}>
+                Bill Management
+              </h2>
+            </div>
+            <div style={{ marginLeft: 'auto' }}>
+              <Button
+                onClick={loadBills}
+                variant="secondary"
+                size="sm"
+                disabled={loadingBills}
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '8px',
+                  background: isDark ? 'rgba(59, 130, 246, 0.1)' : '#eff6ff',
+                  border: `1px solid ${isDark ? 'rgba(59, 130, 246, 0.2)' : '#dbeafe'}`,
+                  color: '#3b82f6',
+                  borderRadius: '8px',
+                  padding: '6px 16px',
+                  fontWeight: 600,
+                  transition: 'all 0.2s ease',
+                }}
+              >
+                <div style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  animation: loadingBills ? 'spin 1s linear infinite' : 'none'
+                }}>
+                  <RefreshIcon color="#3b82f6" />
+                </div>
+                Refresh
+              </Button>
+            </div>
+          </div>
+
+          <div style={{
+            marginTop: currentTheme.spacing[4],
+            position: 'relative',
+          }}>
+            {bills.length > 0 ? (
+              <AnimatedList
+                key={`bill-list-${loadingBills ? 'loading' : 'ready'}`}
+                items={bills}
+                className="bill-list-animated"
+                showGradients={false}
+                displayScrollbar={false}
+              >
+                {(bill, index) => {
+                  const isCancelled = bill.status === 'CANCELLED';
+                  const statusText = (!bill.status || bill.status === 'ACTIVE') ? 'CONFIRMED' : bill.status;
+
+                  return (
+                    <div
+                      key={bill.bill_no}
+                      onClick={() => !isCancelled && handleEditBill(bill)}
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        padding: `${currentTheme.spacing[4]} ${currentTheme.spacing[6]}`,
+                        background: isDark ? 'rgba(30, 41, 59, 0.4)' : '#ffffff',
+                        borderRadius: '12px',
+                        border: `1px solid ${isDark ? '#334155' : '#e2e8f0'}`,
+                        marginBottom: currentTheme.spacing[2],
+                        gap: currentTheme.spacing[4],
+                        cursor: isCancelled ? 'default' : 'pointer',
+                        transition: 'all 0.2s cubic-bezier(0.4, 0, 0.4, 1)',
+                        opacity: isCancelled ? 0.6 : 1,
+                        position: 'relative',
+                        overflow: 'hidden',
+                      }}
+                      onMouseEnter={(e) => {
+                        if (!isCancelled) {
+                          e.currentTarget.style.borderColor = isDark ? '#3b82f6' : '#3b82f6';
+                          e.currentTarget.style.transform = 'translateY(-2px)';
+                          e.currentTarget.style.boxShadow = isDark ? '0 10px 15px -3px rgba(0, 0, 0, 0.3)' : '0 10px 15px -3px rgba(59, 130, 246, 0.1)';
+                        }
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.style.borderColor = isDark ? '#334155' : '#e2e8f0';
+                        e.currentTarget.style.transform = 'translateY(0)';
+                        e.currentTarget.style.boxShadow = 'none';
+                      }}
+                    >
+                      {/* Bill ID Highlight */}
+                      <div style={{
+                        position: 'absolute',
+                        left: 0,
+                        top: 0,
+                        bottom: 0,
+                        width: '4px',
+                        background: isCancelled ? (isDark ? '#ef4444' : '#fee2e2') : (isDark ? '#3b82f6' : '#eff6ff'),
+                      }} />
+
+                      {/* Bill Info */}
+                      <div style={{ flex: '0 0 60px' }}>
+                        <span style={{
+                          fontSize: '1rem',
+                          fontWeight: 700,
+                          color: isDark ? '#f1f5f9' : '#1e293b',
+                          display: 'block'
+                        }}>
+                          {bill.bill_no}
+                        </span>
+                      </div>
+
+                      <div style={{ flex: '1', minWidth: '150px' }}>
+                        <div style={{
+                          fontSize: '0.9rem',
+                          fontWeight: 600,
+                          color: isDark ? '#f1f5f9' : '#1e293b',
+                          marginBottom: '4px',
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '8px'
+                        }}>
+                          <ClockIcon color={isDark ? '#3b82f6' : '#2563eb'} />
+                          {formatDate(bill.created_at)} • {formatTime(bill.created_at)} • <span>{bill.items?.length || 0} items</span>
+                        </div>
+                        <div style={{
+                          fontSize: '0.75rem',
+                          color: isDark ? '#94a3b8' : '#64748b'
+                        }}>
+
+                        </div>
+                      </div>
+
+                      <div style={{
+                        flex: '0 0 120px',
+                        textAlign: 'right',
+                        paddingRight: currentTheme.spacing[4]
+                      }}>
+                        <div style={{
+                          fontSize: '1.125rem',
+                          fontWeight: 700,
+                          color: isDark ? '#3b82f6' : '#2563eb'
+                        }}>
+                          {formatCurrency(bill.total_amount)}
+                        </div>
+                      </div>
+
+                      <div style={{ flex: '0 0 110px', textAlign: 'center' }}>
+                        <span style={{
+                          padding: '6px 10px',
+                          borderRadius: '8px',
+                          fontSize: '0.7rem',
+                          fontWeight: 700,
+                          letterSpacing: '0.025em',
+                          display: 'inline-block',
+                          backgroundColor: isCancelled ? (isDark ? 'rgba(239, 68, 68, 0.15)' : '#fee2e2') : (isDark ? 'rgba(34, 197, 94, 0.15)' : '#dcfce7'),
+                          color: isCancelled ? (isDark ? '#fca5a5' : '#ef4444') : (isDark ? '#86efac' : '#16a34a'),
+                          border: `1px solid ${isCancelled ? (isDark ? 'rgba(239, 68, 68, 0.2)' : '#fca5a5') : (isDark ? 'rgba(34, 197, 94, 0.2)' : '#86efac')}`
+                        }}>
+                          {statusText}
+                        </span>
+                      </div>
+
+                      <div style={{
+                        flex: '0 0 150px',
+                        display: 'flex',
+                        gap: currentTheme.spacing[2],
+                        justifyContent: 'flex-end'
+                      }}>
+                        <Button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleEditBill(bill);
+                          }}
+                          variant="ghost"
+                          size="sm"
+                          disabled={isCancelled}
+                          style={{
+                            height: '32px',
+                            minWidth: '60px',
+                            fontSize: '0.75rem'
+                          }}
+                        >
+                          Edit
+                        </Button>
+                        <Button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setSelectedBill(bill);
+                            setShowCancelConfirm(true);
+                          }}
+                          variant="ghost"
+                          size="sm"
+                          disabled={isCancelled}
+                          style={{
+                            height: '32px',
+                            minWidth: '70px',
+                            fontSize: '0.75rem',
+                            color: isCancelled ? (isDark ? '#475569' : '#94a3b8') : (isDark ? '#fca5a5' : '#ef4444'),
+                            background: isCancelled ? 'transparent' : (isDark ? 'rgba(239, 68, 68, 0.05)' : '#fef2f2')
+                          }}
+                        >
+                          Cancel
+                        </Button>
+                      </div>
+                    </div>
+                  );
+                }}
+              </AnimatedList>
+            ) : (
+              <div style={{
+                padding: currentTheme.spacing[12],
+                textAlign: 'center',
+                color: isDark ? '#64748b' : '#94a3b8',
+                background: isDark ? 'rgba(30, 41, 59, 0.2)' : '#f8fafc',
+                borderRadius: '16px',
+                border: `2px dashed ${isDark ? '#334155' : '#e2e8f0'}`
+              }}>
+                <div style={{ marginBottom: currentTheme.spacing[4], opacity: 0.5 }}>
+                  <ReceiptIcon color="currentColor" />
+                </div>
+                <h3 style={{ margin: 0, fontSize: '1rem', fontWeight: 600 }}>
+                  {loadingBills ? 'Loading transaction records...' : 'No bills found for today'}
+                </h3>
+                <p style={{ margin: `${currentTheme.spacing[2]} 0 0`, fontSize: '0.875rem' }}>
+                  {loadingBills ? 'Please wait while we fetch the latest data.' : 'Your transaction history will appear here once orders are processed.'}
+                </p>
+              </div>
+            )}
+          </div>
+        </Card>
+      </motion.div>
+{/* Reports Section */}
       < motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -1529,270 +1793,6 @@ const Reports = () => {
         </Card>
 
       </motion.div>
-
-      {/* Bill Management Section */}
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.6, delay: 0.3, ease: [0.16, 1, 0.3, 1] }}
-        style={{
-          marginBottom: currentTheme.spacing[8],
-          marginTop: currentTheme.spacing[8],
-        }}
-      >
-        <Card>
-          <div style={{
-            display: 'flex',
-            alignItems: 'center',
-            marginBottom: currentTheme.spacing[6],
-          }}>
-            <div style={{
-              position: 'relative',
-              paddingLeft: currentTheme.spacing[4],
-            }}>
-              <div style={{
-                position: 'absolute',
-                left: 0,
-                top: '50%',
-                transform: 'translateY(-50%)',
-                width: '4px',
-                height: '24px',
-                background: 'linear-gradient(to bottom, #3b82f6, #06b6d4)',
-                borderRadius: '2px',
-              }} />
-              <h2 style={{
-                fontSize: '1.25rem',
-                fontWeight: 600,
-                color: isDark ? '#f1f5f9' : '#1e293b',
-                margin: 0,
-                textTransform: 'uppercase',
-                letterSpacing: '0.1em',
-              }}>
-                Bill Management
-              </h2>
-            </div>
-            <div style={{ marginLeft: 'auto' }}>
-              <Button
-                onClick={loadBills}
-                variant="secondary"
-                size="sm"
-                disabled={loadingBills}
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '8px',
-                  background: isDark ? 'rgba(59, 130, 246, 0.1)' : '#eff6ff',
-                  border: `1px solid ${isDark ? 'rgba(59, 130, 246, 0.2)' : '#dbeafe'}`,
-                  color: '#3b82f6',
-                  borderRadius: '8px',
-                  padding: '6px 16px',
-                  fontWeight: 600,
-                  transition: 'all 0.2s ease',
-                }}
-              >
-                <div style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  animation: loadingBills ? 'spin 1s linear infinite' : 'none'
-                }}>
-                  <RefreshIcon color="#3b82f6" />
-                </div>
-                Refresh
-              </Button>
-            </div>
-          </div>
-
-          <div style={{
-            marginTop: currentTheme.spacing[4],
-            position: 'relative',
-          }}>
-            {bills.length > 0 ? (
-              <AnimatedList
-                key={`bill-list-${loadingBills ? 'loading' : 'ready'}`}
-                items={bills}
-                className="bill-list-animated"
-                showGradients={false}
-                displayScrollbar={false}
-              >
-                {(bill, index) => {
-                  const isCancelled = bill.status === 'CANCELLED';
-                  const statusText = (!bill.status || bill.status === 'ACTIVE') ? 'CONFIRMED' : bill.status;
-
-                  return (
-                    <div
-                      key={bill.bill_no}
-                      onClick={() => !isCancelled && handleEditBill(bill)}
-                      style={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        padding: `${currentTheme.spacing[4]} ${currentTheme.spacing[6]}`,
-                        background: isDark ? 'rgba(30, 41, 59, 0.4)' : '#ffffff',
-                        borderRadius: '12px',
-                        border: `1px solid ${isDark ? '#334155' : '#e2e8f0'}`,
-                        marginBottom: currentTheme.spacing[2],
-                        gap: currentTheme.spacing[4],
-                        cursor: isCancelled ? 'default' : 'pointer',
-                        transition: 'all 0.2s cubic-bezier(0.4, 0, 0.4, 1)',
-                        opacity: isCancelled ? 0.6 : 1,
-                        position: 'relative',
-                        overflow: 'hidden',
-                      }}
-                      onMouseEnter={(e) => {
-                        if (!isCancelled) {
-                          e.currentTarget.style.borderColor = isDark ? '#3b82f6' : '#3b82f6';
-                          e.currentTarget.style.transform = 'translateY(-2px)';
-                          e.currentTarget.style.boxShadow = isDark ? '0 10px 15px -3px rgba(0, 0, 0, 0.3)' : '0 10px 15px -3px rgba(59, 130, 246, 0.1)';
-                        }
-                      }}
-                      onMouseLeave={(e) => {
-                        e.currentTarget.style.borderColor = isDark ? '#334155' : '#e2e8f0';
-                        e.currentTarget.style.transform = 'translateY(0)';
-                        e.currentTarget.style.boxShadow = 'none';
-                      }}
-                    >
-                      {/* Bill ID Highlight */}
-                      <div style={{
-                        position: 'absolute',
-                        left: 0,
-                        top: 0,
-                        bottom: 0,
-                        width: '4px',
-                        background: isCancelled ? (isDark ? '#ef4444' : '#fee2e2') : (isDark ? '#3b82f6' : '#eff6ff'),
-                      }} />
-
-                      {/* Bill Info */}
-                      <div style={{ flex: '0 0 60px' }}>
-                        <span style={{
-                          fontSize: '1rem',
-                          fontWeight: 700,
-                          color: isDark ? '#f1f5f9' : '#1e293b',
-                          display: 'block'
-                        }}>
-                          {bill.bill_no}
-                        </span>
-                      </div>
-
-                      <div style={{ flex: '1', minWidth: '150px' }}>
-                        <div style={{
-                          fontSize: '0.9rem',
-                          fontWeight: 600,
-                          color: isDark ? '#f1f5f9' : '#1e293b',
-                          marginBottom: '4px',
-                          display: 'flex',
-                          alignItems: 'center',
-                          gap: '8px'
-                        }}>
-                          <ClockIcon color={isDark ? '#3b82f6' : '#2563eb'} />
-                          {formatDate(bill.created_at)} • {formatTime(bill.created_at)} • <span>{bill.items?.length || 0} items</span>
-                        </div>
-                        <div style={{
-                          fontSize: '0.75rem',
-                          color: isDark ? '#94a3b8' : '#64748b'
-                        }}>
-
-                        </div>
-                      </div>
-
-                      <div style={{
-                        flex: '0 0 120px',
-                        textAlign: 'right',
-                        paddingRight: currentTheme.spacing[4]
-                      }}>
-                        <div style={{
-                          fontSize: '1.125rem',
-                          fontWeight: 700,
-                          color: isDark ? '#3b82f6' : '#2563eb'
-                        }}>
-                          {formatCurrency(bill.total_amount)}
-                        </div>
-                      </div>
-
-                      <div style={{ flex: '0 0 110px', textAlign: 'center' }}>
-                        <span style={{
-                          padding: '6px 10px',
-                          borderRadius: '8px',
-                          fontSize: '0.7rem',
-                          fontWeight: 700,
-                          letterSpacing: '0.025em',
-                          display: 'inline-block',
-                          backgroundColor: isCancelled ? (isDark ? 'rgba(239, 68, 68, 0.15)' : '#fee2e2') : (isDark ? 'rgba(34, 197, 94, 0.15)' : '#dcfce7'),
-                          color: isCancelled ? (isDark ? '#fca5a5' : '#ef4444') : (isDark ? '#86efac' : '#16a34a'),
-                          border: `1px solid ${isCancelled ? (isDark ? 'rgba(239, 68, 68, 0.2)' : '#fca5a5') : (isDark ? 'rgba(34, 197, 94, 0.2)' : '#86efac')}`
-                        }}>
-                          {statusText}
-                        </span>
-                      </div>
-
-                      <div style={{
-                        flex: '0 0 150px',
-                        display: 'flex',
-                        gap: currentTheme.spacing[2],
-                        justifyContent: 'flex-end'
-                      }}>
-                        <Button
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleEditBill(bill);
-                          }}
-                          variant="ghost"
-                          size="sm"
-                          disabled={isCancelled}
-                          style={{
-                            height: '32px',
-                            minWidth: '60px',
-                            fontSize: '0.75rem'
-                          }}
-                        >
-                          Edit
-                        </Button>
-                        <Button
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            setSelectedBill(bill);
-                            setShowCancelConfirm(true);
-                          }}
-                          variant="ghost"
-                          size="sm"
-                          disabled={isCancelled}
-                          style={{
-                            height: '32px',
-                            minWidth: '70px',
-                            fontSize: '0.75rem',
-                            color: isCancelled ? (isDark ? '#475569' : '#94a3b8') : (isDark ? '#fca5a5' : '#ef4444'),
-                            background: isCancelled ? 'transparent' : (isDark ? 'rgba(239, 68, 68, 0.05)' : '#fef2f2')
-                          }}
-                        >
-                          Cancel
-                        </Button>
-                      </div>
-                    </div>
-                  );
-                }}
-              </AnimatedList>
-            ) : (
-              <div style={{
-                padding: currentTheme.spacing[12],
-                textAlign: 'center',
-                color: isDark ? '#64748b' : '#94a3b8',
-                background: isDark ? 'rgba(30, 41, 59, 0.2)' : '#f8fafc',
-                borderRadius: '16px',
-                border: `2px dashed ${isDark ? '#334155' : '#e2e8f0'}`
-              }}>
-                <div style={{ marginBottom: currentTheme.spacing[4], opacity: 0.5 }}>
-                  <ReceiptIcon color="currentColor" />
-                </div>
-                <h3 style={{ margin: 0, fontSize: '1rem', fontWeight: 600 }}>
-                  {loadingBills ? 'Loading transaction records...' : 'No bills found for today'}
-                </h3>
-                <p style={{ margin: `${currentTheme.spacing[2]} 0 0`, fontSize: '0.875rem' }}>
-                  {loadingBills ? 'Please wait while we fetch the latest data.' : 'Your transaction history will appear here once orders are processed.'}
-                </p>
-              </div>
-            )}
-          </div>
-        </Card>
-      </motion.div>
-
       {/* Clear Data Confirmation Modal */}
       <AnimatePresence>
         {showClearConfirm && (

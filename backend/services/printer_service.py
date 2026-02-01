@@ -129,7 +129,7 @@ class PrinterService:
                     init_commands = b'\x1B@'  # Initialize printer
                     
                     # Set character size to normal with bold
-                    char_size_cmd = b'\x1B!\x18'  # Bold text
+                    char_size_cmd = b'\x2B!\x08'  # Bold text
                     
                     # Convert text to bytes with proper encoding
                     text_bytes = text.encode('utf-8')

@@ -232,7 +232,9 @@ const Reports = () => {
       const url = date ? `/api/bill/management/all?date=${date}` : '/api/bill/management/all';
       const response = await api.get(url);
       if (response.data.success) {
-        setBills(response.data.bills);
+        // Sort bills in descending order by bill_no to show latest order first
+        const sortedBills = response.data.bills.sort((a, b) => b.bill_no - a.bill_no);
+        setBills(sortedBills);
       }
     } catch (err) {
       console.error('Error loading bills:', err);

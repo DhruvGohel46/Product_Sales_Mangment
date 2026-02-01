@@ -158,7 +158,7 @@ function AppContent() {
                   gap: currentTheme.spacing[3],
                 }}>
                   <div style={{
-                    fontSize: '2.25rem',
+                    fontSize: '2.75rem',
                     fontWeight: currentTheme.typography.fontWeight.bold,
                     color: currentTheme.colors.primary[500],
                     margin: 0,
@@ -169,7 +169,7 @@ function AppContent() {
                     ReBill
                   </div>
                   <div style={{
-                    fontSize: '1rem',
+                    fontSize: '1.75rem',
                     fontWeight: currentTheme.typography.fontWeight.medium,
                     color: currentTheme.colors.text.primary,
                     margin: 0,
@@ -178,7 +178,7 @@ function AppContent() {
                     whiteSpace: 'nowrap',
                     opacity: 0.7,
                   }}>
-                    Burger Bhau
+                    (Burger Bhau)
                   </div>
                 </div>
               </div>

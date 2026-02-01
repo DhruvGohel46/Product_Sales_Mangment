@@ -5,6 +5,7 @@ import { productsAPI, categoriesAPI, handleAPIError, formatCurrency } from '../.
 import { useToast } from '../../context/ToastContext';
 import CategoryManagement from './CategoryManagement';
 import '../../styles/Management.css';
+import { useTheme } from '../../context/ThemeContext';
 
 const IconPlus = (props) => (
   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" {...props}>
@@ -58,6 +59,7 @@ const ProductManagement = () => {
   const [query, setQuery] = useState('');
   const [categoryFilter, setCategoryFilter] = useState('all');
   const [statusFilter, setStatusFilter] = useState('all'); // all | active | inactive
+  const [imageUploading, setImageUploading] = useState(false);
   const [formData, setFormData] = useState({
     name: '',
     price: '',
@@ -165,9 +167,14 @@ const ProductManagement = () => {
         }
 
         if (selectedImage) {
-          const formData = new FormData();
-          formData.append('image', selectedImage);
-          await productsAPI.uploadImage(editingProduct.product_id, formData);
+          setImageUploading(true);
+          try {
+            const formData = new FormData();
+            formData.append('image', selectedImage);
+            await productsAPI.uploadImage(editingProduct.product_id, formData);
+          } finally {
+            setImageUploading(false);
+          }
         }
 
       } else {
@@ -177,9 +184,14 @@ const ProductManagement = () => {
         await productsAPI.createProduct(newProduct);
 
         if (selectedImage) {
-          const formData = new FormData();
-          formData.append('image', selectedImage);
-          await productsAPI.uploadImage(id, formData);
+          setImageUploading(true);
+          try {
+            const formData = new FormData();
+            formData.append('image', selectedImage);
+            await productsAPI.uploadImage(id, formData);
+          } finally {
+            setImageUploading(false);
+          }
         }
       }
       resetForm();
@@ -306,15 +318,6 @@ const ProductManagement = () => {
 
   return (
     <div className="pmSectionContent" ref={topRef}>
-      {/* Header Actions */}
-      <div className="pmHeader" style={{ border: 'none', boxShadow: 'none', background: 'transparent', padding: 0, margin: '0 0 20px 0' }}>
-        <div className="pmHeaderLeft">
-          <div className="pmTitleRow">
-            <div className="pmTitle" style={{ fontSize: '24px' }}>Product Catalog</div>
-          </div>
-        </div>
-
-      </div>
 
       {/* Controls */}
       <div className="pmPanel pmPanelTight">
@@ -404,6 +407,29 @@ const ProductManagement = () => {
                     backgroundColor: 'var(--bg-secondary)',
                     position: 'relative'
                   }}>
+                    {imageUploading && (
+                      <div style={{
+                        position: 'absolute',
+                        top: 0,
+                        left: 0,
+                        right: 0,
+                        bottom: 0,
+                        backgroundColor: 'rgba(0, 0, 0, 0.7)',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        zIndex: 10
+                      }}>
+                        <div style={{
+                          width: '24px',
+                          height: '24px',
+                          border: '3px solid rgba(255, 255, 255, 0.3)',
+                          borderTop: '3px solid white',
+                          borderRadius: '50%',
+                          animation: 'spin 1s linear infinite'
+                        }} />
+                      </div>
+                    )}
                     {previewImage ? (
                       <img src={previewImage} alt="Preview" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                     ) : (
@@ -434,8 +460,23 @@ const ProductManagement = () => {
 
               <div className="pmFormActions">
                 <button type="button" className="pmSecondaryBtn" onClick={resetForm}>Cancel</button>
-                <button type="submit" className="pmPrimaryCta">
-                  {editingProduct ? 'Update Product' : 'Add Product'}
+                <button type="submit" className="pmPrimaryCta" disabled={imageUploading}>
+                  {imageUploading ? (
+                    <>
+                      <div style={{
+                        width: '16px',
+                        height: '16px',
+                        border: '2px solid rgba(255, 255, 255, 0.3)',
+                        borderTop: '2px solid white',
+                        borderRadius: '50%',
+                        animation: 'spin 1s linear infinite',
+                        marginRight: '8px'
+                      }} />
+                      Processing Image...
+                    </>
+                  ) : (
+                    editingProduct ? 'Update Product' : 'Add Product'
+                  )}
                 </button>
               </div>
             </form>
@@ -449,7 +490,7 @@ const ProductManagement = () => {
       {/* Products Grid */}
       <div className="pmPanel">
         <div className="pmGridHeader">
-          <div className="pmGridTitle" style={{ fontSize: '20px' }}>Products</div>
+          <div className="pmGridTitle" >Products</div>
           <div className="pmGridHint">{loading ? 'Refreshing…' : `${filteredProducts.length} shown`}</div>
           <div className="pmHeaderActions">
             <button

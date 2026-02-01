@@ -96,6 +96,7 @@
   box-shadow: 0 8px 20px rgba(0, 0, 0, 0.08);
   padding: 20px;
   transition: all 0.2s ease;
+  margin: 10px 0px;
 }
 
 .pmPanel:hover {
@@ -105,6 +106,7 @@
 
 .pmPanelTight {
   padding: 20px;
+  margin: 10px 0;
 }
 
 /* Controls */
@@ -190,6 +192,7 @@
   align-items: baseline;
   justify-content: space-between;
   gap: 10px;
+  margin-bottom: 10px;
 }
 
 .pmGridTitle {
@@ -201,34 +204,36 @@
 }
 
 .pmGridHint {
-  font-size: 13px;
+  font-size: 18px;
   color: var(--text-muted);
   white-space: nowrap;
 }
 
 .pmGrid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-  gap: 14px;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 20px;
+  padding: 8px;
 }
 
 /* Product card */
 .pmCard {
   position: relative;
-  border-radius: 12px;
+  border-radius: 16px;
   border: 1px solid var(--border-primary);
   background: var(--surface);
   display: flex;
   flex-direction: column;
   overflow: hidden;
-  padding: 0;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
-  transition: all 0.2s ease;
+  padding: 20px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  min-height: 180px;
 }
 
 .pmCard:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  transform: translateY(-4px);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.12);
   border-color: var(--primary-300);
 }
 
@@ -243,6 +248,41 @@
 
 .pmCardToneInactive {
   border-color: color-mix(in srgb, #a3a3a3 26%, var(--border-subtle));
+}
+
+/* Loading Spinner Animation */
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* Category Card Specific Styles */
+.pmCardTop {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--border-primary);
+}
+
+.pmCardTop .pmName {
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin: 0;
+  text-align: left;
+}
+
+.pmCard .pmMetaRow {
+  justify-content: flex-start;
+  text-align: left;
+  margin-bottom: 8px;
+}
+
+.pmCard .pmActions {
+  margin-top: auto;
+  justify-content: space-between;
 }
 
 /* Image Container */

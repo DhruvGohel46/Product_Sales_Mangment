@@ -51,11 +51,11 @@ export const productsAPI = {
   // Get specific product by ID
   getProduct: (productId) => api.get(`/api/products/${productId}`),
 
-  // Soft delete product (mark as deleted)
+  // Permanently delete product
   deleteProduct: (productId) => {
     console.log('API deleteProduct called with ID:', productId);
     console.log('Full URL:', `/api/products/${productId}`);
-    return api.put(`/api/products/${productId}`, { deleted: true });
+    return api.delete(`/api/products/${productId}`);
   },
 
   // Set product as out of stock (deactivate)
@@ -70,6 +70,20 @@ export const productsAPI = {
     console.log('API setActive called with ID:', productId);
     console.log('Full URL:', `/api/products/${productId}`);
     return api.put(`/api/products/${productId}`, { active: true });
+  },
+
+  // Image Management
+  uploadImage: (productId, formData) => {
+    return api.post(`/api/products/${productId}/image`, formData, {
+      headers: { 'Content-Type': 'multipart/form-data' }
+    });
+  },
+
+  deleteImage: (productId) => api.delete(`/api/products/${productId}/image`),
+
+  getImageUrl: (filename) => {
+    if (!filename) return null;
+    return `${API_BASE_URL}/api/images/${filename}`;
   },
 };
 

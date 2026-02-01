@@ -36,12 +36,24 @@ class SQLiteDatabaseService:
                     price REAL NOT NULL,
                     category_id INTEGER,
                     category TEXT, -- Keep for legacy/migration
+                    image_filename TEXT, -- Stores 'product-name.ext'
                     active BOOLEAN DEFAULT 1,
                     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                     FOREIGN KEY (category_id) REFERENCES categories(id)
                 )
             ''')
+            
+            # Check for image_filename column (migration)
+            cursor.execute("PRAGMA table_info(products)")
+            prod_columns = [info[1] for info in cursor.fetchall()]
+            
+            if 'image_filename' not in prod_columns:
+                print("Migrating products: Adding image_filename column")
+                try:
+                    cursor.execute("ALTER TABLE products ADD COLUMN image_filename TEXT")
+                except Exception as e:
+                    print(f"Migration error (image_filename): {e}")
             
             # Create bills table
             cursor.execute('''
@@ -191,14 +203,15 @@ class SQLiteDatabaseService:
             with self.get_connection() as conn:
                 cursor = conn.cursor()
                 cursor.execute('''
-                    INSERT INTO products (product_id, name, price, category_id, category, active)
-                    VALUES (?, ?, ?, ?, ?, ?)
+                    INSERT INTO products (product_id, name, price, category_id, category, image_filename, active)
+                    VALUES (?, ?, ?, ?, ?, ?, ?)
                 ''', (
                     product_data['product_id'],
                     product_data['name'],
                     float(product_data['price']),
                     product_data.get('category_id'),
                     product_data.get('category'),
+                    product_data.get('image_filename'),
                     bool(product_data.get('active', True))
                 ))
                 conn.commit()
@@ -216,7 +229,7 @@ class SQLiteDatabaseService:
                 update_fields = []
                 values = []
                 
-                for field in ['name', 'price', 'category_id', 'category', 'active']:
+                for field in ['name', 'price', 'category_id', 'category', 'image_filename', 'active']:
                     if field in product_data:
                         update_fields.append(f"{field} = ?")
                         if field == 'price':
@@ -270,11 +283,11 @@ class SQLiteDatabaseService:
         with self.get_connection() as conn:
             cursor = conn.cursor()
             
-            # Get the next bill number for today
+            # Get the next bill number for today (using local time)
             cursor.execute('''
                 SELECT COALESCE(MAX(bill_no), 0) + 1 
                 FROM bills 
-                WHERE date(created_at) = date('now')
+                WHERE date(created_at, 'localtime') = date('now', 'localtime')
             ''')
             next_bill_no = cursor.fetchone()[0]
             
@@ -297,7 +310,7 @@ class SQLiteDatabaseService:
             cursor = conn.cursor()
             cursor.execute('''
                 SELECT * FROM bills 
-                WHERE bill_no = ? AND date(created_at) = date('now')
+                WHERE bill_no = ? AND date(created_at, 'localtime') = date('now', 'localtime')
             ''', (bill_no,))
             row = cursor.fetchone()
             
@@ -313,8 +326,8 @@ class SQLiteDatabaseService:
             cursor = conn.cursor()
             cursor.execute('''
                 SELECT * FROM bills 
-                WHERE date(created_at) = date('now') 
-                AND status != 'CANCELLED'
+                WHERE date(created_at, 'localtime') = date('now', 'localtime') 
+                AND TRIM(status) != 'CANCELLED'
                 ORDER BY bill_no ASC
             ''')
             
@@ -337,9 +350,9 @@ class SQLiteDatabaseService:
                 
                 cursor.execute('''
                     SELECT * FROM bills 
-                    WHERE strftime('%m', created_at) = ? 
-                    AND strftime('%Y', created_at) = ?
-                    AND status != 'CANCELLED'
+                    WHERE strftime('%m', created_at, 'localtime') = ? 
+                    AND strftime('%Y', created_at, 'localtime') = ?
+                    AND TRIM(status) != 'CANCELLED'
                     ORDER BY created_at ASC
                 ''', (month_str, year_str))
                 
@@ -366,8 +379,8 @@ class SQLiteDatabaseService:
                 # Use DATE() function to extract date part from timestamp
                 cursor.execute('''
                     SELECT * FROM bills 
-                    WHERE date(created_at) BETWEEN date(?) AND date(?)
-                    AND status != 'CANCELLED'
+                    WHERE date(created_at, 'localtime') BETWEEN date(?) AND date(?)
+                    AND TRIM(status) != 'CANCELLED'
                     ORDER BY created_at ASC
                 ''', (start_date, end_date))
                 
@@ -388,7 +401,7 @@ class SQLiteDatabaseService:
             cursor = conn.cursor()
             cursor.execute('''
                 SELECT * FROM bills 
-                WHERE status != 'CANCELLED'
+                WHERE TRIM(status) != 'CANCELLED'
                 ORDER BY created_at DESC
             ''')
             
@@ -453,7 +466,7 @@ class SQLiteDatabaseService:
                         total_amount = ?, 
                         items = ?,
                         updated_at = CURRENT_TIMESTAMP
-                    WHERE bill_no = ? AND status != 'CANCELLED'
+                    WHERE bill_no = ? AND TRIM(status) != 'CANCELLED'
                 ''', (
                     bill_data.get('customer_name', ''),
                     float(bill_data['total_amount']),

@@ -153,15 +153,33 @@ function AppContent() {
             }}>
               <div style={{ display: 'flex', alignItems: 'center', minWidth: 0 }}>
                 <div style={{
-                  fontSize: '2rem',
-                  fontWeight: currentTheme.typography.fontWeight.semibold,
-                  color: currentTheme.colors.text.primary,
-                  margin: 0,
-                  letterSpacing: currentTheme.typography.letterSpacing.tight,
-                  lineHeight: currentTheme.typography.lineHeight.tight,
-                  whiteSpace: 'nowrap',
+                  display: 'flex',
+                  alignItems: 'baseline',
+                  gap: currentTheme.spacing[3],
                 }}>
-                  Burger Bhau
+                  <div style={{
+                    fontSize: '2.25rem',
+                    fontWeight: currentTheme.typography.fontWeight.bold,
+                    color: currentTheme.colors.primary[500],
+                    margin: 0,
+                    letterSpacing: '-0.02em',
+                    lineHeight: 1,
+                    whiteSpace: 'nowrap',
+                  }}>
+                    ReBill
+                  </div>
+                  <div style={{
+                    fontSize: '1rem',
+                    fontWeight: currentTheme.typography.fontWeight.medium,
+                    color: currentTheme.colors.text.primary,
+                    margin: 0,
+                    letterSpacing: '0.01em',
+                    lineHeight: 1,
+                    whiteSpace: 'nowrap',
+                    opacity: 0.7,
+                  }}>
+                    Burger Bhau
+                  </div>
                 </div>
               </div>
 

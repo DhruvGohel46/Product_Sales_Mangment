@@ -152,18 +152,12 @@ def get_bill(bill_no):
 def get_today_bills():
     """Get all bills for today"""
     try:
-        bills = db.get_all_bills()
-        
-        # Filter bills for today (SQLite handles this better)
-        today_bills = []
-        for bill in bills:
-            bill_date = bill['created_at'].split(' ')[0]
-            if bill_date == db.get_connection().execute("SELECT DATE('now')").fetchone()[0]:
-                today_bills.append(bill)
+        # Use the DB service's specific method for today's bills (already handles local date)
+        bills = db.get_todays_bills()
         
         return jsonify({
             'success': True,
-            'bills': today_bills
+            'bills': bills
         }), 200
         
     except Exception as e:
@@ -177,8 +171,8 @@ def get_today_bills():
 def get_next_bill_number():
     """Get the next bill number for today"""
     try:
-        # Get the highest bill number and add 1
-        bills = db.get_all_bills()
+        # Get bills for today ONLY (using the method that respects local time)
+        bills = db.get_todays_bills()
         if bills:
             next_bill_no = max(bill['bill_no'] for bill in bills) + 1
         else:
@@ -201,7 +195,15 @@ def get_next_bill_number():
 def get_all_bills_management():
     """Get ALL bills for management (including cancelled)"""
     try:
-        bills = db.get_all_bills_management()
+        # Accept optional date parameter for daily management refresh
+        date_param = request.args.get('date')
+        
+        if date_param:
+            bills = db.get_bills_by_date_range(date_param, date_param)
+        else:
+            # Default to all bills if no date provided
+            bills = db.get_all_bills_management()
+            
         return jsonify({
             'success': True,
             'bills': bills

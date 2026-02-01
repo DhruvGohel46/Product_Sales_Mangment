@@ -4,6 +4,7 @@ from typing import List, Dict
 import openpyxl
 from openpyxl.styles import Font, Alignment, PatternFill, Border, Side
 from openpyxl.utils import get_column_letter
+from config import Config
 
 
 class ExcelXLSXService:
@@ -30,6 +31,24 @@ class ExcelXLSXService:
             top=Side(style="thin"),
             bottom=Side(style="thin")
         )
+
+    def _write_company_header(self, ws, max_col_letter):
+        """Write Rebill and Shop Name headers"""
+        # Project Name
+        ws.merge_cells(f'A1:{max_col_letter}1')
+        ws['A1'] = "Rebill"
+        ws['A1'].font = Font(bold=True, size=18, color="FFFFFF")
+        ws['A1'].fill = PatternFill(start_color="2c3e50", end_color="2c3e50", fill_type="solid")
+        ws['A1'].alignment = Alignment(horizontal="center", vertical="center")
+        
+        # Shop Name
+        ws.merge_cells(f'A2:{max_col_letter}2')
+        ws['A2'] = Config.SHOP_NAME
+        ws['A2'].font = Font(bold=True, size=12, color="FFFFFF")
+        ws['A2'].fill = PatternFill(start_color="34495e", end_color="34495e", fill_type="solid")
+        ws['A2'].alignment = Alignment(horizontal="center", vertical="center")
+        
+        return 4 # Next available row (leaving row 3 as spacer)
     
     def export_detailed_sales_report(self, bills: List[Dict], summary_data: Dict) -> str:
         """Create a comprehensive Excel report with detailed bills and summary"""
@@ -52,7 +71,7 @@ class ExcelXLSXService:
             ws.column_dimensions['F'].width = 15
             ws.column_dimensions['G'].width = 12
             
-            current_row = 1
+            current_row = self._write_company_header(ws, 'G')
             
             # === SUMMARY SECTION ===
             ws.merge_cells(f'A{current_row}:G{current_row}')
@@ -173,17 +192,19 @@ class ExcelXLSXService:
             ws.column_dimensions['F'].width = 12
             ws.column_dimensions['G'].width = 15
             
+            current_row = self._write_company_header(ws, 'G')
+
             # Headers
             headers = ["Bill No", "Date", "Time", "Product ID", "Product Name", "Quantity", "Total"]
             for col, header in enumerate(headers, 1):
-                cell = ws.cell(row=1, column=col, value=header)
+                cell = ws.cell(row=current_row, column=col, value=header)
                 cell.font = self.header_font
                 cell.fill = self.header_fill
                 cell.alignment = self.header_alignment
                 cell.border = self.border
             
-            # Data
-            current_row = 2
+            current_row += 1
+
             for bill in bills:
                 for item in bill.get('items', []):
                     ws[f'A{current_row}'] = bill.get('bill_no', '')
@@ -227,12 +248,14 @@ class ExcelXLSXService:
             ws.column_dimensions['A'].width = 20
             ws.column_dimensions['B'].width = 15
             
+            current_row = self._write_company_header(ws, 'B')
+
             # Title
-            ws.merge_cells('A1:B1')
-            ws['A1'] = "DAILY SALES SUMMARY"
-            ws['A1'].font = Font(bold=True, size=16, color="FFFFFF")
-            ws['A1'].fill = PatternFill(start_color="366092", end_color="366092", fill_type="solid")
-            ws['A1'].alignment = Alignment(horizontal="center", vertical="center")
+            ws.merge_cells(f'A{current_row}:B{current_row}')
+            ws[f'A{current_row}'] = "DAILY SALES SUMMARY"
+            ws[f'A{current_row}'].font = Font(bold=True, size=16, color="FFFFFF")
+            ws[f'A{current_row}'].fill = PatternFill(start_color="366092", end_color="366092", fill_type="solid")
+            ws[f'A{current_row}'].alignment = Alignment(horizontal="center", vertical="center")
             
             # Summary data
             summary_items = [
@@ -243,7 +266,7 @@ class ExcelXLSXService:
                 ("Last Bill Time", summary_data.get('last_bill_time', 'N/A'))
             ]
             
-            current_row = 3
+            current_row += 2
             for label, value in summary_items:
                 ws[f'A{current_row}'] = label
                 ws[f'B{current_row}'] = value
@@ -294,7 +317,7 @@ class ExcelXLSXService:
             for col in range(1, 8):
                 ws.column_dimensions[get_column_letter(col)].width = 15
             
-            current_row = 1
+            current_row = self._write_company_header(ws, 'G')
             
             # === SUMMARY SECTION ===
             ws.merge_cells(f'A{current_row}:G{current_row}')
@@ -423,7 +446,7 @@ class ExcelXLSXService:
             ws.column_dimensions['D'].width = 15  # Quantity
             ws.column_dimensions['E'].width = 15  # Revenue
             
-            current_row = 1
+            current_row = self._write_company_header(ws, 'E')
             
             # === HEADER SECTION ===
             ws.merge_cells(f'A{current_row}:E{current_row}')
@@ -519,7 +542,7 @@ class ExcelXLSXService:
             ws.column_dimensions['D'].width = 15  # Quantity
             ws.column_dimensions['E'].width = 15  # Revenue
             
-            current_row = 1
+            current_row = self._write_company_header(ws, 'E')
             
             # === HEADER SECTION ===
             ws.merge_cells(f'A{current_row}:E{current_row}')

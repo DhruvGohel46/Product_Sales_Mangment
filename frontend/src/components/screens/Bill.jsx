@@ -64,6 +64,7 @@ import { CATEGORY_COLORS } from '../../utils/constants';
 import Button from '../ui/Button';
 import Card from '../ui/Card';
 import Input from '../ui/Input';
+import '../../styles/Management.css';
 
 
 const TrashIcon = ({ color }) => (
@@ -85,6 +86,8 @@ const WorkingPOSInterface = ({ onBillCreated }) => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [showClearConfirm, setShowClearConfirm] = useState(false);
+  const [clearPassword, setClearPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
 
   // Edit Mode State
   const location = useLocation();
@@ -281,6 +284,10 @@ const WorkingPOSInterface = ({ onBillCreated }) => {
 
   const confirmClear = () => {
     setOrderItems([]);
+    setShowClearConfirm(false);
+  };
+
+  const cancelClear = () => {
     setShowClearConfirm(false);
   };
 
@@ -520,10 +527,10 @@ const WorkingPOSInterface = ({ onBillCreated }) => {
                   style={{
                     cursor: 'pointer',
                     textAlign: 'center',
-                    minHeight: '120px',
+                    minHeight: '240px',
                     display: 'flex',
                     flexDirection: 'column',
-                    justifyContent: 'center',
+                    justifyContent: 'space-between',
                     borderTop: `2px solid ${CATEGORY_COLORS[product.category] || '#3b82f6'}`,
                     backgroundColor: currentTheme.colors.Card,
                     borderRadius: '15px',
@@ -533,17 +540,54 @@ const WorkingPOSInterface = ({ onBillCreated }) => {
                     id: `product-${product.product_id}`,
                   }}
                 >
+                  <div style={{
+                    width: '100%',
+                    height: '160px',
+                    marginBottom: currentTheme.spacing[3],
+                    borderRadius: '8px',
+                    overflow: 'hidden',
+                    backgroundColor: isDark ? 'rgba(0,0,0,0.2)' : 'rgba(0,0,0,0.05)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                  }}>
+                    {product.image_filename ? (
+                      <img
+                        src={productsAPI.getImageUrl(product.image_filename)}
+                        alt={product.name}
+                        style={{
+                          width: '100%',
+                          height: '100%',
+                          objectFit: 'contain'
+                        }}
+                        onError={(e) => {
+                          e.target.style.display = 'none';
+                          e.target.parentElement.innerHTML = '<span style="font-size:0.75rem; color:var(--text-tertiary)">Image Error</span>';
+                        }}
+                      />
+                    ) : (
+                      <span style={{
+                        fontSize: '0.75rem',
+                        color: currentTheme.colors.text.secondary,
+                        textAlign: 'center',
+                        padding: '0 8px'
+                      }}>
+                        No image of product
+                      </span>
+                    )}
+                  </div>
+
                   <h4 style={{
-                    fontSize: currentTheme.typography.fontSize['2xl'],
+                    fontSize: currentTheme.typography.fontSize.base,
                     fontWeight: currentTheme.typography.fontWeight.semibold,
                     color: currentTheme.colors.text.primary,
-                    marginBottom: currentTheme.spacing[2],
+                    marginBottom: currentTheme.spacing[1],
                     lineHeight: currentTheme.typography.lineHeight.tight,
                   }}>
                     {product.name}
                   </h4>
                   <div style={{
-                    fontSize: currentTheme.typography.fontSize['2xl'],
+                    fontSize: currentTheme.typography.fontSize.lg,
                     fontWeight: currentTheme.typography.fontWeight.bold,
                     color: CATEGORY_COLORS[product.category] || '#3b82f6',
                   }}>
@@ -809,79 +853,35 @@ const WorkingPOSInterface = ({ onBillCreated }) => {
       <AnimatePresence>
         {showClearConfirm && (
           <motion.div
+            className="pmOverlay"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            style={{
-              position: 'fixed',
-              top: 0,
-              left: 0,
-              right: 0,
-              bottom: 0,
-              background: 'rgba(0, 0, 0, 0.5)',
-              backdropFilter: 'blur(4px)',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              zIndex: 1100,
-            }}
-            onClick={() => setShowClearConfirm(false)}
+            onClick={cancelClear}
           >
             <motion.div
-              initial={{ scale: 0.9, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              exit={{ scale: 0.9, opacity: 0 }}
-              transition={{ duration: 0.2 }}
-              style={{
-                background: currentTheme.colors.surface,
-                borderRadius: '16px',
-                padding: currentTheme.spacing[6],
-                maxWidth: '400px',
-                width: '90%',
-                border: `1px solid ${currentTheme.colors.border}`,
-                boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)',
-              }}
+              className="pmDialog"
+              initial={{ y: 20, scale: 0.95, opacity: 0 }}
+              animate={{ y: 0, scale: 1, opacity: 1 }}
+              exit={{ y: 20, scale: 0.95, opacity: 0 }}
               onClick={(e) => e.stopPropagation()}
             >
-              <h3 style={{
-                fontSize: '1.25rem',
-                fontWeight: 600,
-                color: currentTheme.colors.text.primary,
-                marginBottom: currentTheme.spacing[2],
-                marginTop: 0,
-              }}>
+              <div className="pmDialogTitle">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                </svg>
                 Clear Current Bill?
-              </h3>
-              <p style={{
-                fontSize: '0.875rem',
-                color: currentTheme.colors.text.secondary,
-                marginBottom: currentTheme.spacing[6],
-                lineHeight: 1.5,
-              }}>
+              </div>
+              <div className="pmDialogBody">
                 This will remove all items from the current order. This action cannot be undone.
-              </p>
-              <div style={{
-                display: 'flex',
-                gap: currentTheme.spacing[3],
-                justifyContent: 'flex-end',
-              }}>
-                <Button
-                  variant="secondary"
-                  onClick={() => setShowClearConfirm(false)}
-                >
+              </div>
+              <div className="pmDialogActions">
+                <button className="pmDialogBtn" onClick={cancelClear}>
                   Cancel
-                </Button>
-                <Button
-                  variant="primary" // Ideally danger variant, but using primary with red style manually if needed or standard primary
-                  style={{
-                    backgroundColor: isDark ? '#ef4444' : '#dc2626',
-                    borderColor: isDark ? '#ef4444' : '#dc2626',
-                    color: '#ffffff',
-                  }}
-                  onClick={confirmClear}
-                >
+                </button>
+                <button className="pmDialogBtn pmDialogBtnPrimary" onClick={confirmClear}>
                   Yes, Clear Bill
-                </Button>
+                </button>
               </div>
             </motion.div>
           </motion.div>

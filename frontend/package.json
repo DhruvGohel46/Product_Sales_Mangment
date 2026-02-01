@@ -1,7 +1,7 @@
 {
-  "name": "pos-frontend",
+  "name": "rebill-frontend",
   "version": "1.0.0",
-  "description": "POS Frontend for Fast Food Shop",
+  "description": "ReBill - Modern POS & Billing System",
   "private": true,
   "dependencies": {
     "@fortawesome/fontawesome-free": "^6.5.1",

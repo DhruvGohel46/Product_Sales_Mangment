@@ -1,6 +1,6 @@
-# POS System - Fast Food Shop
+# ReBill - Modern POS & Billing System
 
-A production-grade offline POS system for fast-food shops selling cold drinks, paan, and miscellaneous products.
+A production-grade offline POS and billing system for retail shops, cafes, and small businesses.
 
 ## 🚀 Features
 
@@ -203,4 +203,4 @@ For issues and questions:
 
 ---
 
-**🎉 Enjoy your POS System!**
+**🎉 Enjoy ReBill - Your Modern Billing Solution!**

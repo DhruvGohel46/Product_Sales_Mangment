@@ -1,7 +1,9 @@
 Flask==2.3.3
 Flask-CORS==4.0.0
 openpyxl==3.1.2
-pywin32==306
+pywin32==307
 python-dotenv==1.0.0
 schedule==1.2.2
 pandas>=2.0.0
+rembg==2.0.57
+onnxruntime>=1.16.0

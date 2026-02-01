@@ -229,6 +229,102 @@ def get_available_reports():
             'success': True,
             'reports': reports_info
         }), 200
+    except Exception as e:
+        return jsonify({
+            'success': False,
+            'message': f'Internal server error: {str(e)}'
+        }), 500
+
+
+@reports_bp.route('/excel/monthly', methods=['GET'])
+def export_monthly_excel():
+    """Export monthly product-wise sales report"""
+    try:
+        month = request.args.get('month', type=int)
+        year = request.args.get('year', type=int)
+        
+        if not month or not year:
+            return jsonify({
+                'success': False,
+                'message': 'Month and Year are required'
+            }), 400
+            
+        if not (1 <= month <= 12):
+            return jsonify({
+                'success': False,
+                'message': 'Invalid month'
+            }), 400
+            
+        # Get monthly summary
+        summary = summary_service.get_monthly_product_summary(month, year)
+        
+        if "error" in summary:
+             return jsonify({
+                'success': False,
+                'message': f"Error generating summary: {summary['error']}"
+            }), 500
+            
+        # Generate Excel
+        filepath = excel_xlsx_service.export_monthly_product_sales_report(summary)
+        
+        if not filepath:
+            return jsonify({
+                'success': False,
+                'message': 'Failed to generate Excel report'
+            }), 500
+            
+        # Send file
+        return send_file(
+            filepath,
+            as_attachment=True,
+            download_name=os.path.basename(filepath),
+            mimetype='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+        )
+        
+    except Exception as e:
+        return jsonify({
+            'success': False,
+            'message': f'Internal server error: {str(e)}'
+        }), 500
+
+
+@reports_bp.route('/excel/weekly', methods=['GET'])
+def export_weekly_excel():
+    """Export weekly product-wise sales report"""
+    try:
+        date_param = request.args.get('date')
+        
+        if not date_param:
+            return jsonify({
+                'success': False,
+                'message': 'Date parameter is required'
+            }), 400
+            
+        # Get weekly summary
+        summary = summary_service.get_weekly_product_summary(date_param)
+        
+        if "error" in summary:
+             return jsonify({
+                'success': False,
+                'message': f"Error generating summary: {summary['error']}"
+            }), 500
+            
+        # Generate Excel
+        filepath = excel_xlsx_service.export_weekly_product_sales_report(summary)
+        
+        if not filepath:
+            return jsonify({
+                'success': False,
+                'message': 'Failed to generate Excel report'
+            }), 500
+            
+        # Send file
+        return send_file(
+            filepath,
+            as_attachment=True,
+            download_name=os.path.basename(filepath),
+            mimetype='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+        )
         
     except Exception as e:
         return jsonify({

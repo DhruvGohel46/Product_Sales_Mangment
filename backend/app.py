@@ -13,6 +13,7 @@ from routes.products import products_bp
 from routes.billing import billing_bp
 from routes.summary import summary_bp
 from routes.reports import reports_bp
+from routes.categories import categories_bp
 
 # Import dashboard refresher
 from dashboard_refresher import DashboardRefresher
@@ -50,6 +51,15 @@ def create_app(config_name='default'):
     app.register_blueprint(billing_bp)
     app.register_blueprint(summary_bp)
     app.register_blueprint(reports_bp)
+    app.register_blueprint(categories_bp)
+
+    # Serve product images
+    @app.route('/api/images/<path:filename>')
+    def serve_image(filename):
+        from flask import send_from_directory
+        # Use DATA_DIR from config, assuming images are in 'images' subdir
+        images_dir = os.path.join(app.config['DATA_DIR'], 'images')
+        return send_from_directory(images_dir, filename)
     
     # Root endpoint
     @app.route('/')
@@ -62,7 +72,8 @@ def create_app(config_name='default'):
                 'products': '/api/products',
                 'billing': '/api/bill',
                 'summary': '/api/summary',
-                'reports': '/api/reports'
+                'reports': '/api/reports',
+                'categories': '/api/categories'
             }
         })
     

@@ -1,67 +1,9 @@
-/**
- * =============================================================================
- * PRODUCT MANAGEMENT SYSTEM - MANAGEMENT.JSX
- * =============================================================================
- * 
- * ROLE: Comprehensive product catalog management with CRUD operations
- * 
- * RESPONSIBILITIES:
- * - Product catalog management (Create, Read, Update, Delete)
- * - Product status management (Active/Inactive)
- * - Category-based product organization
- * - Advanced search and filtering capabilities
- * - Bulk operations and data management
- * - Product form validation and error handling
- * 
- * KEY FEATURES:
- * - Interactive product grid with status indicators
- * - Add/Edit product modal with form validation
- * - Category filtering and search functionality
- * - Product activation/deactivation with confirmation
- * - Real-time product updates and sync
- * - Responsive design for mobile and desktop
- * - Professional header with action buttons
- * 
- * COMPONENTS:
- * - ProductGrid: Display products with status and actions
- * - ProductForm: Add/Edit product interface
- * - SearchBar: Product search and filtering
- * - CategoryFilter: Category-based filtering
- * - StatusToggle: Product activation controls
- * 
- * STATE MANAGEMENT:
- * - products: Complete product catalog
- * - loading: Async operation states
- * - error: Error handling and display
- * - filters: Search and category filters
- * - formData: Product form data
- * 
- * API INTEGRATION:
- * - productsAPI: Product CRUD operations
- * - handleAPIError: Centralized error handling
- * - formatCurrency: Price formatting
- * 
- * DESIGN PATTERNS:
- * - Functional component with hooks
- * - CSS modules for styling (Management.css)
- * - Framer Motion animations
- * - Form validation patterns
- * - Confirmation dialogs for destructive actions
- * 
- * USER WORKFLOW:
- * 1. View product catalog with filters
- * 2. Add new products or edit existing ones
- * 3. Manage product status (active/inactive)
- * 4. Search and filter products
- * 5. Bulk operations and data management
- * =============================================================================
- */
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAnimation } from '../../hooks/useAnimation';
-import { productsAPI } from '../../utils/api';
-import { handleAPIError, formatCurrency } from '../../utils/api';
-import { PRODUCT_CATEGORIES, CATEGORY_NAMES, PRODUCT_STATUS, PRODUCT_STATUS_CONFIG } from '../../utils/constants';
+import { productsAPI, categoriesAPI, handleAPIError, formatCurrency } from '../../utils/api';
+import { useToast } from '../../context/ToastContext';
+import CategoryManagement from './CategoryManagement';
 import '../../styles/Management.css';
 
 const IconPlus = (props) => (
@@ -84,35 +26,61 @@ const IconPower = (props) => (
   </svg>
 );
 
+const IconImage = (props) => (
+  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" {...props}>
+    <rect x="3" y="3" width="18" height="18" rx="2" ry="2" stroke="currentColor" strokeWidth="2" />
+    <circle cx="8.5" cy="8.5" r="1.5" fill="currentColor" />
+    <path d="M21 15l-5-5L5 21" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+  </svg>
+);
+
+const IconTrash = (props) => (
+  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" {...props}>
+    <path d="M3 6h18M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2M10 11v6M14 11v6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+  </svg>
+);
+
 const ProductManagement = () => {
   const { staggerContainer, staggerItem } = useAnimation();
-  
+  const { showSuccess } = useToast();
+  const topRef = useRef(null);
+
   const [products, setProducts] = useState([]);
+  const [categories, setCategories] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [showAddForm, setShowAddForm] = useState(false);
   const [editingProduct, setEditingProduct] = useState(null);
   const [pendingDeactivate, setPendingDeactivate] = useState(null);
+  const [pendingDelete, setPendingDelete] = useState(null);
+  const [deletePassword, setDeletePassword] = useState('');
+  const [showDeletePassword, setShowDeletePassword] = useState(false);
   const [query, setQuery] = useState('');
   const [categoryFilter, setCategoryFilter] = useState('all');
   const [statusFilter, setStatusFilter] = useState('all'); // all | active | inactive
   const [formData, setFormData] = useState({
     name: '',
     price: '',
-    category: PRODUCT_CATEGORIES.OTHER,
+    category_id: '',
+    category: '', // Legacy support
+    image_filename: null,
     active: true
   });
+  const [selectedImage, setSelectedImage] = useState(null);
+  const [previewImage, setPreviewImage] = useState(null);
+  const [imageToDelete, setImageToDelete] = useState(false);
 
-  // Load products on mount
+  // Load data on mount
   useEffect(() => {
     loadProducts();
+    loadCategories();
   }, []);
 
   const loadProducts = async () => {
     try {
       setError('');
       setLoading(true);
-      const response = await productsAPI.getAllProducts();
+      const response = await productsAPI.getAllProductsWithInactive();
       setProducts(response.data.products || []);
     } catch (err) {
       const apiError = handleAPIError(err);
@@ -122,27 +90,58 @@ const ProductManagement = () => {
     }
   };
 
+  const loadCategories = async () => {
+    try {
+      const response = await categoriesAPI.getAllCategories();
+      const cats = response.data.categories || [];
+      setCategories(cats);
+      // If categories available, set default for form if empty
+      if (cats.length > 0 && !formData.category_id) {
+        setFormData(prev => ({
+          ...prev,
+          category_id: cats[0].id,
+          category: cats[0].name
+        }));
+      }
+    } catch (err) {
+      console.error('Error loading categories:', err);
+    }
+  };
+
   const resetForm = () => {
     setFormData({
       name: '',
       price: '',
-      category: PRODUCT_CATEGORIES.OTHER,
+      category_id: categories.length > 0 ? categories[0].id : '',
+      category: categories.length > 0 ? categories[0].name : '',
       active: true
     });
     setEditingProduct(null);
+    setSelectedImage(null);
+    setPreviewImage(null);
+    setImageToDelete(false);
     setShowAddForm(false);
   };
 
   const handleInputChange = (field, value) => {
-    setFormData(prev => ({
-      ...prev,
-      [field]: value
-    }));
+    if (field === 'category_id') {
+      const cat = categories.find(c => c.id === parseInt(value));
+      setFormData(prev => ({
+        ...prev,
+        category_id: value,
+        category: cat ? cat.name : ''
+      }));
+    } else {
+      setFormData(prev => ({
+        ...prev,
+        [field]: value
+      }));
+    }
   };
 
-  const generateProductId = () => {
-    const category = formData.category || 'other';
-    const categoryCode = category.toUpperCase().slice(0, 4);
+  const generateProductId = (name, categoryName) => {
+    const categoryCode = (categoryName || 'OTHE').toUpperCase().slice(0, 4).padEnd(4, 'X');
+    // Using simple random for demo, real system would check DB for uniqueness
     const randomNum = Math.floor(Math.random() * 1000).toString().padStart(3, '0');
     return `${categoryCode}${randomNum}`;
   };
@@ -153,13 +152,35 @@ const ProductManagement = () => {
       setError('');
       const productData = {
         ...formData,
-        product_id: generateProductId() // Auto-generate ID
+        price: parseFloat(formData.price),
+        category_id: parseInt(formData.category_id)
       };
-      
+
       if (editingProduct) {
         await productsAPI.updateProduct(editingProduct.product_id, productData);
+
+        // Handle Image Update
+        if (imageToDelete) {
+          await productsAPI.deleteImage(editingProduct.product_id);
+        }
+
+        if (selectedImage) {
+          const formData = new FormData();
+          formData.append('image', selectedImage);
+          await productsAPI.uploadImage(editingProduct.product_id, formData);
+        }
+
       } else {
-        await productsAPI.createProduct(productData);
+        // Auto-generate ID if name and category are present
+        const id = generateProductId(formData.name, formData.category);
+        const newProduct = { ...productData, product_id: id };
+        await productsAPI.createProduct(newProduct);
+
+        if (selectedImage) {
+          const formData = new FormData();
+          formData.append('image', selectedImage);
+          await productsAPI.uploadImage(id, formData);
+        }
       }
       resetForm();
       loadProducts();
@@ -169,19 +190,91 @@ const ProductManagement = () => {
     }
   };
 
+  const handleReactivate = async (product) => {
+    try {
+      await productsAPI.updateProduct(product.product_id, { active: true });
+      showSuccess('Product reactivated successfully');
+      loadProducts();
+    } catch (err) {
+      const apiError = handleAPIError(err);
+      setError(apiError.message);
+    }
+  };
+
+  const handleDeleteRequest = (product) => {
+    setPendingDelete(product);
+    setDeletePassword('');
+  };
+
+  const handleConfirmDelete = async () => {
+    if (!pendingDelete) return;
+
+    if (deletePassword !== 'Karam2@15') {
+      setError('Incorrect password');
+      return;
+    }
+
+    try {
+      await productsAPI.deleteProduct(pendingDelete.product_id);
+      showSuccess('Product deleted successfully');
+      setPendingDelete(null);
+      setDeletePassword('');
+      loadProducts();
+    } catch (err) {
+      const apiError = handleAPIError(err);
+      setError(apiError.message);
+    }
+  };
+
+  const handleCancelDelete = () => {
+    setPendingDelete(null);
+    setDeletePassword('');
+  };
+
+  const handleImageChange = (e) => {
+    if (e.target.files && e.target.files[0]) {
+      const file = e.target.files[0];
+      setSelectedImage(file);
+      setPreviewImage(URL.createObjectURL(file));
+      setImageToDelete(false);
+    }
+  };
+
+  const handleRemoveImage = () => {
+    setSelectedImage(null);
+    setPreviewImage(null);
+    setImageToDelete(true);
+    // If it's a file input, reset it? We can't easily, but state controls the submission
+  };
+
   const handleEdit = (product) => {
     setEditingProduct(product);
     setFormData({
       name: product.name,
       price: product.price,
-      category: product.category,
+      category_id: product.category_id || '',
+      category: product.category || '',
+      image_filename: product.image_filename,
       active: product.active
     });
+
+    if (product.image_filename) {
+      setPreviewImage(productsAPI.getImageUrl(product.image_filename));
+    } else {
+      setPreviewImage(null);
+    }
+    setSelectedImage(null);
+    setImageToDelete(false);
+
     setShowAddForm(true);
+
+    // Scroll to top
+    if (topRef.current) {
+      topRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
   };
 
   const onRequestDeactivate = (product) => setPendingDeactivate(product);
-
   const onCloseDeactivate = () => setPendingDeactivate(null);
 
   const handleConfirmDeactivate = async () => {
@@ -197,65 +290,30 @@ const ProductManagement = () => {
     }
   };
 
-  const getStatusConfig = (product) => {
-    if (!product.active) {
-      return PRODUCT_STATUS_CONFIG.OUT_OF_STOCK || PRODUCT_STATUS_CONFIG.ACTIVE;
-    }
-    return PRODUCT_STATUS_CONFIG.ACTIVE || {
-      label: 'Active',
-      color: '#10B981',
-      bgColor: '#D1FAE5',
-      borderColor: '#10B981'
-    };
-  };
-
-  const activeCount = products.filter(p => p.active).length;
-  const inactiveCount = products.filter(p => !p.active).length;
-
   const filteredProducts = products
     .filter((p) => {
-      const searchMatch = !query || 
+      const searchMatch = !query ||
         p.name.toLowerCase().includes(query.toLowerCase()) ||
         p.product_id.toLowerCase().includes(query.toLowerCase());
       return searchMatch;
     })
-    .filter((p) => (categoryFilter === 'all' ? true : p.category === categoryFilter))
+    .filter((p) => (categoryFilter === 'all' ? true : p.category_id === parseInt(categoryFilter)))
     .filter((p) => {
       if (statusFilter === 'active') return !!p.active;
       if (statusFilter === 'inactive') return !p.active;
       return true;
     });
 
-  const getBadgeClass = (category) => {
-    if (category === PRODUCT_CATEGORIES.COLDRINK) return "pmBadgeCold";
-    if (category === PRODUCT_CATEGORIES.PAAN) return "pmBadgePaan";
-    return "pmBadgeOther";
-  };
-
-  const getCardToneClass = (active) => (active ? "pmCardToneActive" : "pmCardToneInactive");
-
   return (
-    <div className="pmShell">
-      <div className="pmPage">
-      {/* Header */}
-      <div className="pmHeader">
+    <div className="pmSectionContent" ref={topRef}>
+      {/* Header Actions */}
+      <div className="pmHeader" style={{ border: 'none', boxShadow: 'none', background: 'transparent', padding: 0, margin: '0 0 20px 0' }}>
         <div className="pmHeaderLeft">
           <div className="pmTitleRow">
-            <div className="pmTitle">Management</div>
+            <div className="pmTitle" style={{ fontSize: '24px' }}>Product Catalog</div>
           </div>
         </div>
 
-        <div className="pmHeaderActions">
-          <button
-            type="button"
-            className="pmPrimaryCta"
-            onClick={() => setShowAddForm(true)}
-            disabled={showAddForm}
-          >
-            <IconPlus aria-hidden="true" />
-            Add Product
-          </button>
-        </div>
       </div>
 
       {/* Controls */}
@@ -268,7 +326,6 @@ const ProductManagement = () => {
               value={query}
               onChange={(e) => setQuery(e.target.value)}
               placeholder="Search by name or ID…"
-              aria-label="Search products"
             />
           </div>
 
@@ -278,11 +335,10 @@ const ProductManagement = () => {
               className="pmSelect"
               value={categoryFilter}
               onChange={(e) => setCategoryFilter(e.target.value)}
-              aria-label="Filter by category"
             >
               <option value="all">All categories</option>
-              {Object.entries(CATEGORY_NAMES).map(([value, label]) => (
-                <option key={value} value={value}>{label}</option>
+              {categories.map(cat => (
+                <option key={cat.id} value={cat.id}>{cat.name}</option>
               ))}
             </select>
           </div>
@@ -293,7 +349,6 @@ const ProductManagement = () => {
               className="pmSelect"
               value={statusFilter}
               onChange={(e) => setStatusFilter(e.target.value)}
-              aria-label="Filter by status"
             >
               <option value="all">All</option>
               <option value="active">Active</option>
@@ -301,12 +356,7 @@ const ProductManagement = () => {
             </select>
           </div>
 
-          <button
-            type="button"
-            className="pmControlButton"
-            onClick={loadProducts}
-            aria-label="Refresh products"
-          >
+          <button type="button" className="pmControlButton" onClick={loadProducts}>
             Refresh
           </button>
         </div>
@@ -315,217 +365,307 @@ const ProductManagement = () => {
       {/* Add/Edit Form */}
       <AnimatePresence>
         {showAddForm && (
-          <motion.div
-            initial={{ opacity: 0, height: 0 }}
-            animate={{ opacity: 1, height: 'auto' }}
-            exit={{ opacity: 0, height: 0 }}
-            transition={{ duration: 0.18, ease: [0.4, 0, 0.2, 1] }}
-          >
-            <div className="pmFormWrap">
-              <div className="pmFormHeader">
-                <div className="pmFormTitle">
-                  {editingProduct ? 'Edit Product' : 'Add New Product'}
+          <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} exit={{ opacity: 0, height: 0 }} className="pmFormWrap">
+            <div className="pmFormHeader">
+              <div className="pmFormTitle">{editingProduct ? 'Edit Product' : 'Add New Product'}</div>
+            </div>
+            <form onSubmit={handleSubmit}>
+              <div className="pmFormGrid">
+                <div className="pmField">
+                  <div className="pmLabel">Product Name</div>
+                  <input className="pmInput" value={formData.name} onChange={(e) => handleInputChange('name', e.target.value)} required />
+                </div>
+                <div className="pmField">
+                  <div className="pmLabel">Price</div>
+                  <input className="pmInput" type="number" step="0.01" value={formData.price} onChange={(e) => handleInputChange('price', e.target.value)} required />
+                </div>
+                <div className="pmField">
+                  <div className="pmLabel">Category</div>
+                  <select className="pmSelect" value={formData.category_id} onChange={(e) => handleInputChange('category_id', e.target.value)} required>
+                    {categories.map(cat => (
+                      <option key={cat.id} value={cat.id}>{cat.name}</option>
+                    ))}
+                  </select>
                 </div>
               </div>
 
-              <form onSubmit={handleSubmit}>
-                <div className="pmFormGrid">
-                  <div className="pmField">
-                    <div className="pmLabel">Product name</div>
-                    <input
-                      className="pmInput"
-                      type="text"
-                      value={formData.name}
-                      onChange={(e) => handleInputChange('name', e.target.value)}
-                      placeholder="e.g., Coca Cola"
-                      required
-                    />
+              <div className="pmField" style={{ gridColumn: '1 / -1' }}>
+                <div className="pmLabel">Product Image (Optional)</div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
+                  <div style={{
+                    width: '80px',
+                    height: '80px',
+                    borderRadius: '8px',
+                    border: '1px dashed var(--border-primary)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    overflow: 'hidden',
+                    backgroundColor: 'var(--bg-secondary)',
+                    position: 'relative'
+                  }}>
+                    {previewImage ? (
+                      <img src={previewImage} alt="Preview" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                    ) : (
+                      <IconImage style={{ color: 'var(--text-tertiary)' }} />
+                    )}
                   </div>
 
-                  <div className="pmField">
-                    <div className="pmLabel">Price</div>
+                  <div style={{ flex: 1 }}>
                     <input
-                      className="pmInput"
-                      type="number"
-                      value={formData.price}
-                      onChange={(e) => handleInputChange('price', e.target.value)}
-                      placeholder="e.g., 25.00"
-                      step="0.01"
-                      min="0.01"
-                      required
+                      type="file"
+                      accept="image/*"
+                      onChange={handleImageChange}
+                      style={{ marginBottom: '10px', display: 'block', width: '100%' }}
                     />
-                  </div>
-
-                  <div className="pmField">
-                    <div className="pmLabel">Category</div>
-                    <select
-                      className="pmSelect"
-                      value={formData.category}
-                      onChange={(e) => handleInputChange('category', e.target.value)}
-                    >
-                      {Object.entries(CATEGORY_NAMES).map(([value, label]) => (
-                        <option key={value} value={value}>{label}</option>
-                      ))}
-                    </select>
+                    {(previewImage && (selectedImage || formData.image_filename)) && (
+                      <button
+                        type="button"
+                        onClick={handleRemoveImage}
+                        className="pmActionBtn pmActionDanger"
+                        style={{ padding: '4px 8px', fontSize: '12px' }}
+                      >
+                        Remove Image
+                      </button>
+                    )}
                   </div>
                 </div>
+              </div>
 
-                <div className="pmFormActions">
-                  <button type="button" className="pmSecondaryBtn" onClick={resetForm}>
-                    Cancel
-                  </button>
-                  <button type="submit" className="pmPrimaryCta">
-                    {editingProduct ? 'Update Product' : 'Add Product'}
-                  </button>
-                </div>
-              </form>
-            </div>
+              <div className="pmFormActions">
+                <button type="button" className="pmSecondaryBtn" onClick={resetForm}>Cancel</button>
+                <button type="submit" className="pmPrimaryCta">
+                  {editingProduct ? 'Update Product' : 'Add Product'}
+                </button>
+              </div>
+            </form>
           </motion.div>
         )}
       </AnimatePresence>
 
-      {/* Error Display */}
+      {/* Error */}
       {error && <div className="pmError">{error}</div>}
 
       {/* Products Grid */}
       <div className="pmPanel">
         <div className="pmGridHeader">
-          <div className="pmGridTitle">
-            Products
-          </div>
-          <div className="pmGridHint">
-            {loading ? 'Refreshing…' : `${filteredProducts.length} shown`}
+          <div className="pmGridTitle" style={{ fontSize: '20px' }}>Products</div>
+          <div className="pmGridHint">{loading ? 'Refreshing…' : `${filteredProducts.length} shown`}</div>
+          <div className="pmHeaderActions">
+            <button
+              type="button"
+              className="pmPrimaryCta"
+              onClick={() => setShowAddForm(true)}
+              disabled={showAddForm}
+            >
+              <IconPlus aria-hidden="true" />
+              Add Product
+            </button>
           </div>
         </div>
 
         {loading ? (
           <div className="pmEmpty">Loading products…</div>
         ) : filteredProducts.length === 0 ? (
-          <div className="pmEmpty">
-            No matching products. Try clearing filters or add a new product.
-          </div>
+          <div className="pmEmpty">No matching products found.</div>
         ) : (
-          <motion.div
-            className="pmGrid"
-            variants={staggerContainer}
-            initial="initial"
-            animate="animate"
-          >
-            {filteredProducts.map((product) => {
-              const statusConfig = getStatusConfig(product);
-              const safeStatusConfig = statusConfig || {
-                label: product.active ? 'Active' : 'Inactive',
-                color: product.active ? '#10B981' : '#F59E0B',
-                bgColor: product.active ? '#D1FAE5' : '#FEF3C7',
-                borderColor: product.active ? '#10B981' : '#F59E0B'
-              };
-              const cardClass = [
-                "pmCard",
-                getCardToneClass(product.active),
-                !product.active ? "pmCardInactive" : '',
-              ].filter(Boolean).join(' ');
+          <motion.div className="pmGrid" variants={staggerContainer} initial="initial" animate="animate">
+            {filteredProducts.map((product) => (
+              <motion.div key={product.product_id} variants={staggerItem} className={`pmCard ${!product.active ? 'pmCardInactive' : ''}`}>
+                <div className="pmCardImageContainer">
+                  {product.image_filename ? (
+                    <img
+                      src={productsAPI.getImageUrl(product.image_filename)}
+                      alt={product.name}
+                      className="pmCardImage"
+                      onError={(e) => {
+                        e.target.style.display = 'none';
+                        e.target.nextSibling.style.display = 'flex';
+                      }}
+                    />
+                  ) : null}
+                  {/* Fallback placeholder (shown if no image or error) */}
+                  <div className="pmCardImagePlaceholder" style={{ display: product.image_filename ? 'none' : 'flex', position: product.image_filename ? 'absolute' : 'relative', width: '100%', height: '100%', alignItems: 'center', justifyContent: 'center' }}>
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                      <path d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                    </svg>
+                    <span>No Image</span>
+                  </div>
+                </div>
 
-              return (
-                <motion.div key={product.product_id} variants={staggerItem}>
-                  <motion.div
-                    className={cardClass}
-                    layout
-                  >
-                    <div className="pmCardTop">
-                      <div className="pmName" title={product.name}>
-                        {product.name}
-                      </div>
-                      <div className="pmPrice">
-                        {formatCurrency(product.price)}
-                      </div>
+                <div className="pmCardContent">
+                  <div className="pmCardHeader">
+                    <div className="pmName" title={product.name}>{product.name}</div>
+                    <div className="pmPriceRow">
+                      <div className="pmPrice">{formatCurrency(product.price)}</div>
+                      <div className="pmBadge">{product.category_name || product.category || 'Other'}</div>
                     </div>
+                  </div>
 
-                    <div className="pmMetaRow">
-                      <div className={["pmBadge", getBadgeClass(product.category)].join(' ')}>
-                        {CATEGORY_NAMES[product.category] || 'Others'}
-                      </div>
-                      <div className="pmId" title={product.product_id}>
-                        ID: {product.product_id}
-                      </div>
-                    </div>
+                  <div className="pmMetaRow" style={{ justifyContent: 'flex-start' }}>
+                    <div className="pmId">ID: {product.product_id}</div>
+                  </div>
 
-                    <div className="pmActions">
-                      {/* Edit Button */}
-                      <button
-                        type="button"
-                        className="pmActionBtn"
-                        onClick={() => handleEdit(product)}
-                      >
-                        <IconEdit aria-hidden="true" />
-                        Edit
+                  <div className="pmActions" style={{ marginTop: 'auto', borderTop: '1px solid var(--border-subtle)', paddingTop: '10px', gridTemplateColumns: '1fr 1fr 1fr', gap: '6px' }}>
+                    <button className="pmActionBtn" onClick={() => handleEdit(product)}>
+                      <IconEdit /> Edit
+                    </button>
+                    {product.active ? (
+                      <button className="pmActionBtn pmActionDanger" onClick={() => onRequestDeactivate(product)}>
+                        <IconPower /> Deactivate
                       </button>
-
-                      {/* Deactivate Button */}
-                      {product.active ? (
-                        <button
-                          type="button"
-                          className="pmActionBtn pmActionDanger"
-                          onClick={() => onRequestDeactivate(product)}
-                        >
-                          <IconPower aria-hidden="true" />
-                          Deactivate
-                        </button>
-                      ) : (
-                        <div className="pmInactiveNote">Inactive</div>
-                      )}
-                    </div>
-                  </motion.div>
-                </motion.div>
-              );
-            })}
+                    ) : (
+                      <button className="pmActionBtn pmActionReactivate" onClick={() => handleReactivate(product)}>
+                        <IconPower /> Reactivate
+                      </button>
+                    )}
+                    <button className="pmActionBtn pmActionDanger" onClick={() => handleDeleteRequest(product)} title="Delete permanently">
+                      <IconTrash />
+                    </button>
+                  </div>
+                </div>
+              </motion.div>
+            ))}
           </motion.div>
         )}
       </div>
 
-      {/* Confirm Deactivate */}
+      {/* Deactivate Modal */}
       <AnimatePresence>
         {pendingDeactivate && (
-          <motion.div
-            className="pmOverlay"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            onClick={onCloseDeactivate}
-            role="presentation"
-          >
-            <motion.div
-              className="pmDialog"
-              initial={{ y: 10, scale: 0.98, opacity: 0 }}
-              animate={{ y: 0, scale: 1, opacity: 1 }}
-              exit={{ y: 8, scale: 0.98, opacity: 0 }}
-              transition={{ duration: 0.16, ease: [0.4, 0, 0.2, 1] }}
-              onClick={(e) => e.stopPropagation()}
-              role="dialog"
-              aria-modal="true"
-              aria-label="Confirm deactivate product"
-            >
-              <div className="pmDialogTitle">Deactivate product?</div>
+          <motion.div className="pmOverlay" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={onCloseDeactivate}>
+            <motion.div className="pmDialog" initial={{ y: 20, scale: 0.95, opacity: 0 }} animate={{ y: 0, scale: 1, opacity: 1 }} exit={{ y: 20, scale: 0.95, opacity: 0 }} onClick={(e) => e.stopPropagation()}>
+              <div className="pmDialogTitle">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                </svg>
+                Deactivate product?
+              </div>
               <div className="pmDialogBody">
-                "{pendingDeactivate.name}" will become unavailable in POS. You can reactivate it later.
+                Are you sure you want to deactivate "{pendingDeactivate.name}"? It will be hidden from the POS screen but can be reactivated later.
               </div>
               <div className="pmDialogActions">
-                <button type="button" className="pmDialogBtn" onClick={onCloseDeactivate}>
-                  Cancel
-                </button>
-                <button type="button" className={["pmDialogBtn", "pmDialogBtnPrimary"].join(' ')} onClick={handleConfirmDeactivate}>
-                  Deactivate
-                </button>
-              </div>
-              <div className="pmDialogTip">
-                Tip: Deactivating keeps historical sales intact.
+                <button className="pmDialogBtn" onClick={onCloseDeactivate}>Cancel</button>
+                <button className="pmDialogBtn pmDialogBtnPrimary" onClick={handleConfirmDeactivate}>Deactivate</button>
               </div>
             </motion.div>
           </motion.div>
         )}
       </AnimatePresence>
+
+      {/* Delete Modal with Password */}
+      <AnimatePresence>
+        {pendingDelete && (
+          <motion.div className="pmOverlay" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={handleCancelDelete}>
+            <motion.div className="pmDialog" initial={{ y: 20, scale: 0.95, opacity: 0 }} animate={{ y: 0, scale: 1, opacity: 1 }} exit={{ y: 20, scale: 0.95, opacity: 0 }} onClick={(e) => e.stopPropagation()}>
+              <div className="pmDialogTitle">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                </svg>
+                Delete product permanently?
+              </div>
+              <div className="pmDialogBody">
+                This will permanently delete "{pendingDelete.name}" and its image. This action cannot be undone.
+                <div style={{ marginTop: '16px', position: 'relative' }}>
+                  <input
+                    type={showDeletePassword ? "text" : "password"}
+                    className="pmInput"
+                    placeholder="Enter password to confirm"
+                    value={deletePassword}
+                    onChange={(e) => setDeletePassword(e.target.value)}
+                    onKeyPress={(e) => e.key === 'Enter' && handleConfirmDelete()}
+                    autoFocus
+                    style={{ width: '100%', textAlign: 'center', paddingRight: '40px' }}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowDeletePassword(!showDeletePassword)}
+                    style={{
+                      position: 'absolute',
+                      right: '8px',
+                      top: '50%',
+                      transform: 'translateY(-50%)',
+                      background: 'none',
+                      border: 'none',
+                      cursor: 'pointer',
+                      padding: '4px',
+                      display: 'flex',
+                      alignItems: 'center',
+                      opacity: 0.6
+                    }}
+                  >
+                    {showDeletePassword ? (
+                      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M3 3l18 18M10.584 10.587a2 2 0 002.828 2.826M9.363 5.365A9.466 9.466 0 0112 5c7 0 10 7 10 7a13.16 13.16 0 01-1.658 2.366M6.632 6.632A9.466 9.466 0 005 12s3 7 7 7a9.466 9.466 0 005.368-1.632" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                      </svg>
+                    ) : (
+                      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                        <circle cx="12" cy="12" r="3" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                      </svg>
+                    )}
+                  </button>
+                </div>
+              </div>
+              <div className="pmDialogActions">
+                <button className="pmDialogBtn" onClick={handleCancelDelete}>Cancel</button>
+                <button className="pmDialogBtn pmDialogBtnPrimary" onClick={handleConfirmDelete}>Delete</button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div >
+  );
+};
+
+const Management = () => {
+  const [activeTab, setActiveTab] = useState('products');
+
+  return (
+    <div className="pmShell">
+      <div className="pmPage">
+        {/* Main Title & Tabs */}
+        <div className="pmHeader">
+          <div className="pmHeaderLeft">
+            <div className="pmTitleRow">
+              <div className="pmTitle">Store Management</div>
+            </div>
+          </div>
+
+          <div className="pmHeaderActions" style={{ background: 'var(--bg-secondary)', padding: '4px', borderRadius: '12px', border: '1px solid var(--border-primary)' }}>
+            <button
+              className={`pmControlButton ${activeTab === 'products' ? 'pmActiveTab' : ''}`}
+              onClick={() => setActiveTab('products')}
+              style={{
+                border: 'none',
+                background: activeTab === 'products' ? 'var(--accent)' : 'transparent',
+                color: activeTab === 'products' ? 'white' : 'var(--text-secondary)',
+                boxShadow: activeTab === 'products' ? '0 4px 12px rgba(0,0,0,0.1)' : 'none'
+              }}
+            >
+              Products
+            </button>
+            <button
+              className={`pmControlButton ${activeTab === 'categories' ? 'pmActiveTab' : ''}`}
+              onClick={() => setActiveTab('categories')}
+              style={{
+                border: 'none',
+                background: activeTab === 'categories' ? 'var(--accent)' : 'transparent',
+                color: activeTab === 'categories' ? 'white' : 'var(--text-secondary)',
+                boxShadow: activeTab === 'categories' ? '0 4px 12px rgba(0,0,0,0.1)' : 'none'
+              }}
+            >
+              Categories
+            </button>
+          </div>
+        </div>
+
+        {/* Tab Content */}
+        {activeTab === 'products' ? <ProductManagement /> : <CategoryManagement />}
       </div>
     </div>
   );
 };
 
-export default ProductManagement;
+export default Management;

@@ -59,14 +59,17 @@
  * =============================================================================
  */
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useTheme } from '../../context/ThemeContext';
 import { useAnimation } from '../../hooks/useAnimation';
-import { summaryAPI, reportsAPI } from '../../utils/api';
+import api, { summaryAPI, reportsAPI, billingAPI } from '../../utils/api';
 import { formatCurrency, handleAPIError, downloadFile } from '../../utils/api';
 import { CATEGORY_COLORS, CATEGORY_NAMES, ANIMATION_DURATIONS, EASINGS } from '../../utils/constants';
 import Button from '../ui/Button';
 import Card from '../ui/Card';
+import '../../styles/Management.css';
+import AnimatedList from '../ui/AnimatedList';
 
 // Icon components
 const TrendingUpIcon = ({ color }) => (
@@ -110,48 +113,77 @@ const DownloadIcon = ({ color }) => (
   </svg>
 );
 
+const RefreshIcon = ({ color }) => (
+  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style={{ color }}>
+    <path d="M23 4V10H17" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+    <path d="M1 20V14H7" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+    <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+  </svg>
+);
+
 const Reports = () => {
   const { currentTheme, isDark } = useTheme();
   const { cardVariants, staggerContainer, staggerItem } = useAnimation();
-  
+
   // Summary state
   const [summary, setSummary] = useState(null);
   const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
   const [loading, setLoading] = useState(true);
-  const [currentDate] = useState(new Date().toLocaleDateString('en-US', { 
-    weekday: 'long', 
-    year: 'numeric', 
-    month: 'long', 
-    day: 'numeric' 
+  const [currentDate] = useState(new Date().toLocaleDateString('en-US', {
+    weekday: 'long',
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric'
   }));
-  
+
   // Reports state
   const [availableReports, setAvailableReports] = useState(null);
   const [downloading, setDownloading] = useState({});
   const [error, setError] = useState('');
   const [showClearConfirm, setShowClearConfirm] = useState(false);
   const [clearPassword, setClearPassword] = useState('');
+  const [showClearPassword, setShowClearPassword] = useState(false);
   const [clearingData, setClearingData] = useState(false);
+
   const [productSales, setProductSales] = useState([]);
+
+  // Monthly Export state
+  const [exportMonth, setExportMonth] = useState(new Date().getMonth() + 1);
+  const [exportYear, setExportYear] = useState(new Date().getFullYear());
+
+  // Weekly Export state
+  const [exportWeekDate, setExportWeekDate] = useState(new Date().toISOString().split('T')[0]);
+
+  // Bill Management State
+  const navigate = useNavigate();
+  const [bills, setBills] = useState([]);
+  const [loadingBills, setLoadingBills] = useState(false);
+  const [showCancelConfirm, setShowCancelConfirm] = useState(false);
+  const [selectedBill, setSelectedBill] = useState(null);
 
   // Safeguard so we never read properties from null
   const safeSummary = summary || {};
 
-  // Load both summary and reports data
+  const [hoveredProduct, setHoveredProduct] = useState(null);
+
+  // Load data when date changes
   useEffect(() => {
-    loadSummary();
+    loadSummary(selectedDate);
     loadAvailableReports();
-    loadProductSales();
+    loadProductSales(selectedDate);
+    loadBills(selectedDate);
   }, [selectedDate]);
 
-  async function loadSummary() {
+  async function loadSummary(date) {
     try {
       setLoading(true);
       setError('');
-      
-      const response = await summaryAPI.getTodaySummary();
+
+      const response = date
+        ? await summaryAPI.getSummaryForDate(date)
+        : await summaryAPI.getTodaySummary();
       setSummary(response.data.summary);
-      
+
     } catch (err) {
       const apiError = handleAPIError(err);
       setError(apiError.message);
@@ -165,10 +197,10 @@ const Reports = () => {
     try {
       setLoading(true);
       setError('');
-      
+
       const response = await reportsAPI.getAvailableReports();
       setAvailableReports(response.data.reports);
-      
+
     } catch (err) {
       const apiError = handleAPIError(err);
       setError(apiError.message);
@@ -178,11 +210,14 @@ const Reports = () => {
     }
   }
 
-  async function loadProductSales() {
+  async function loadProductSales(date) {
     try {
-      const response = await fetch('/api/summary/product-sales');
+      const url = date
+        ? `/api/summary/product-sales?date=${date}`
+        : '/api/summary/product-sales';
+      const response = await fetch(url);
       const data = await response.json();
-      
+
       if (data.success) {
         setProductSales(data.product_sales);
       }
@@ -191,24 +226,73 @@ const Reports = () => {
     }
   }
 
+  async function loadBills(date) {
+    try {
+      setLoadingBills(true);
+      const url = date ? `/api/bill/management/all?date=${date}` : '/api/bill/management/all';
+      const response = await api.get(url);
+      if (response.data.success) {
+        setBills(response.data.bills);
+      }
+    } catch (err) {
+      console.error('Error loading bills:', err);
+    } finally {
+      setLoadingBills(false);
+    }
+  }
+
+  const handleEditBill = (bill) => {
+    // Only allow editing active bills
+    if (bill.status === 'CANCELLED') return;
+    navigate('/bill', { state: { bill } });
+  };
+
+  const handleCancelBillInitiate = (bill) => {
+    setSelectedBill(bill);
+    setShowCancelConfirm(true);
+  };
+
+  const handleCancelBillConfirm = async () => {
+    try {
+      if (!selectedBill) return;
+
+      const response = await billingAPI.cancelBill(selectedBill.bill_no);
+
+      if (response.data.success) {
+        setShowCancelConfirm(false);
+        setSelectedBill(null);
+        // Refresh all data
+        await Promise.all([
+          loadBills(),
+          loadSummary(),
+          loadProductSales()
+        ]);
+      }
+    } catch (err) {
+      const apiError = handleAPIError(err);
+      setError(apiError.message);
+      console.error("Error cancelling bill", err);
+    }
+  };
+
   // Download report
   const handleDownload = async (reportType, reportName, filename) => {
     try {
       setDownloading(prev => ({ ...prev, [reportType]: true }));
       setError('');
-      
+
       let response;
-      
+
       if (reportType === 'excel') {
         response = await reportsAPI.exportTodayExcel('detailed');
       } else if (reportType === 'csv') {
         response = await reportsAPI.exportTodayCSV();
       }
-      
+
       if (response && response.data) {
         downloadFile(response.data, filename);
       }
-      
+
     } catch (err) {
       const apiError = handleAPIError(err);
       setError(apiError.message);
@@ -218,12 +302,63 @@ const Reports = () => {
     }
   };
 
+  const handleMonthlyExport = async () => {
+    try {
+      setDownloading(prev => ({ ...prev, monthly: true }));
+      setError('');
+
+      const response = await reportsAPI.exportMonthlyExcel(exportMonth, exportYear);
+
+      if (response && response.data) {
+        downloadFile(response.data, `Monthly_Sales_Report_${String(exportMonth).padStart(2, '0')}_${exportYear}.xlsx`);
+      }
+    } catch (err) {
+      const apiError = handleAPIError(err);
+      setError(apiError.message);
+      console.error('Error downloading monthly report:', err);
+    } finally {
+      setDownloading(prev => ({ ...prev, monthly: false }));
+    }
+  };
+
+  const handleWeeklyExport = async () => {
+    try {
+      setDownloading(prev => ({ ...prev, weekly: true }));
+      setError('');
+
+      const response = await reportsAPI.exportWeeklyExcel(exportWeekDate);
+
+      // Filename is handled by backend, but we can set a fallback here if needed.
+      const d = new Date(exportWeekDate);
+      const day = d.getDay() || 7; // Get current day number, converting Sun (0) to 7
+      if (day !== 1) d.setHours(-24 * (day - 1)); // Set to Monday
+
+      const start = new Date(d);
+      const end = new Date(d);
+      end.setDate(end.getDate() + 6);
+
+      const sStr = `${String(start.getDate()).padStart(2, '0')}${String(start.getMonth() + 1).padStart(2, '0')}${start.getFullYear()}`;
+      const eStr = `${String(end.getDate()).padStart(2, '0')}${String(end.getMonth() + 1).padStart(2, '0')}${end.getFullYear()}`;
+      const filename = `Weekly_Sales_Report_${sStr}_to_${eStr}.xlsx`;
+
+      if (response && response.data) {
+        downloadFile(response.data, filename);
+      }
+    } catch (err) {
+      const apiError = handleAPIError(err);
+      setError(apiError.message);
+      console.error('Error downloading weekly report:', err);
+    } finally {
+      setDownloading(prev => ({ ...prev, weekly: false }));
+    }
+  };
+
   // Clear all bills data
   const handleClearBills = async () => {
     try {
       setClearingData(true);
       setError('');
-      
+
       const response = await fetch('/api/bill/clear', {
         method: 'DELETE',
         headers: {
@@ -233,9 +368,9 @@ const Reports = () => {
           password: clearPassword
         }),
       });
-      
+
       const result = await response.json();
-      
+
       if (response.ok) {
         setShowClearConfirm(false);
         setClearPassword('');
@@ -243,10 +378,11 @@ const Reports = () => {
         await loadSummary();
         await loadAvailableReports();
         await loadProductSales();
+        await loadBills();
       } else {
         throw new Error(result.message || 'Failed to clear bills data');
       }
-      
+
     } catch (err) {
       const apiError = handleAPIError(err);
       setError(apiError.message);
@@ -256,17 +392,33 @@ const Reports = () => {
     }
   };
 
-  // Format time for display
-  const formatTime = (timeString) => {
-    if (!timeString) return 'N/A';
+  // Format time for display (handles UTC to Local conversion)
+  const formatTime = (timestamp) => {
+    if (!timestamp) return 'N/A';
     try {
-      const [hours, minutes] = timeString.split(':');
-      const hour = parseInt(hours);
-      const ampm = hour >= 12 ? 'PM' : 'AM';
-      const displayHour = hour > 12 ? hour - 12 : hour === 0 ? 12 : hour;
-      return `${displayHour}:${minutes} ${ampm}`;
-    } catch {
-      return timeString;
+      // SQLite TIMESTAMP is stored in UTC. 
+      // We append 'Z' or use Date.UTC to ensure JavaScript parses it as UTC.
+      // Format: YYYY-MM-DD HH:MM:SS
+      const utcDate = new Date(timestamp.replace(' ', 'T') + 'Z');
+      return utcDate.toLocaleTimeString([], {
+        hour: 'numeric',
+        minute: '2-digit',
+        hour12: true
+      });
+    } catch (err) {
+      console.error('Error formatting time:', err);
+      return timestamp;
+    }
+  };
+
+  // Format date for display (handles UTC to Local conversion)
+  const formatDate = (timestamp) => {
+    if (!timestamp) return 'N/A';
+    try {
+      const utcDate = new Date(timestamp.replace(' ', 'T') + 'Z');
+      return utcDate.toLocaleDateString();
+    } catch (err) {
+      return timestamp.split(' ')[0];
     }
   };
 
@@ -366,20 +518,21 @@ const Reports = () => {
     name: CATEGORY_NAMES[category] || category
   })).sort((a, b) => b.amount - a.amount);
 
-  // Get individual product sales from bills
-  const getProductSalesData = () => {
-    const productSales = {};
-    
-    // This would require additional API call to get detailed product sales
-    // For now, we'll show category data as product groups
-    return productSalesData;
-  };
+  // Calculate colors once
+  const COLORS = [
+    '#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6',
+    '#06b6d4', '#84cc16', '#f97316', '#ec4899', '#6366f1',
+    '#14b8a6', '#22c55e', '#eab308', '#dc2626', '#7c3aed',
+    '#0891b2', '#16a34a', '#ca8a04', '#b91c1c', '#6d28d9'
+  ];
 
   return (
     <div style={{
       minHeight: '100vh',
       background: isDark ? '#0f0f0f' : '#f8fafc',
-      padding: currentTheme.spacing[8],
+      paddingTop: currentTheme.spacing[8],
+      paddingLeft: currentTheme.spacing[8],
+      paddingRight: currentTheme.spacing[8],
       paddingBottom: currentTheme.spacing[12],
     }}>
       {/* Header Section */}
@@ -469,7 +622,7 @@ const Reports = () => {
                 Clear Data
               </Button>
             </motion.div>
-            
+
             {/* Refresh Data Button */}
             <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
               <Button onClick={() => { loadSummary(); loadAvailableReports(); }} variant="secondary" size="lg"
@@ -507,194 +660,155 @@ const Reports = () => {
 
       {/* KPI Cards Section */}
       <motion.div
-        variants={staggerContainer}
-        initial="initial"
-        animate="animate"
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.6, delay: 0.1, ease: [0.16, 1, 0.3, 1] }}
+        style={{
+          display: 'grid',
+          gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))',
+          gap: currentTheme.spacing[6],
+          marginBottom: currentTheme.spacing[8],
+        }}
+      >
+        {/* Total Sales Card */}
+        <Card>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: currentTheme.spacing[4] }}>
+            <div>
+              <p style={{
+                fontSize: '0.875rem',
+                fontWeight: 600,
+                color: isDark ? '#94a3b8' : '#64748b',
+                marginBottom: currentTheme.spacing[1],
+                textTransform: 'uppercase',
+                letterSpacing: '0.05em',
+              }}>
+                Net Sales
+              </p>
+              <h3 style={{
+                fontSize: '2rem',
+                fontWeight: 700,
+                color: isDark ? '#f1f5f9' : '#0f172a',
+                margin: 0,
+                marginBottom: currentTheme.spacing[2],
+                letterSpacing: '-0.02em',
+              }}>
+                {formatCurrency(safeSummary.total_sales || 0)}
+              </h3>
+            </div>
+            <div style={{
+              width: '48px', height: '48px', borderRadius: '12px',
+              background: isDark ? 'rgba(16, 185, 129, 0.1)' : '#ecfdf5',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+            }}>
+              <TrendingUpIcon color={isDark ? '#34d399' : '#059669'} />
+            </div>
+          </div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: currentTheme.spacing[2] }}>
+            <span style={{ fontSize: '0.875rem', color: isDark ? '#94a3b8' : '#64748b' }}>
+              Total revenue for today
+            </span>
+          </div>
+        </Card>
+
+        {/* Total Orders Card */}
+        <Card>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: currentTheme.spacing[4] }}>
+            <div>
+              <p style={{
+                fontSize: '0.875rem', fontWeight: 600,
+                color: isDark ? '#94a3b8' : '#64748b',
+                marginBottom: currentTheme.spacing[1], textTransform: 'uppercase', letterSpacing: '0.05em',
+              }}>
+                Total Orders
+              </p>
+              <h3 style={{
+                fontSize: '2rem', fontWeight: 700,
+                color: isDark ? '#f1f5f9' : '#0f172a',
+                margin: 0, marginBottom: currentTheme.spacing[2], letterSpacing: '-0.02em',
+              }}>
+                {safeSummary.total_bills || 0}
+              </h3>
+            </div>
+            <div style={{
+              width: '48px', height: '48px', borderRadius: '12px',
+              background: isDark ? 'rgba(59, 130, 246, 0.1)' : '#eff6ff',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+            }}>
+              <ReceiptIcon color={isDark ? '#60a5fa' : '#2563eb'} />
+            </div>
+          </div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: currentTheme.spacing[2] }}>
+            <span style={{ fontSize: '0.875rem', color: isDark ? '#94a3b8' : '#64748b' }}>
+              Bills generated today
+            </span>
+          </div>
+        </Card>
+
+        {/* Average Order Value Card */}
+        <Card>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: currentTheme.spacing[4] }}>
+            <div>
+              <p style={{
+                fontSize: '0.875rem', fontWeight: 600,
+                color: isDark ? '#94a3b8' : '#64748b',
+                marginBottom: currentTheme.spacing[1], textTransform: 'uppercase', letterSpacing: '0.05em',
+              }}>
+                Avg. Order Value
+              </p>
+              <h3 style={{
+                fontSize: '2rem', fontWeight: 700,
+                color: isDark ? '#f1f5f9' : '#0f172a',
+                margin: 0, marginBottom: currentTheme.spacing[2], letterSpacing: '-0.02em',
+              }}>
+                {formatCurrency(safeSummary.average_bill_value || 0)}
+              </h3>
+            </div>
+            <div style={{
+              width: '48px', height: '48px', borderRadius: '12px',
+              background: isDark ? 'rgba(245, 158, 11, 0.1)' : '#fffbeb',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+            }}>
+              <DollarSignIcon color={isDark ? '#fbbf24' : '#d97706'} />
+            </div>
+          </div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: currentTheme.spacing[2] }}>
+            <span style={{ fontSize: '0.875rem', color: isDark ? '#94a3b8' : '#64748b' }}>
+              Per transaction average
+            </span>
+          </div>
+        </Card>
+      </motion.div>
+
+      {/* Product Sales Breakdown Section */}
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.6, delay: 0.2, ease: [0.16, 1, 0.3, 1] }}
         style={{
           marginBottom: currentTheme.spacing[8],
         }}
       >
-        <div style={{
-          display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
-          gap: currentTheme.spacing[6],
-        }}>
-          {/* Total Sales KPI Card */}
-          <motion.div variants={staggerItem}>
-            <motion.div
-              whileHover={{ 
-                y: -8,
-                transition: { duration: 0.2, ease: [0.16, 1, 0.3, 1] },
-              }}
-              style={{
-                backgroundColor: currentTheme.colors.Card,
-                borderRadius: '16px',
-                padding: currentTheme.spacing[8],
-                border: `1px solid ${isDark ? '#334155' : '#e2e8f0'}`,
-                boxShadow: isDark ? currentTheme.shadows.cardDark : currentTheme.shadows.card,
-                position: 'relative',
-                overflow: 'hidden',
-              }}
-            >
-              {/* Icon Background */}
-              <div style={{
-                position: 'absolute',
-                top: currentTheme.spacing[6],
-                right: currentTheme.spacing[6],
-                width: '48px',
-                height: '48px',
-                borderRadius: '12px',
-                background: '#5898ffff',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                opacity: 0.5,
-              }}>
-                <TrendingUpIcon  color="#001effff" />
-              </div>
-              
-              {/* Content */}
-              <div style={{
-                position: 'relative',
-                zIndex: 1,
-              }}>
-                <div style={{
-                  fontSize: '2.5rem',
-                  fontWeight: 700,
-                  color: isDark ? '#ffffff' : '#1e293b',
-                  marginBottom: currentTheme.spacing[3],
-                  lineHeight: 1,
-                  letterSpacing: '-0.02em',
-                }}>
-                  {formatCurrency(safeSummary.total_sales || 0)}
-                </div>
-                <div style={{
-                  fontSize: '0.875rem',
-                  fontWeight: 600,
-                  color: isDark ? '#94a3b8' : '#64748b',
-                  marginBottom: currentTheme.spacing[1],
-                  textTransform: 'uppercase',
-                  letterSpacing: '0.05em',
-                }}>
-                  Total Sales
-                </div>
-                <div style={{
-                  fontSize: '0.75rem',
-                  color: isDark ? '#64748b' : '#94a3b8',
-                  fontWeight: 400,
-                }}>
-                  Revenue for {safeSummary.date || 'Today'}
-                </div>
-              </div>
-            </motion.div>
-          </motion.div>
-
-          {/* Total Bills KPI Card */}
-          <motion.div variants={staggerItem}>
-            <motion.div
-              whileHover={{ 
-                y: -8,
-                transition: { duration: 0.2, ease: [0.16, 1, 0.3, 1] },
-              }}
-              style={{
-                backgroundColor: currentTheme.colors.Card,
-                borderRadius: '16px',
-                padding: currentTheme.spacing[8],
-                border: `1px solid ${isDark ? '#334155' : '#e2e8f0'}`,
-                boxShadow: isDark ? currentTheme.shadows.cardDark : currentTheme.shadows.card,
-                position: 'relative',
-                overflow: 'hidden',
-              }}
-            >
-              {/* Icon Background */}
-              <div style={{
-                position: 'absolute',
-                top: currentTheme.spacing[6],
-                right: currentTheme.spacing[6],
-                width: '48px',
-                height: '48px',
-                borderRadius: '12px',
-                background: ' #6bffceff',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                opacity: 0.4,
-              }}>
-                <ReceiptIcon color="#00764fff" />
-              </div>
-              
-              {/* Content */}
-              <div style={{
-                position: 'relative',
-                zIndex: 1,
-              }}>
-                <div style={{
-                  fontSize: '2.5rem',
-                  fontWeight: 700,
-                  color: isDark ? '#ffffff' : '#1e293b',
-                  marginBottom: currentTheme.spacing[3],
-                  lineHeight: 1,
-                  letterSpacing: '-0.02em',
-                }}>
-                  {safeSummary.total_bills || 0}
-                </div>
-                <div style={{
-                  fontSize: '0.875rem',
-                  fontWeight: 600,
-                  color: isDark ? '#94a3b8' : '#64748b',
-                  marginBottom: currentTheme.spacing[1],
-                  textTransform: 'uppercase',
-                  letterSpacing: '0.05em',
-                }}>
-                  Total Bills
-                </div>
-                <div style={{
-                  fontSize: '0.75rem',
-                  color: isDark ? '#64748b' : '#94a3b8',
-                  fontWeight: 400,
-                }}>
-                  Orders processed
-                </div>
-              </div>
-            </motion.div>
-          </motion.div>
-        </div>
-      </motion.div>
-
-      {/* Product Sales Breakdown Section */}
-      {productSales.length > 0 && (
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, delay: 0.2, ease: [0.16, 1, 0.3, 1] }}
-          style={{
-            marginBottom: currentTheme.spacing[8],
-          }}
-        >
+        <Card>
+          {/* ... (Header remains same) ... */}
           <div style={{
-            backgroundColor: currentTheme.colors.Surface,
-            borderRadius: '20px',
-            border: `1px solid ${isDark ? '#334155' : '#e2e8f0'}`,
-            boxShadow: isDark ? currentTheme.shadows.cardDark : currentTheme.shadows.card,
-            padding: currentTheme.spacing[8],
-            overflow: 'hidden',
+            display: 'flex',
+            alignItems: 'center',
+            marginBottom: currentTheme.spacing[6],
           }}>
-            {/* Gradient Header */}
             <div style={{
-              background: isDark ? 'rgba(30, 41, 59, 0.98)' : 'rgba(255, 255, 255, 0.98)',
-              backdropFilter: 'blur(20px)',
-              margin: `-${currentTheme.spacing[8]} -${currentTheme.spacing[8]} ${currentTheme.spacing[8]}`,
-              padding: `${currentTheme.spacing[5]} ${currentTheme.spacing[8]}`,
-              marginBottom: currentTheme.spacing[8],
-              display: 'flex',
-              justifyContent: 'center',
-              alignItems: 'center',
-              borderBottom: `2px solid ${isDark ? 'rgba(255, 255, 255, 0.15)' : 'rgba(0, 0, 0, 0.08)'}`,
-              boxShadow: isDark 
-                ? '0 4px 20px rgba(0, 0, 0, 0.3)'
-                : '0 4px 20px rgba(0, 0, 0, 0.1)',
               position: 'relative',
+              paddingLeft: currentTheme.spacing[4],
             }}>
+              <div style={{
+                position: 'absolute',
+                left: 0,
+                top: '50%',
+                transform: 'translateY(-50%)',
+                width: '4px',
+                height: '24px',
+                background: 'linear-gradient(to bottom, #3b82f6, #06b6d4)',
+                borderRadius: '2px',
+              }} />
               <h2 style={{
                 fontSize: '1.25rem',
                 fontWeight: 600,
@@ -705,11 +819,13 @@ const Reports = () => {
                 position: 'relative',
                 zIndex: 1,
               }}>
-                Sales Report
+                Product Sales Breakdown
               </h2>
             </div>
+          </div>
 
-            {/* Pie Chart and Products Grid */}
+          {/* Pie Chart and Products Grid */}
+          {productSales.length > 0 ? (
             <div style={{
               display: 'grid',
               gridTemplateColumns: '1fr 1fr',
@@ -725,118 +841,199 @@ const Reports = () => {
               }}>
                 <div style={{
                   position: 'relative',
-                  width: '280px',
-                  height: '280px',
+                  width: '320px',
+                  height: '320px',
                   marginBottom: currentTheme.spacing[4],
                 }}>
                   <svg
-                    width="280"
-                    height="280"
-                    viewBox="0 0 280 280"
+                    width="320"
+                    height="320"
+                    viewBox="0 0 320 320"
                     style={{
                       transform: 'rotate(-90deg)',
+                      overflow: 'visible',
                     }}
                   >
                     {productSales.map((product, index) => {
                       const totalRevenue = productSales.reduce((sum, p) => sum + p.total_amount, 0);
                       const percentage = (product.total_amount / totalRevenue) * 100;
                       const previousPercentages = productSales.slice(0, index).reduce((sum, p) => sum + (p.total_amount / totalRevenue) * 100, 0);
-                      const strokeDasharray = 2 * Math.PI * 120;
-                      const strokeDashoffset = 2 * Math.PI * 120 * (1 - percentage / 100);
+
+                      // Radius calculations
+                      const baseRadius = 120;
+                      const isHovered = hoveredProduct === index;
+                      const radius = isHovered ? 125 : 120; // Scale up on hover
+                      const strokeWidth = isHovered ? 45 : 35; // Thicker on hover
+
+                      const circumference = 2 * Math.PI * baseRadius; // Use base radius for calculation consistency
+                      const strokeDasharray = `${(percentage / 100) * circumference} ${circumference}`;
                       const rotation = (previousPercentages / 100) * 360;
-                      
-                      // Generate colors dynamically for all products
-                      const colors = [
-                        '#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6',
-                        '#06b6d4', '#84cc16', '#f97316', '#ec4899', '#6366f1',
-                        '#14b8a6', '#22c55e', '#eab308', '#dc2626', '#7c3aed',
-                        '#0891b2', '#16a34a', '#ca8a04', '#b91c1c', '#6d28d9'
-                      ];
-                      const color = colors[index % colors.length];
-                      
+
+                      // Add gap by reducing the stroke length slightly
+                      // We do this by adjusting the strokeDasharray's first value slightly down
+                      // But for gaps between segments in a single circle, simpler to use transparent borders or multiple paths.
+                      // With stroke-dasharray on circle, adding gap is tricky. 
+                      // Alternative: Use a slightly smaller dash and a larger gap.
+                      const gapSize = 4; // px
+                      const dashLength = ((percentage / 100) * circumference) - gapSize;
+                      const adjustedDashArray = `${Math.max(0, dashLength)} ${circumference - Math.max(0, dashLength)}`;
+
+                      const color = COLORS[index % COLORS.length];
+
                       return (
                         <circle
                           key={product.product_id}
-                          cx="140"
-                          cy="140"
-                          r="120"
+                          cx="160"
+                          cy="160"
+                          r={radius} // Use dynamic radius
                           fill="none"
                           stroke={color}
-                          strokeWidth="40"
-                          strokeDasharray={strokeDasharray}
-                          strokeDashoffset={strokeDashoffset}
-                          transform={'rotate(' + rotation + ' 140 140)'}
+                          strokeWidth={strokeWidth}
+                          strokeDasharray={adjustedDashArray}
+                          strokeDashoffset={-gapSize / 2} // Offset to center the gap
+                          transform={`rotate(${rotation} 160 160)`}
                           style={{
-                            transition: 'all 0.5s ease',
+                            transition: 'all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275)', // Spring-like transition
+                            cursor: 'pointer',
+                            filter: isHovered ? 'drop-shadow(0px 4px 8px rgba(0,0,0,0.3))' : 'none',
+                            opacity: hoveredProduct !== null && !isHovered ? 0.6 : 1, // Dim others
                           }}
+                          onMouseEnter={() => setHoveredProduct(index)}
+                          onMouseLeave={() => setHoveredProduct(null)}
                         />
                       );
                     })}
                   </svg>
-                  
-                  {/* Center text */}
+
+                  {/* Interactive Center text */}
                   <div style={{
                     position: 'absolute',
                     top: '50%',
                     left: '50%',
                     transform: 'translate(-50%, -50%)',
                     textAlign: 'center',
+                    pointerEvents: 'none', // Allow clicks to pass through
                   }}>
-                    <div style={{
-                      fontSize: '1.5rem',
-                      fontWeight: 700,
-                      color: isDark ? '#f1f5f9' : '#1e293b',
-                      marginBottom: currentTheme.spacing[1],
-                    }}>
-                      {productSales.length}
-                    </div>
-                    <div style={{
-                      fontSize: '0.875rem',
-                      color: isDark ? '#94a3b8' : '#64748b',
-                    }}>
-                      Products
-                    </div>
+                    <AnimatePresence mode="wait">
+                      {hoveredProduct !== null ? (
+                        <motion.div
+                          key="hovered"
+                          initial={{ opacity: 0, y: 5 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          exit={{ opacity: 0, y: -5 }}
+                          transition={{ duration: 0.2 }}
+                        >
+                          <div style={{
+                            fontSize: '0.875rem',
+                            fontWeight: 600,
+                            color: isDark ? '#94a3b8' : '#64748b',
+                            marginBottom: '4px',
+                            maxWidth: '120px',
+                            whiteSpace: 'nowrap',
+                            overflow: 'hidden',
+                            textOverflow: 'ellipsis',
+                            margin: '0 auto',
+                          }}>
+                            {productSales[hoveredProduct].name}
+                          </div>
+                          <div style={{
+                            fontSize: '1.5rem',
+                            fontWeight: 700,
+                            color: isDark ? '#f1f5f9' : '#1e293b',
+                            lineHeight: 1,
+                          }}>
+                            {((productSales[hoveredProduct].total_amount / productSales.reduce((sum, p) => sum + p.total_amount, 0)) * 100).toFixed(1)}%
+                          </div>
+                          <div style={{
+                            fontSize: '0.75rem',
+                            color: isDark ? '#64748b' : '#94a3b8',
+                            marginTop: '2px',
+                          }}>
+                            {formatCurrency(productSales[hoveredProduct].total_amount)}
+                          </div>
+                        </motion.div>
+                      ) : (
+                        <motion.div
+                          key="default"
+                          initial={{ opacity: 0, y: 5 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          exit={{ opacity: 0, y: -5 }}
+                          transition={{ duration: 0.2 }}
+                        >
+                          <div style={{
+                            fontSize: '1.5rem',
+                            fontWeight: 700,
+                            color: isDark ? '#f1f5f9' : '#1e293b',
+                            marginBottom: currentTheme.spacing[1],
+                          }}>
+                            {productSales.length}
+                          </div>
+                          <div style={{
+                            fontSize: '0.875rem',
+                            color: isDark ? '#94a3b8' : '#64748b',
+                          }}>
+                            Products
+                          </div>
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
                   </div>
                 </div>
-                
+
                 {/* Legend */}
                 <div style={{
                   display: 'flex',
                   flexWrap: 'wrap',
-                  gap: currentTheme.spacing[2],
+                  gap: currentTheme.spacing[3], // Increased gap
                   justifyContent: 'center',
-                  maxHeight: '120px',
-                  overflowY: 'auto',
+                  padding: '4px', // Space for focus ring/shadow
                 }}>
                   {productSales.map((product, index) => {
                     const totalRevenue = productSales.reduce((sum, p) => sum + p.total_amount, 0);
                     const percentage = ((product.total_amount / totalRevenue) * 100).toFixed(1);
-                    
-                    const colors = [
-                      '#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6',
-                      '#06b6d4', '#84cc16', '#f97316', '#ec4899', '#6366f1',
-                      '#14b8a6', '#22c55e', '#eab308', '#dc2626', '#7c3aed',
-                      '#0891b2', '#16a34a', '#ca8a04', '#b91c1c', '#6d28d9'
-                    ];
-                    const color = colors[index % colors.length];
-                    
+                    const color = COLORS[index % COLORS.length]; // Use constant colors
+                    const isHovered = hoveredProduct === index;
+
                     return (
-                      <div key={product.product_id} style={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: currentTheme.spacing[1],
-                      }}>
+                      <div
+                        key={product.product_id}
+                        style={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: currentTheme.spacing[1.5],
+                          cursor: 'pointer',
+                          opacity: hoveredProduct !== null && !isHovered ? 0.5 : 1,
+                          transform: isHovered ? 'scale(1.05)' : 'scale(1)',
+                          transition: 'all 0.2s ease',
+                          padding: '4px 8px',
+                          borderRadius: '6px',
+                          background: isHovered ? (isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.05)') : 'transparent',
+                        }}
+                        onMouseEnter={() => setHoveredProduct(index)}
+                        onMouseLeave={() => setHoveredProduct(null)}
+                      >
                         <div style={{
                           width: '10px',
                           height: '10px',
                           borderRadius: '50%',
                           background: color,
                           flexShrink: 0,
+                          boxShadow: isHovered ? `0 0 8px ${color}` : 'none',
+                          transition: 'box-shadow 0.2s ease',
                         }} />
                         <div style={{
-                          fontSize: '0.7rem',
+                          fontSize: '0.75rem',
+                          fontWeight: 500,
                           color: isDark ? '#94a3b8' : '#64748b',
                           whiteSpace: 'nowrap',
+                          margin: ' 0 5px',
+                        }}>
+                          {product.name} -
+                        </div>
+                        <div style={{
+                          fontSize: '0.75rem',
+                          fontWeight: 600,
+                          color: isDark ? '#f1f5f9' : '#1e293b',
                         }}>
                           {percentage}%
                         </div>
@@ -846,40 +1043,28 @@ const Reports = () => {
                 </div>
               </div>
 
+
               {/* Product Cards Grid */}
-              <div style={{
-                display: 'grid',
-                gridTemplateColumns: '1fr',
-                gap: currentTheme.spacing[3],
-                maxHeight: '400px',
-                overflowY: 'auto',
-                paddingRight: currentTheme.spacing[2],
-              }}>
-                {productSales.map((product, index) => (
-                  <motion.div
-                    key={product.product_id}
-                    initial={{ opacity: 0, scale: 0.9 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    transition={{ 
-                      duration: 0.3, 
-                      delay: index * 0.02, 
-                      ease: [0.16, 1, 0.3, 1] 
-                    }}
-                    whileHover={{ 
-                      scale: 1.01,
-                      boxShadow: isDark 
-                        ? '0 4px 12px rgba(59, 130, 246, 0.2)'
-                        : '0 4px 12px rgba(59, 130, 246, 0.1)'
-                    }}
-                    style={{
-                      background: isDark ? '#1e293b' : '#ffffff',
-                      borderRadius: '12px',
-                      border: '1px solid ' + (isDark ? '#334155' : '#e2e8f0'),
-                      padding: currentTheme.spacing[3],
-                      position: 'relative',
-                      overflow: 'hidden',
-                    }}
-                  >
+              <AnimatedList
+                items={productSales}
+                onItemSelect={(product, index) => {
+                  console.log('Selected product:', product, index);
+                }}
+                showGradients={false}
+                displayScrollbar={false}
+                enableArrowNavigation
+                className="product-list"
+                itemClassName="product-item"
+              >
+                {(product, index) => (
+                  <div style={{
+                    background: isDark ? '#1e293b' : '#ffffff',
+                    borderRadius: '12px',
+                    border: '1px solid ' + (isDark ? '#334155' : '#e2e8f0'),
+                    padding: currentTheme.spacing[3],
+                    position: 'relative',
+                    overflow: 'hidden',
+                  }}>
                     <div style={{
                       display: 'flex',
                       alignItems: 'center',
@@ -906,7 +1091,7 @@ const Reports = () => {
                       }}>
                         {index + 1}
                       </div>
-                      
+
                       {/* Product info */}
                       <div style={{
                         flex: 1,
@@ -932,7 +1117,7 @@ const Reports = () => {
                           {product.quantity} units
                         </div>
                       </div>
-                      
+
                       {/* Revenue */}
                       <div style={{
                         textAlign: 'right',
@@ -954,54 +1139,751 @@ const Reports = () => {
                         </div>
                       </div>
                     </div>
-                  </motion.div>
-                ))}
+                  </div>
+                )}
+              </AnimatedList>
+            </div >
+          ) : (
+            <div style={{
+              textAlign: 'center',
+              padding: currentTheme.spacing[8],
+              color: isDark ? '#94a3b8' : '#64748b',
+            }}>
+              <div style={{
+                fontSize: '3rem',
+                marginBottom: currentTheme.spacing[4],
+                opacity: 0.5,
+              }}>
+                📊
               </div>
+              <h3 style={{
+                fontSize: '1.125rem',
+                fontWeight: 600,
+                color: isDark ? '#f1f5f9' : '#1e293b',
+                marginBottom: currentTheme.spacing[2],
+              }}>
+                No Product Sales Data
+              </h3>
+              <p style={{
+                fontSize: '0.875rem',
+                margin: 0,
+                lineHeight: 1.6,
+              }}>
+                Start creating bills to see product sales breakdown here.
+                The pie chart and product list will appear once you have sales data.
+              </p>
             </div>
-          </div>
-        </motion.div>
-      )}
+          )
+          }
+        </Card >
+      </motion.div >
 
       {/* Reports Section */}
-      <motion.div
+      < motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.6, delay: 0.4, ease: [0.16, 1, 0.3, 1] }}
-      > 
+      >
+        <Card>
+          <div style={{
+            display: 'flex',
+            alignItems: 'center',
+            marginBottom: currentTheme.spacing[6],
+          }}>
+            <div style={{
+              position: 'relative',
+              paddingLeft: currentTheme.spacing[4],
+            }}>
+              <div style={{
+                position: 'absolute',
+                left: 0,
+                top: '50%',
+                transform: 'translateY(-50%)',
+                width: '4px',
+                height: '24px',
+                borderRadius: '2px',
+              }} />
+              <h2 style={{
+                fontSize: '1.25rem',
+                fontWeight: 600,
+                color: isDark ? '#f1f5f9' : '#1e293b',
+                margin: 0,
+                textTransform: 'uppercase',
+                letterSpacing: '0.1em',
+                position: 'relative',
+                zIndex: 1,
+              }}>
+                Sales Reports
+              </h2>
+            </div>
+          </div>
+
           <div style={{
             display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
+            gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))',
             gap: currentTheme.spacing[4],
           }}>
-            <Button
-              onClick={() => handleDownload('excel', 'detailed', `sales_report_${safeSummary.date || 'today'}.xlsx`)}
-              disabled={downloading.excel}
-              variant="secondary"
-              style={{
-                backgroundColor: currentTheme.colors.Card,
-                boxShadow: isDark ? currentTheme.shadows.cardDark : currentTheme.shadows.card,
-                border: `1px solid ${isDark ? '#475569' : '#e2e8f0'}`,
-                color: isDark ? '#f1f5f9' : '#475569',
-                borderRadius: '12px',
-                padding: currentTheme.spacing[4],
+            {/* Daily Report Section */}
+            <div style={{
+              display: 'flex',
+              flexDirection: 'column',
+              gap: currentTheme.spacing[4],
+              padding: currentTheme.spacing[5],
+              background: isDark ? 'linear-gradient(to bottom, #1e293b, #1a2332)' : 'linear-gradient(to bottom, #ffffff, #fafbfc)',
+              borderRadius: '16px',
+              border: `1px solid ${isDark ? '#334155' : '#e2e8f0'}`,
+              boxShadow: isDark ? '0 4px 6px -1px rgba(0, 0, 0, 0.2), 0 2px 4px -1px rgba(0, 0, 0, 0.1)' : '0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03)',
+              transition: 'transform 0.2s ease, box-shadow 0.2s ease',
+            }}>
+
+
+              <div style={{
                 display: 'flex',
                 alignItems: 'center',
-                justifyContent: 'center',
-                gap: currentTheme.spacing[2],
-                fontWeight: 500,
-                
-              }}
-            >
-              <DownloadIcon color={isDark ? '#f1f5f9' : '#475569'} />
-              {downloading.excel ? 'Downloading...' : 'Excel Sales Report'}
-            </Button>
+                gap: currentTheme.spacing[3],
+                paddingBottom: currentTheme.spacing[3],
+                borderBottom: `1px solid ${isDark ? '#334155' : '#f1f5f9'}`,
+              }}>
+                <div style={{
+                  width: '44px',
+                  height: '44px',
+                  borderRadius: '12px',
+                  background: isDark ? 'linear-gradient(135deg, #334155, #3f4f66)' : 'linear-gradient(135deg, #f1f5f9, #e8eef5)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  flexShrink: 0,
+                }}>
+                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M8 2v3M16 2v3M3.5 9.09h17M21 8.5V17c0 3-1.5 5-5 5H8c-3.5 0-5-2-5-5V8.5c0-3 1.5-5 5-5h8c3.5 0 5 2 5 5z" stroke={isDark ? '#7e5871ff' : '#a5287aff'} strokeWidth="1.5" strokeMiterlimit="10" strokeLinecap="round" strokeLinejoin="round" />
+                    <path d="M15.695 13.7h.009M15.695 16.7h.009M11.995 13.7h.01M11.995 16.7h.01M8.294 13.7h.01M8.294 16.7h.01" stroke={isDark ? '#7e5871ff' : '#a5287aff'} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                  </svg>
+                </div>
+                <div>
+                  <h3 style={{
+                    fontSize: '1rem',
+                    fontWeight: 600,
+                    color: isDark ? '#f1f5f9' : '#0f172a',
+                    margin: 0,
+                    marginBottom: '2px',
+                  }}>Daily Report</h3>
+                  <p style={{
+                    fontSize: '0.8125rem',
+                    color: isDark ? '#94a3b8' : '#64748b',
+                    margin: 0,
+                  }}>Today's sales summary</p>
+                </div>
+              </div>
+
+              <Button
+                onClick={() => handleDownload('excel', 'detailed', `sales_report_${safeSummary.date || 'today'}.xlsx`)}
+                disabled={downloading.excel}
+                variant="secondary"
+                style={{
+                  backgroundColor: isDark ? '#334155' : '#ffffff',
+                  boxShadow: isDark ? '0 1px 2px 0 rgba(0, 0, 0, 0.15)' : '0 1px 2px 0 rgba(0, 0, 0, 0.05)',
+                  border: `1px solid ${isDark ? '#475569' : '#e2e8f0'}`,
+                  color: isDark ? '#f1f5f9' : '#1e293b',
+                  borderRadius: '10px',
+                  padding: `${currentTheme.spacing[3]} ${currentTheme.spacing[4]}`,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: currentTheme.spacing[2],
+                  fontWeight: 500,
+                  fontSize: '0.875rem',
+                  width: '100%',
+                  transition: 'all 0.2s ease',
+                }}
+              >
+                <DownloadIcon color={isDark ? '#f1f5f9' : '#475569'} />
+                {downloading.excel ? 'Downloading...' : 'Download Today\'s Report'}
+              </Button>
+            </div>
+
+            {/* Monthly Report Section */}
+            <div style={{
+              display: 'flex',
+              flexDirection: 'column',
+              gap: currentTheme.spacing[4],
+              padding: currentTheme.spacing[5],
+              background: isDark ? 'linear-gradient(to bottom, #1e293b, #1a2332)' : 'linear-gradient(to bottom, #ffffff, #fafbfc)',
+              borderRadius: '16px',
+              border: `1px solid ${isDark ? '#334155' : '#e2e8f0'}`,
+              boxShadow: isDark ? '0 4px 6px -1px rgba(0, 0, 0, 0.2), 0 2px 4px -1px rgba(0, 0, 0, 0.1)' : '0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03)',
+              transition: 'transform 0.2s ease, box-shadow 0.2s ease',
+            }}>
+
+
+              <div style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: currentTheme.spacing[3],
+                paddingBottom: currentTheme.spacing[3],
+                borderBottom: `1px solid ${isDark ? '#334155' : '#f1f5f9'}`,
+              }}>
+                <div style={{
+                  width: '44px',
+                  height: '44px',
+                  borderRadius: '12px',
+                  background: isDark ? 'linear-gradient(135deg, #334155, #3f4f66)' : 'linear-gradient(135deg, #f1f5f9, #e8eef5)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  flexShrink: 0,
+                }}>
+                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M8 2v3M16 2v3M3.5 9.09h17M21 8.5V17c0 3-1.5 5-5 5H8c-3.5 0-5-2-5-5V8.5c0-3 1.5-5 5-5h8c3.5 0 5 2 5 5z" stroke="#8b5cf6" strokeWidth="1.5" strokeMiterlimit="10" strokeLinecap="round" strokeLinejoin="round" />
+                    <path d="M11.995 13.7h.01M8.294 13.7h.01M8.294 16.7h.01" stroke="#8b5cf6" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                  </svg>
+                </div>
+                <div>
+                  <h3 style={{
+                    fontSize: '1.125rem',
+                    fontWeight: 600,
+                    color: isDark ? '#f1f5f9' : '#0f172a',
+                    margin: 0,
+                    marginBottom: '2px',
+                  }}>Monthly Report</h3>
+                  <p style={{
+                    fontSize: '0.8125rem',
+                    color: isDark ? '#94a3b8' : '#64748b',
+                    margin: 0,
+                  }}>Select month and year</p>
+                </div>
+              </div>
+
+              <div style={{ display: 'flex', gap: currentTheme.spacing[2] }}>
+                <select
+                  value={exportMonth}
+                  onChange={(e) => setExportMonth(parseInt(e.target.value))}
+                  style={{
+                    flex: 1,
+                    padding: '10px 12px',
+                    borderRadius: '10px',
+                    border: `1px solid ${isDark ? '#475569' : '#e2e8f0'}`,
+                    background: isDark ? '#0f172a' : '#ffffff',
+                    color: isDark ? '#f1f5f9' : '#1e293b',
+                    fontSize: '0.9375rem',
+                    fontWeight: 500,
+                    cursor: 'pointer',
+                    transition: 'all 0.2s ease',
+                  }}
+                >
+                  {Array.from({ length: 12 }, (_, i) => i + 1).map(m => (
+                    <option key={m} value={m}>{new Date(0, m - 1).toLocaleString('default', { month: 'long' })}</option>
+                  ))}
+                </select>
+                <select
+                  value={exportYear}
+                  onChange={(e) => setExportYear(parseInt(e.target.value))}
+                  style={{
+                    flex: 1,
+                    padding: '10px 12px',
+                    borderRadius: '10px',
+                    border: `1px solid ${isDark ? '#475569' : '#e2e8f0'}`,
+                    background: isDark ? '#0f172a' : '#ffffff',
+                    color: isDark ? '#f1f5f9' : '#1e293b',
+                    fontSize: '0.9375rem',
+                    fontWeight: 500,
+                    cursor: 'pointer',
+                    transition: 'all 0.2s ease',
+                  }}
+                >
+                  {[2023, 2024, 2025, 2026].map(y => (
+                    <option key={y} value={y}>{y}</option>
+                  ))}
+                </select>
+              </div>
+
+              <Button
+                onClick={handleMonthlyExport}
+                disabled={downloading.monthly}
+                variant="secondary"
+                style={{
+                  backgroundColor: isDark ? '#334155' : '#ffffff',
+                  boxShadow: isDark ? '0 1px 2px 0 rgba(0, 0, 0, 0.15)' : '0 1px 2px 0 rgba(0, 0, 0, 0.05)',
+                  border: `1px solid ${isDark ? '#475569' : '#e2e8f0'}`,
+                  color: isDark ? '#f1f5f9' : '#1e293b',
+                  borderRadius: '10px',
+                  padding: `${currentTheme.spacing[3]} ${currentTheme.spacing[4]}`,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: currentTheme.spacing[2],
+                  fontWeight: 500,
+                  fontSize: '0.9375rem',
+                  width: '100%',
+                  transition: 'all 0.2s ease',
+                }}
+              >
+                <DownloadIcon color={isDark ? '#f1f5f9' : '#475569'} />
+                {downloading.monthly ? 'Downloading...' : 'Download Monthly Report'}
+              </Button>
+            </div>
+
+            {/* Weekly Report Section */}
+            <div style={{
+              display: 'flex',
+              flexDirection: 'column',
+              gap: currentTheme.spacing[4],
+              padding: currentTheme.spacing[5],
+              background: isDark ? '#1e293b' : '#ffffff',
+              borderRadius: '12px',
+              border: `1px solid ${isDark ? '#334155' : '#e2e8f0'}`,
+              boxShadow: isDark ? '0 1px 3px 0 rgba(0, 0, 0, 0.3)' : '0 1px 3px 0 rgba(0, 0, 0, 0.1)',
+            }}>
+
+
+              <div style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: currentTheme.spacing[3],
+                paddingBottom: currentTheme.spacing[3],
+                borderBottom: `1px solid ${isDark ? '#334155' : '#f1f5f9'}`,
+              }}>
+                <div style={{
+                  width: '44px',
+                  height: '44px',
+                  borderRadius: '12px',
+                  background: isDark ? 'linear-gradient(135deg, #334155, #3f4f66)' : 'linear-gradient(135deg, #f1f5f9, #e8eef5)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  flexShrink: 0,
+                }}>
+                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M8 2v3M16 2v3M3.5 9.09h17M21 8.5V17c0 3-1.5 5-5 5H8c-3.5 0-5-2-5-5V8.5c0-3 1.5-5 5-5h8c3.5 0 5 2 5 5z" stroke={isDark ? '#2dcf00ff' : '#2dcf00ff'} strokeWidth="1.5" strokeMiterlimit="10" strokeLinecap="round" strokeLinejoin="round" />
+                    <path d="M15.695 13.7h.009M15.695 16.7h.009M11.995 13.7h.01" stroke={isDark ? '#2dcf00ff' : '#2dcf00ff'} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                  </svg>
+                </div>
+                <div>
+                  <h3 style={{
+                    fontSize: '1rem',
+                    fontWeight: 600,
+                    color: isDark ? '#f1f5f9' : '#0f172a',
+                    margin: 0,
+                    marginBottom: '2px',
+                  }}>Weekly Report</h3>
+                  <p style={{
+                    fontSize: '0.8125rem',
+                    color: isDark ? '#94a3b8' : '#64748b',
+                    margin: 0,
+                  }}>Select reference date</p>
+                </div>
+              </div>
+
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                <label style={{
+                  fontSize: '0.8125rem',
+                  fontWeight: 500,
+                  color: isDark ? '#94a3b8' : '#64748b',
+                  marginBottom: '2px',
+                }}>
+                  Select Reference Date
+                </label>
+                <input
+                  type="date"
+                  value={exportWeekDate}
+                  onChange={(e) => setExportWeekDate(e.target.value)}
+                  style={{
+                    width: '100%',
+                    padding: '10px 12px',
+                    borderRadius: '8px',
+                    border: `1px solid ${isDark ? '#475569' : '#e2e8f0'}`,
+                    background: isDark ? '#0f172a' : '#ffffff',
+                    color: isDark ? '#f1f5f9' : '#1e293b',
+                    fontSize: '0.875rem',
+                    fontWeight: 500,
+                    cursor: 'pointer',
+                  }}
+                />
+              </div>
+
+              <Button
+                onClick={handleWeeklyExport}
+                disabled={downloading.weekly}
+                variant="secondary"
+                style={{
+                  backgroundColor: isDark ? '#334155' : '#ffffff',
+                  boxShadow: isDark ? '0 1px 2px 0 rgba(0, 0, 0, 0.15)' : '0 1px 2px 0 rgba(0, 0, 0, 0.05)',
+                  border: `1px solid ${isDark ? '#475569' : '#e2e8f0'}`,
+                  color: isDark ? '#f1f5f9' : '#1e293b',
+                  borderRadius: '10px',
+                  padding: `${currentTheme.spacing[3]} ${currentTheme.spacing[4]}`,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: currentTheme.spacing[2],
+                  fontWeight: 500,
+                  fontSize: '0.875rem',
+                  width: '100%',
+                  transition: 'all 0.2s ease',
+                }}
+              >
+                <DownloadIcon color={isDark ? '#f1f5f9' : '#475569'} />
+                {downloading.weekly ? 'Downloading...' : 'Download Weekly Report'}
+              </Button>
+            </div>
           </div>
-        
+        </Card>
+
+      </motion.div>
+
+      {/* Bill Management Section */}
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.6, delay: 0.3, ease: [0.16, 1, 0.3, 1] }}
+        style={{
+          marginBottom: currentTheme.spacing[8],
+          marginTop: currentTheme.spacing[8],
+        }}
+      >
+        <Card>
+          <div style={{
+            display: 'flex',
+            alignItems: 'center',
+            marginBottom: currentTheme.spacing[6],
+          }}>
+            <div style={{
+              position: 'relative',
+              paddingLeft: currentTheme.spacing[4],
+            }}>
+              <div style={{
+                position: 'absolute',
+                left: 0,
+                top: '50%',
+                transform: 'translateY(-50%)',
+                width: '4px',
+                height: '24px',
+                background: 'linear-gradient(to bottom, #3b82f6, #06b6d4)',
+                borderRadius: '2px',
+              }} />
+              <h2 style={{
+                fontSize: '1.25rem',
+                fontWeight: 600,
+                color: isDark ? '#f1f5f9' : '#1e293b',
+                margin: 0,
+                textTransform: 'uppercase',
+                letterSpacing: '0.1em',
+              }}>
+                Bill Management
+              </h2>
+            </div>
+            <div style={{ marginLeft: 'auto' }}>
+              <Button
+                onClick={loadBills}
+                variant="secondary"
+                size="sm"
+                disabled={loadingBills}
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '8px',
+                  background: isDark ? 'rgba(59, 130, 246, 0.1)' : '#eff6ff',
+                  border: `1px solid ${isDark ? 'rgba(59, 130, 246, 0.2)' : '#dbeafe'}`,
+                  color: '#3b82f6',
+                  borderRadius: '8px',
+                  padding: '6px 16px',
+                  fontWeight: 600,
+                  transition: 'all 0.2s ease',
+                }}
+              >
+                <div style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  animation: loadingBills ? 'spin 1s linear infinite' : 'none'
+                }}>
+                  <RefreshIcon color="#3b82f6" />
+                </div>
+                Refresh
+              </Button>
+            </div>
+          </div>
+
+          <div style={{
+            marginTop: currentTheme.spacing[4],
+            position: 'relative',
+          }}>
+            {bills.length > 0 ? (
+              <AnimatedList
+                key={`bill-list-${loadingBills ? 'loading' : 'ready'}`}
+                items={bills}
+                className="bill-list-animated"
+                showGradients={false}
+                displayScrollbar={false}
+              >
+                {(bill, index) => {
+                  const isCancelled = bill.status === 'CANCELLED';
+                  const statusText = (!bill.status || bill.status === 'ACTIVE') ? 'CONFIRMED' : bill.status;
+
+                  return (
+                    <div
+                      key={bill.bill_no}
+                      onClick={() => !isCancelled && handleEditBill(bill)}
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        padding: `${currentTheme.spacing[4]} ${currentTheme.spacing[6]}`,
+                        background: isDark ? 'rgba(30, 41, 59, 0.4)' : '#ffffff',
+                        borderRadius: '12px',
+                        border: `1px solid ${isDark ? '#334155' : '#e2e8f0'}`,
+                        marginBottom: currentTheme.spacing[2],
+                        gap: currentTheme.spacing[4],
+                        cursor: isCancelled ? 'default' : 'pointer',
+                        transition: 'all 0.2s cubic-bezier(0.4, 0, 0.4, 1)',
+                        opacity: isCancelled ? 0.6 : 1,
+                        position: 'relative',
+                        overflow: 'hidden',
+                      }}
+                      onMouseEnter={(e) => {
+                        if (!isCancelled) {
+                          e.currentTarget.style.borderColor = isDark ? '#3b82f6' : '#3b82f6';
+                          e.currentTarget.style.transform = 'translateY(-2px)';
+                          e.currentTarget.style.boxShadow = isDark ? '0 10px 15px -3px rgba(0, 0, 0, 0.3)' : '0 10px 15px -3px rgba(59, 130, 246, 0.1)';
+                        }
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.style.borderColor = isDark ? '#334155' : '#e2e8f0';
+                        e.currentTarget.style.transform = 'translateY(0)';
+                        e.currentTarget.style.boxShadow = 'none';
+                      }}
+                    >
+                      {/* Bill ID Highlight */}
+                      <div style={{
+                        position: 'absolute',
+                        left: 0,
+                        top: 0,
+                        bottom: 0,
+                        width: '4px',
+                        background: isCancelled ? (isDark ? '#ef4444' : '#fee2e2') : (isDark ? '#3b82f6' : '#eff6ff'),
+                      }} />
+
+                      {/* Bill Info */}
+                      <div style={{ flex: '0 0 60px' }}>
+                        <span style={{
+                          fontSize: '1rem',
+                          fontWeight: 700,
+                          color: isDark ? '#f1f5f9' : '#1e293b',
+                          display: 'block'
+                        }}>
+                          {bill.bill_no}
+                        </span>
+                      </div>
+
+                      <div style={{ flex: '1', minWidth: '150px' }}>
+                        <div style={{
+                          fontSize: '0.9rem',
+                          fontWeight: 600,
+                          color: isDark ? '#f1f5f9' : '#1e293b',
+                          marginBottom: '4px',
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '8px'
+                        }}>
+                          <ClockIcon color={isDark ? '#3b82f6' : '#2563eb'} />
+                          {formatDate(bill.created_at)} • {formatTime(bill.created_at)} • <span>{bill.items?.length || 0} items</span>
+                        </div>
+                        <div style={{
+                          fontSize: '0.75rem',
+                          color: isDark ? '#94a3b8' : '#64748b'
+                        }}>
+
+                        </div>
+                      </div>
+
+                      <div style={{
+                        flex: '0 0 120px',
+                        textAlign: 'right',
+                        paddingRight: currentTheme.spacing[4]
+                      }}>
+                        <div style={{
+                          fontSize: '1.125rem',
+                          fontWeight: 700,
+                          color: isDark ? '#3b82f6' : '#2563eb'
+                        }}>
+                          {formatCurrency(bill.total_amount)}
+                        </div>
+                      </div>
+
+                      <div style={{ flex: '0 0 110px', textAlign: 'center' }}>
+                        <span style={{
+                          padding: '6px 10px',
+                          borderRadius: '8px',
+                          fontSize: '0.7rem',
+                          fontWeight: 700,
+                          letterSpacing: '0.025em',
+                          display: 'inline-block',
+                          backgroundColor: isCancelled ? (isDark ? 'rgba(239, 68, 68, 0.15)' : '#fee2e2') : (isDark ? 'rgba(34, 197, 94, 0.15)' : '#dcfce7'),
+                          color: isCancelled ? (isDark ? '#fca5a5' : '#ef4444') : (isDark ? '#86efac' : '#16a34a'),
+                          border: `1px solid ${isCancelled ? (isDark ? 'rgba(239, 68, 68, 0.2)' : '#fca5a5') : (isDark ? 'rgba(34, 197, 94, 0.2)' : '#86efac')}`
+                        }}>
+                          {statusText}
+                        </span>
+                      </div>
+
+                      <div style={{
+                        flex: '0 0 150px',
+                        display: 'flex',
+                        gap: currentTheme.spacing[2],
+                        justifyContent: 'flex-end'
+                      }}>
+                        <Button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleEditBill(bill);
+                          }}
+                          variant="ghost"
+                          size="sm"
+                          disabled={isCancelled}
+                          style={{
+                            height: '32px',
+                            minWidth: '60px',
+                            fontSize: '0.75rem'
+                          }}
+                        >
+                          Edit
+                        </Button>
+                        <Button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setSelectedBill(bill);
+                            setShowCancelConfirm(true);
+                          }}
+                          variant="ghost"
+                          size="sm"
+                          disabled={isCancelled}
+                          style={{
+                            height: '32px',
+                            minWidth: '70px',
+                            fontSize: '0.75rem',
+                            color: isCancelled ? (isDark ? '#475569' : '#94a3b8') : (isDark ? '#fca5a5' : '#ef4444'),
+                            background: isCancelled ? 'transparent' : (isDark ? 'rgba(239, 68, 68, 0.05)' : '#fef2f2')
+                          }}
+                        >
+                          Cancel
+                        </Button>
+                      </div>
+                    </div>
+                  );
+                }}
+              </AnimatedList>
+            ) : (
+              <div style={{
+                padding: currentTheme.spacing[12],
+                textAlign: 'center',
+                color: isDark ? '#64748b' : '#94a3b8',
+                background: isDark ? 'rgba(30, 41, 59, 0.2)' : '#f8fafc',
+                borderRadius: '16px',
+                border: `2px dashed ${isDark ? '#334155' : '#e2e8f0'}`
+              }}>
+                <div style={{ marginBottom: currentTheme.spacing[4], opacity: 0.5 }}>
+                  <ReceiptIcon color="currentColor" />
+                </div>
+                <h3 style={{ margin: 0, fontSize: '1rem', fontWeight: 600 }}>
+                  {loadingBills ? 'Loading transaction records...' : 'No bills found for today'}
+                </h3>
+                <p style={{ margin: `${currentTheme.spacing[2]} 0 0`, fontSize: '0.875rem' }}>
+                  {loadingBills ? 'Please wait while we fetch the latest data.' : 'Your transaction history will appear here once orders are processed.'}
+                </p>
+              </div>
+            )}
+          </div>
+        </Card>
       </motion.div>
 
       {/* Clear Data Confirmation Modal */}
       <AnimatePresence>
         {showClearConfirm && (
+          <motion.div
+            className="pmOverlay"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            onClick={() => {
+              setShowClearConfirm(false);
+              setClearPassword('');
+            }}
+          >
+            <motion.div
+              className="pmDialog"
+              initial={{ y: 20, scale: 0.95, opacity: 0 }}
+              animate={{ y: 0, scale: 1, opacity: 1 }}
+              exit={{ y: 20, scale: 0.95, opacity: 0 }}
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="pmDialogTitle">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                </svg>
+                Clear All Data?
+              </div>
+              <div className="pmDialogBody">
+                This will permanently delete all bills and sales data. This action cannot be undone.
+                <div style={{ marginTop: '16px', position: 'relative' }}>
+                  <input
+                    type={showClearPassword ? "text" : "password"}
+                    className="pmInput"
+                    placeholder="Enter password to confirm"
+                    value={clearPassword}
+                    onChange={(e) => setClearPassword(e.target.value)}
+                    onKeyPress={(e) => e.key === 'Enter' && handleClearBills()}
+                    autoFocus
+                    style={{ width: '100%', textAlign: 'center', paddingRight: '40px' }}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowClearPassword(!showClearPassword)}
+                    style={{
+                      position: 'absolute',
+                      right: '8px',
+                      top: '50%',
+                      transform: 'translateY(-50%)',
+                      background: 'none',
+                      border: 'none',
+                      cursor: 'pointer',
+                      padding: '4px',
+                      display: 'flex',
+                      alignItems: 'center',
+                      opacity: 0.6
+                    }}
+                  >
+                    {showClearPassword ? (
+                      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M3 3l18 18M10.584 10.587a2 2 0 002.828 2.826M9.363 5.365A9.466 9.466 0 0112 5c7 0 10 7 10 7a13.16 13.16 0 01-1.658 2.366M6.632 6.632A9.466 9.466 0 005 12s3 7 7 7a9.466 9.466 0 005.368-1.632" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                      </svg>
+                    ) : (
+                      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                        <circle cx="12" cy="12" r="3" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                      </svg>
+                    )}
+                  </button>
+                </div>
+              </div>
+              <div className="pmDialogActions">
+                <button
+                  className="pmDialogBtn"
+                  onClick={() => {
+                    setShowClearConfirm(false);
+                    setClearPassword('');
+                  }}
+                >
+                  Cancel
+                </button>
+                <button className="pmDialogBtn pmDialogBtnPrimary" onClick={handleClearBills}>
+                  {clearingData ? 'Clearing...' : 'Clear All Data'}
+                </button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Cancel Bill Confirmation Modal */}
+      <AnimatePresence>
+        {showCancelConfirm && (
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
@@ -1013,15 +1895,13 @@ const Reports = () => {
               right: 0,
               bottom: 0,
               background: 'rgba(0, 0, 0, 0.5)',
+              backdropFilter: 'blur(5px)',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              zIndex: 1000,
+              zIndex: 1001,
             }}
-            onClick={() => {
-              setShowClearConfirm(false);
-              setClearPassword('');
-            }}
+            onClick={() => setShowCancelConfirm(false)}
           >
             <motion.div
               initial={{ scale: 0.9, opacity: 0 }}
@@ -1035,7 +1915,7 @@ const Reports = () => {
                 maxWidth: '400px',
                 width: '90%',
                 border: `1px solid ${isDark ? '#334155' : '#e2e8f0'}`,
-                boxShadow: isDark 
+                boxShadow: isDark
                   ? '0 25px 50px -12px rgba(0, 0, 0, 0.5)'
                   : '0 25px 50px -12px rgba(0, 0, 0, 0.25)',
               }}
@@ -1066,27 +1946,25 @@ const Reports = () => {
                     margin: 0,
                     marginBottom: currentTheme.spacing[1],
                   }}>
-                    Clear All Data
+                    Cancel Bill
                   </h3>
                   <p style={{
                     fontSize: '0.875rem',
                     color: isDark ? '#94a3b8' : '#64748b',
                     margin: 0,
                   }}>
-                    This action cannot be undone
+                    Caution: This affects sales reports
                   </p>
                 </div>
               </div>
-              
-              <div style={{
-                marginBottom: currentTheme.spacing[6],
-              }}>
+
+              <div style={{ marginBottom: currentTheme.spacing[6] }}>
                 <p style={{
                   fontSize: '0.875rem',
                   color: isDark ? '#94a3b8' : '#64748b',
                   lineHeight: 1.5,
                 }}>
-                  Are you sure you want to delete all bills and sales data? This will permanently remove:
+                  Are you sure you want to cancel <strong>Bill #{selectedBill?.bill_no}</strong>?
                 </p>
                 <ul style={{
                   margin: currentTheme.spacing[3] + ' 0 0 ' + currentTheme.spacing[3],
@@ -1094,63 +1972,18 @@ const Reports = () => {
                   fontSize: '0.875rem',
                   color: isDark ? '#94a3b8' : '#64748b',
                 }}>
-                  <li>All bills and transactions</li>
-                  <li>Sales analytics data</li>
-                  <li>Export reports</li>
+                  <li>Bill amount will be deducted from sales totals.</li>
+                  <li>Bill status will change to "CANCELLED".</li>
                 </ul>
-                <p style={{
-                  fontSize: '0.875rem',
-                  fontWeight: 500,
-                  color: isDark ? '#ef4444' : '#dc2626',
-                  margin: 0,
-                }}>
-                  Products will remain intact.
-                </p>
               </div>
-              
-              {/* Password Input */}
-              <div style={{
-                marginBottom: currentTheme.spacing[6],
-              }}>
-                <label style={{
-                  display: 'block',
-                  fontSize: '0.875rem',
-                  fontWeight: 500,
-                  color: isDark ? '#f1f5f9' : '#1e293b',
-                  marginBottom: currentTheme.spacing[2],
-                }}>
-                  Enter Password
-                </label>
-                <input
-                  type="password"
-                  value={clearPassword}
-                  onChange={(e) => setClearPassword(e.target.value)}
-                  placeholder="Enter admin password"
-                  style={{
-                    width: '100%',
-                    padding: currentTheme.spacing[3],
-                    border: `1px solid ${isDark ? '#475569' : '#e2e8f0'}`,
-                    borderRadius: '8px',
-                    fontSize: '0.875rem',
-                    backgroundColor: isDark ? '#1e293b' : '#ffffff',
-                    color: isDark ? '#f1f5f9' : '#1e293b',
-                    outline: 'none',
-                    boxSizing: 'border-box',
-                  }}
-                />
-              </div>
-              
+
               <div style={{
                 display: 'flex',
                 gap: currentTheme.spacing[3],
                 justifyContent: 'flex-end',
               }}>
                 <Button
-                  onClick={() => {
-                    setShowClearConfirm(false);
-                    setClearPassword('');
-                  }}
-                  disabled={clearingData}
+                  onClick={() => setShowCancelConfirm(false)}
                   variant="secondary"
                   style={{
                     background: isDark ? '#334155' : '#f8fafc',
@@ -1161,11 +1994,10 @@ const Reports = () => {
                     fontWeight: 500,
                   }}
                 >
-                  Cancel
+                  Keep Bill
                 </Button>
                 <Button
-                  onClick={handleClearBills}
-                  disabled={clearingData}
+                  onClick={handleCancelBillConfirm}
                   variant="secondary"
                   style={{
                     background: isDark ? (currentTheme.colors.error?.[600] || '#DC2626') : (currentTheme.colors.error?.[500] || '#EF4444'),
@@ -1179,24 +2011,8 @@ const Reports = () => {
                     gap: currentTheme.spacing[2],
                   }}
                 >
-                  {clearingData ? (
-                    <>
-                      <div style={{
-                        width: '16px',
-                        height: '16px',
-                        border: '2px solid #ffffff',
-                        borderTop: '2px solid transparent',
-                        borderRadius: '50%',
-                        animation: 'spin 1s linear infinite',
-                      }} />
-                      Clearing...
-                    </>
-                  ) : (
-                    <>
-                      <TrashIcon color="#ffffff" />
-                      Clear All Data
-                    </>
-                  )}
+                  <TrashIcon color="#ffffff" />
+                  Confirm Cancel
                 </Button>
               </div>
             </motion.div>

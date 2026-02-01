@@ -42,6 +42,7 @@
  * =============================================================================
  */
 import React, { useState } from 'react';
+import { BrowserRouter, Routes, Route, useNavigate, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ThemeProvider } from './context/ThemeContext';
 import { ToastProvider } from './context/ToastContext';
@@ -64,17 +65,27 @@ import { darkTheme } from './styles/theme';
 function AppContent() {
   const { currentTheme, toggleTheme, isDark } = useTheme();
   const { pageVariants, pageTransition } = useAnimation();
-  
-  const [currentScreen, setCurrentScreen] = useState('pos');
+
+  const navigate = useNavigate();
+  const location = useLocation();
   const [lastBill, setLastBill] = useState(null);
 
+  const getActiveTab = (pathname) => {
+    if (pathname === '/') return 'pos';
+    if (pathname.startsWith('/analytics')) return 'summary';
+    if (pathname.startsWith('/management')) return 'management';
+    return 'pos';
+  };
+
+  const currentScreen = getActiveTab(location.pathname);
+
   const navItems = [
-    { id: 'pos', label: 'Bill' },
-    { id: 'summary', label: 'Analytics' },
-    { id: 'management', label: 'Management' },
+    { id: 'pos', label: 'Bill', path: '/' },
+    { id: 'summary', label: 'Analytics', path: '/analytics' },
+    { id: 'management', label: 'Management', path: '/management' },
   ];
 
-  const currentNavItem = navItems.find((item) => item.id === currentScreen);
+  /* Remove currentNavItem derivation as we use logic inside loop */
 
   const todayLabel = new Date().toLocaleDateString(undefined, {
     weekday: 'short',
@@ -88,15 +99,10 @@ function AppContent() {
     transition: { duration: 0.24, ease: [0, 0, 0.2, 1] },
   };
 
-  const handleProductSelect = (product) => {
-    // This will be handled by BillCreation component
-    console.log('Product selected:', product);
-  };
-
   const handleBillCreated = (bill) => {
     setLastBill(bill);
-    setCurrentScreen('products'); // Go back to products after creating bill
-    
+    // Stay on POS or navigate if needed
+
     // Auto-dismiss notification after 5 seconds
     setTimeout(() => {
       setLastBill(null);
@@ -105,19 +111,6 @@ function AppContent() {
 
   const closeNotification = () => {
     setLastBill(null);
-  };
-
-  const renderCurrentScreen = () => {
-    switch (currentScreen) {
-      case 'pos':
-        return <WorkingPOSInterface onBillCreated={handleBillCreated} />;
-      case 'summary':
-        return <Reports />;
-      case 'management':
-        return <ProductManagement />;
-      default:
-        return <WorkingPOSInterface onBillCreated={handleBillCreated} />;
-    }
   };
 
   return (
@@ -158,142 +151,160 @@ function AppContent() {
               gap: currentTheme.spacing[6],
               minHeight: '3.5rem',
             }}>
-          <div style={{ display: 'flex', alignItems: 'center', minWidth: 0 }}>
-            <div style={{
-              fontSize: '2rem',
-              fontWeight: currentTheme.typography.fontWeight.semibold,
-              color: currentTheme.colors.text.primary,
-              margin: 0,
-              letterSpacing: currentTheme.typography.letterSpacing.tight,
-              lineHeight: currentTheme.typography.lineHeight.tight,
-              whiteSpace: 'nowrap',
-            }}>
-              Burger Bhau
-            </div>
-          </div>
-
-          <nav
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: currentTheme.spacing[2],
-            }}
-          >
-            {navItems.map((item) => {
-              const isActive = currentScreen === item.id;
-              return (
-                <motion.div
-                  key={item.id}
-                  style={{ position: 'relative' }}
-                  whileHover={{ opacity: 0.86 }}
-                  whileTap={{ opacity: 0.78 }}
-                  transition={{ duration: 0.12, ease: [0, 0, 0.2, 1] }}
-                >
-                  <Button
-                    size="sm"
-                    variant="ghost"
-                    onClick={() => setCurrentScreen(item.id)}
-                    data-isselected={isActive}
-                    style={{
-                      position: 'relative',
-                      fontSize: currentTheme.typography.fontSize['xl'],
-                      color: currentTheme.colors.text.primary,
-                      fontWeight: currentTheme.typography.fontWeight.medium,
-                      backgroundColor: 'transparent',
-                      paddingLeft: currentTheme.spacing[3],
-                      paddingRight: currentTheme.spacing[3],
-                    }}
-                  >
-                    {item.label}
-                  </Button>
-                  {isActive && (
-                    <motion.div
-                      layoutId="activeNavUnderline"
-                      style={{
-                        position: 'absolute',
-                        left: currentTheme.spacing[3],
-                        right: currentTheme.spacing[3],
-                        bottom: '-6px',
-                        height: '2px',
-                        backgroundColor: currentTheme.colors.primary[600],
-                        borderRadius: currentTheme.borderRadius.full,
-                      }}
-                      transition={{ duration: 0.22, ease: [0, 0, 0.2, 1] }}
-                    />
-                  )}
-                </motion.div>
-              );
-            })}
-          </nav>
-
-          <div style={{ display: 'flex', justifyContent: 'flex-end', minWidth: 0 }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: currentTheme.spacing[3] }}>
-              <div style={{
-                fontSize: currentTheme.typography.fontSize.sm,
-                fontWeight: currentTheme.typography.fontWeight.normal,
-                color: currentTheme.colors.text.muted,
-                letterSpacing: currentTheme.typography.letterSpacing.normal,
-                whiteSpace: 'nowrap',
-              }}>
-                {todayLabel}
+              <div style={{ display: 'flex', alignItems: 'center', minWidth: 0 }}>
+                <div style={{
+                  display: 'flex',
+                  alignItems: 'baseline',
+                  gap: currentTheme.spacing[3],
+                }}>
+                  <div style={{
+                    fontSize: '2.25rem',
+                    fontWeight: currentTheme.typography.fontWeight.bold,
+                    color: currentTheme.colors.primary[500],
+                    margin: 0,
+                    letterSpacing: '-0.02em',
+                    lineHeight: 1,
+                    whiteSpace: 'nowrap',
+                  }}>
+                    ReBill
+                  </div>
+                  <div style={{
+                    fontSize: '1rem',
+                    fontWeight: currentTheme.typography.fontWeight.medium,
+                    color: currentTheme.colors.text.primary,
+                    margin: 0,
+                    letterSpacing: '0.01em',
+                    lineHeight: 1,
+                    whiteSpace: 'nowrap',
+                    opacity: 0.7,
+                  }}>
+                    Burger Bhau
+                  </div>
+                </div>
               </div>
 
-              <motion.div
-                whileHover={{ opacity: 0.86 }}
-                whileTap={{ opacity: 0.78 }}
-                transition={{ duration: 0.12, ease: [0, 0, 0.2, 1] }}
+              <nav
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: currentTheme.spacing[2],
+                }}
               >
-                <Button
-                  size="sm"
-                  variant="ghost"
-                  onClick={toggleTheme}
-                  aria-label={isDark ? 'Switch to light mode' : 'Switch to dark mode'}
-                  title={isDark ? 'Light mode' : 'Dark mode'}
-                  style={{
-                    width: '2.5rem',
-                    height: '2.5rem',
-                    minWidth: '2.5rem',
-                    padding: 0,
-                    borderRadius: currentTheme.borderRadius.lg,
-                    border: `1px solid ${currentTheme.colors.border}`,
-                    backgroundColor: currentTheme.colors.surface,
-                    color: currentTheme.colors.text.secondary,
-                    boxShadow: currentTheme.shadows.inner,
-                  }}
-                >
-                  {isDark ? (
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-                      <path
-                        d="M12 18a6 6 0 1 0 0-12 6 6 0 0 0 0 12Z"
-                        stroke="currentColor"
-                        strokeWidth="2"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                      />
-                      <path d="M12 2v2" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-                      <path d="M12 20v2" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-                      <path d="M4.93 4.93l1.41 1.41" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-                      <path d="M17.66 17.66l1.41 1.41" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-                      <path d="M2 12h2" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-                      <path d="M20 12h2" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-                      <path d="M4.93 19.07l1.41-1.41" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-                      <path d="M17.66 6.34l1.41-1.41" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-                    </svg>
-                  ) : (
-                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-                      <path
-                        d="M21 13.2A7.5 7.5 0 0 1 10.8 3a6.6 6.6 0 1 0 10.2 10.2Z"
-                        stroke="currentColor"
-                        strokeWidth="2"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                      />
-                    </svg>
-                  )}
-                </Button>
-              </motion.div>
-            </div>
-          </div>
+                {navItems.map((item) => {
+                  const isActive = currentScreen === item.id;
+                  return (
+                    <motion.div
+                      key={item.id}
+                      style={{ position: 'relative' }}
+                      whileHover={{ opacity: 0.86 }}
+                      whileTap={{ opacity: 0.78 }}
+                      transition={{ duration: 0.12, ease: [0, 0, 0.2, 1] }}
+                    >
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        onClick={() => navigate(item.path)}
+                        data-isselected={isActive}
+                        style={{
+                          position: 'relative',
+                          fontSize: currentTheme.typography.fontSize['xl'],
+                          color: currentTheme.colors.text.primary,
+                          fontWeight: currentTheme.typography.fontWeight.medium,
+                          backgroundColor: 'transparent',
+                          paddingLeft: currentTheme.spacing[3],
+                          paddingRight: currentTheme.spacing[3],
+                        }}
+                      >
+                        {item.label}
+                      </Button>
+                      {isActive && (
+                        <motion.div
+                          layoutId="activeNavUnderline"
+                          style={{
+                            position: 'absolute',
+                            left: currentTheme.spacing[3],
+                            right: currentTheme.spacing[3],
+                            bottom: '-6px',
+                            height: '2px',
+                            backgroundColor: currentTheme.colors.primary[600],
+                            borderRadius: currentTheme.borderRadius.full,
+                          }}
+                          transition={{ duration: 0.22, ease: [0, 0, 0.2, 1] }}
+                        />
+                      )}
+                    </motion.div>
+                  );
+                })}
+              </nav>
+
+              <div style={{ display: 'flex', justifyContent: 'flex-end', minWidth: 0 }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: currentTheme.spacing[3] }}>
+                  <div style={{
+                    fontSize: currentTheme.typography.fontSize.sm,
+                    fontWeight: currentTheme.typography.fontWeight.normal,
+                    color: currentTheme.colors.text.muted,
+                    letterSpacing: currentTheme.typography.letterSpacing.normal,
+                    whiteSpace: 'nowrap',
+                  }}>
+                    {todayLabel}
+                  </div>
+
+                  <motion.div
+                    whileHover={{ opacity: 0.86 }}
+                    whileTap={{ opacity: 0.78 }}
+                    transition={{ duration: 0.12, ease: [0, 0, 0.2, 1] }}
+                  >
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      onClick={toggleTheme}
+                      aria-label={isDark ? 'Switch to light mode' : 'Switch to dark mode'}
+                      title={isDark ? 'Light mode' : 'Dark mode'}
+                      style={{
+                        width: '2.5rem',
+                        height: '2.5rem',
+                        minWidth: '2.5rem',
+                        padding: 0,
+                        borderRadius: currentTheme.borderRadius.lg,
+                        border: `1px solid ${currentTheme.colors.border}`,
+                        backgroundColor: currentTheme.colors.surface,
+                        color: currentTheme.colors.text.secondary,
+                        boxShadow: currentTheme.shadows.inner,
+                      }}
+                    >
+                      {isDark ? (
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                          <path
+                            d="M12 18a6 6 0 1 0 0-12 6 6 0 0 0 0 12Z"
+                            stroke="currentColor"
+                            strokeWidth="2"
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                          />
+                          <path d="M12 2v2" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+                          <path d="M12 20v2" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+                          <path d="M4.93 4.93l1.41 1.41" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+                          <path d="M17.66 17.66l1.41 1.41" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+                          <path d="M2 12h2" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+                          <path d="M20 12h2" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+                          <path d="M4.93 19.07l1.41-1.41" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+                          <path d="M17.66 6.34l1.41-1.41" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+                        </svg>
+                      ) : (
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                          <path
+                            d="M21 13.2A7.5 7.5 0 0 1 10.8 3a6.6 6.6 0 1 0 10.2 10.2Z"
+                            stroke="currentColor"
+                            strokeWidth="2"
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                          />
+                        </svg>
+                      )}
+                    </Button>
+                  </motion.div>
+                </div>
+              </div>
             </div>
           </div>
         </div>
@@ -307,7 +318,12 @@ function AppContent() {
         padding: 0,
         overflow: 'hidden',
       }}>
-        {renderCurrentScreen()}
+        <Routes>
+          <Route path="/" element={<WorkingPOSInterface onBillCreated={handleBillCreated} />} />
+          <Route path="/analytics" element={<Reports />} />
+          <Route path="/management" element={<ProductManagement />} />
+          <Route path="*" element={<WorkingPOSInterface onBillCreated={handleBillCreated} />} />
+        </Routes>
       </main>
 
       {/* Last Bill Notification with Spotlight Effect */}
@@ -333,7 +349,7 @@ function AppContent() {
               }}
               onClick={closeNotification}
             />
-            
+
             {/* Notification Card */}
             <motion.div
               initial={{ opacity: 0, y: -50, scale: 0.9 }}
@@ -353,7 +369,7 @@ function AppContent() {
                 border: `1px solid ${isDark ? 'rgba(34, 197, 94, 0.3)' : 'rgba(34, 197, 94, 0.2)'}`,
                 borderRadius: '16px',
                 padding: `${currentTheme.spacing[4]} ${currentTheme.spacing[5]}`,
-                boxShadow: isDark 
+                boxShadow: isDark
                   ? '0 8px 32px rgba(34, 197, 94, 0.15), 0 4px 16px rgba(0, 0, 0, 0.3)'
                   : '0 8px 32px rgba(34, 197, 94, 0.1), 0 4px 16px rgba(0, 0, 0, 0.1)',
                 minWidth: '320px',
@@ -370,7 +386,7 @@ function AppContent() {
                   height: '100%',
                   background: `linear-gradient(180deg, ${currentTheme.colors.success[500]}, ${currentTheme.colors.success[600]})`,
                 }} />
-                
+
                 {/* Header */}
                 <div style={{
                   display: 'flex',
@@ -393,7 +409,7 @@ function AppContent() {
                     </svg>
                   </div>
                   <div>
-                    <h4 style={{ 
+                    <h4 style={{
                       fontSize: '0.95rem',
                       fontWeight: 600,
                       color: currentTheme.colors.text.primary,
@@ -404,7 +420,7 @@ function AppContent() {
                     </h4>
                   </div>
                 </div>
-                
+
                 {/* Bill Details */}
                 <div style={{
                   display: 'flex',
@@ -412,7 +428,7 @@ function AppContent() {
                   gap: currentTheme.spacing[1],
                   paddingLeft: '44px', // Align with header text
                 }}>
-                  <p style={{ 
+                  <p style={{
                     fontSize: '0.875rem',
                     color: currentTheme.colors.text.secondary,
                     margin: 0,
@@ -420,7 +436,7 @@ function AppContent() {
                   }}>
                     <span style={{ fontWeight: 600 }}>Bill #{lastBill.bill_no}</span>
                   </p>
-                  <p style={{ 
+                  <p style={{
                     fontSize: '0.875rem',
                     color: currentTheme.colors.text.secondary,
                     margin: 0,
@@ -429,7 +445,7 @@ function AppContent() {
                     Total: <span style={{ fontWeight: 600, color: currentTheme.colors.success[600] }}>{formatCurrency(lastBill.total)}</span>
                   </p>
                 </div>
-                
+
                 {/* Auto-dismiss indicator */}
                 <div style={{
                   position: 'absolute',
@@ -453,7 +469,9 @@ function App() {
   return (
     <ThemeProvider>
       <ToastProvider>
-        <AppContent />
+        <BrowserRouter>
+          <AppContent />
+        </BrowserRouter>
       </ToastProvider>
     </ThemeProvider>
   );

@@ -1,4 +1,5 @@
-from flask import Blueprint, jsonify
+from flask import Blueprint, jsonify, request
+import json
 from services.sqlite_db_service import SQLiteDatabaseService
 from services.summary_service import SummaryService
 
@@ -124,16 +125,20 @@ def get_quick_stats():
 def get_product_sales():
     """Get detailed sales breakdown by individual products"""
     try:
+        # Get date from query parameter (default today)
+        date_param = request.args.get('date')
+        
         db = summary_service.db_service
-        # Get today's bills only for daily refresh
-        all_bills = db.get_todays_bills()
+        if date_param:
+            all_bills = db.get_bills_by_date_range(date_param, date_param)
+        else:
+            all_bills = db.get_todays_bills()
         
         # Calculate product sales from all bills
         product_sales = {}
         
         for bill in all_bills:
             # Items are stored as JSON string in SQLite
-            import json
             items = json.loads(bill['items']) if isinstance(bill['items'], str) else bill['items']
             
             for item in items:

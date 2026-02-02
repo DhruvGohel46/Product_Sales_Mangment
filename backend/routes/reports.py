@@ -16,13 +16,32 @@ summary_service = SummaryService(db)
 
 @reports_bp.route('/excel/today', methods=['GET'])
 def export_today_excel():
-    """Export today's sales data to Excel (.xlsx format)"""
+    """Export sales data to Excel (.xlsx format) for today or a specific date"""
     try:
-        # Get today's bills in ascending order by bill number
-        bills = db.get_todays_bills()
+        # Check for date parameter
+        target_date_str = request.args.get('date')
+        
+        if target_date_str:
+            # Use specific date
+            bills = db.get_bills_by_date_range(target_date_str, target_date_str)
+            download_name = f"sales_report_{target_date_str}.xlsx"
+            summary = summary_service.get_summary_for_date(target_date_str)
+        else:
+            # Default to today
+            bills = db.get_todays_bills()
+            today_str = date.today().strftime('%Y-%m-%d')
+            download_name = f"sales_report_{today_str}.xlsx"
+            summary = summary_service.get_today_summary()
         
         if not bills:
-            # Return a sample Excel file when no bills exist
+            # If specific date requested and no bills, return 404/Empty message
+            if target_date_str:
+                 return jsonify({
+                    'success': False,
+                    'message': f'No bills found for date {target_date_str}'
+                }), 404
+
+            # Return a sample Excel file when no bills exist (only for Today default)
             today = date.today().strftime('%Y-%m-%d')
             sample_filepath = excel_xlsx_service.create_sample_report()
             if sample_filepath:
@@ -37,9 +56,6 @@ def export_today_excel():
                     'success': False,
                     'message': 'No bills found for today and failed to create sample report'
                 }), 500
-        
-        # Get summary data
-        summary = summary_service.get_today_summary()
         
         # Create detailed report
         report_type = request.args.get('type', 'detailed')  # detailed, summary, or simple

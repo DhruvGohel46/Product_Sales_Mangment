@@ -150,9 +150,14 @@ export const summaryAPI = {
 
 // Reports APIs
 export const reportsAPI = {
-  // Export today's sales as Excel/CSV
-  exportTodayExcel: (reportType = 'detailed') =>
-    api.get(`/api/reports/excel/today?type=${reportType}`, { responseType: 'blob' }),
+  // Export today's sales (or specific date) as Excel/CSV
+  exportTodayExcel: (reportType = 'detailed', date = null) => {
+    let url = `/api/reports/excel/today?type=${reportType}`;
+    if (date) {
+      url += `&date=${date}`;
+    }
+    return api.get(url, { responseType: 'blob' });
+  },
 
   // Export monthly sales as Excel
   exportMonthlyExcel: (month, year) =>

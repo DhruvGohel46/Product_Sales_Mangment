@@ -154,6 +154,9 @@ const Reports = () => {
   // Weekly Export state
   const [exportWeekDate, setExportWeekDate] = useState(new Date().toISOString().split('T')[0]);
 
+  // Daily Report state
+  const [dailyReportDate, setDailyReportDate] = useState(new Date().toISOString().split('T')[0]);
+
   // Bill Management State
   const navigate = useNavigate();
   const [bills, setBills] = useState([]);
@@ -278,7 +281,7 @@ const Reports = () => {
   };
 
   // Download report
-  const handleDownload = async (reportType, reportName, filename) => {
+  const handleDownload = async (reportType, reportName, filename, date = null) => {
     try {
       setDownloading(prev => ({ ...prev, [reportType]: true }));
       setError('');
@@ -286,7 +289,7 @@ const Reports = () => {
       let response;
 
       if (reportType === 'excel') {
-        response = await reportsAPI.exportTodayExcel('detailed');
+        response = await reportsAPI.exportTodayExcel('detailed', date);
       } else if (reportType === 'csv') {
         response = await reportsAPI.exportTodayCSV();
       }
@@ -1180,7 +1183,7 @@ const Reports = () => {
         </Card >
       </motion.div >
 
-      
+
 
       {/* Bill Management Section */}
       <motion.div
@@ -1444,7 +1447,7 @@ const Reports = () => {
           </div>
         </Card>
       </motion.div>
-{/* Reports Section */}
+      {/* Reports Section */}
       < motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -1537,12 +1540,48 @@ const Reports = () => {
                     fontSize: '0.8125rem',
                     color: isDark ? '#94a3b8' : '#64748b',
                     margin: 0,
-                  }}>Today's sales summary</p>
+                  }}>Sales summary for selected date</p>
                 </div>
               </div>
 
+              {/* Date Selection */}
+              <div style={{
+                marginBottom: currentTheme.spacing[2],
+              }}>
+                <label style={{
+                  display: 'block',
+                  fontSize: '0.75rem',
+                  fontWeight: 600,
+                  color: isDark ? '#94a3b8' : '#64748b',
+                  marginBottom: '8px',
+                  textTransform: 'uppercase',
+                  letterSpacing: '0.05em',
+                }}>
+                  Select Date
+                </label>
+                <input
+                  type="date"
+                  value={dailyReportDate}
+                  onChange={(e) => setDailyReportDate(e.target.value)}
+                  style={{
+                    width: '100%',
+                    padding: '10px 12px',
+                    borderRadius: '8px',
+                    border: `1px solid ${isDark ? '#334155' : '#cbd5e1'}`,
+                    backgroundColor: isDark ? '#0f172a' : '#ffffff',
+                    color: isDark ? '#f1f5f9' : '#1e293b',
+                    fontSize: '0.875rem',
+                    outline: 'none',
+                    transition: 'border-color 0.2s',
+                    fontFamily: 'inherit',
+                  }}
+                  onFocus={(e) => e.target.style.borderColor = isDark ? '#3b82f6' : '#2563eb'}
+                  onBlur={(e) => e.target.style.borderColor = isDark ? '#334155' : '#cbd5e1'}
+                />
+              </div>
+
               <Button
-                onClick={() => handleDownload('excel', 'detailed', `sales_report_${safeSummary.date || 'today'}.xlsx`)}
+                onClick={() => handleDownload('excel', 'detailed', `sales_report_${dailyReportDate}.xlsx`, dailyReportDate)}
                 disabled={downloading.excel}
                 variant="secondary"
                 style={{
@@ -1563,7 +1602,7 @@ const Reports = () => {
                 }}
               >
                 <DownloadIcon color={isDark ? '#f1f5f9' : '#475569'} />
-                {downloading.excel ? 'Downloading...' : 'Download Today\'s Report'}
+                {downloading.excel ? 'Downloading...' : 'Download Report'}
               </Button>
             </div>
 
@@ -2021,7 +2060,7 @@ const Reports = () => {
           </motion.div>
         )}
       </AnimatePresence>
-    </div>
+    </div >
   );
 };
 

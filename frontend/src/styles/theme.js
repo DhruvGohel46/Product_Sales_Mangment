@@ -66,35 +66,35 @@
 // Unified Design System Theme for POS Application
 // Professional enterprise color system with consistent usage across all screens
 
-// Primary brand color - Professional Blue
+// Primary brand color - Burger Bhau Burnt Orange
 export const primary = {
-  50: '#F0F9FF',
-  100: '#E0F2FE',
-  200: '#BAE6FD',
-  300: '#7DD3FC',
-  400: '#38BDF8',
-  500: '#0EA5E9',
-  600: '#0284C7',
-  700: '#0369A1',
-  800: '#075985',
-  900: '#0C4A6E',
-  950: '#082F49',
+  50: '#FFF7ED',  // Orange 50
+  100: '#FFEDD5', // Orange 100
+  200: '#FED7AA', // Orange 200
+  300: '#FDBA74', // Orange 300
+  400: '#FB923C', // Orange 400
+  500: '#F97316', // Orange 500 (Base)
+  600: '#EA580C', // Orange 600
+  700: '#C2410C', // Orange 700
+  800: '#9A3412', // Orange 800
+  900: '#7C2D12', // Orange 900
+  950: '#431407', // Orange 950
 };
 
-// Neutral color system
+// Neutral color system - Warm Browns / Coffee
 export const neutral = {
   0: '#FFFFFF',
-  50: '#FAFAFA',
-  100: '#F5F5F5',
-  200: '#E5E5E5',
-  300: '#D4D4D4',
-  400: '#A3A3A3',
-  500: '#737373',
-  600: '#525252',
-  700: '#404040',
-  800: '#262626',
-  900: '#171717',
-  950: '#0A0A0A',
+  50: '#FDFBF7',  // Off-white / Cream tint
+  100: '#F5E8D3', // Brand Cream/Beige
+  200: '#E6D0B3',
+  300: '#D4B48F',
+  400: '#B08968',
+  500: '#8D6E53',
+  600: '#6F5643',
+  700: '#544134',
+  800: '#3E2F26',
+  900: '#2C150B', // Brand Dark Brown / Coffee
+  950: '#1A0C06',
 };
 
 // Semantic colors - consistent across all screens
@@ -160,24 +160,24 @@ export const category = {
 export const colors = {
   // Primary brand color
   primary: primary,
-  
+
   // Semantic colors
   success: semantic.success,
   warning: semantic.warning,
   error: semantic.error,
   info: semantic.info,
-  
+
   // Neutral colors
   neutral: neutral,
   gray: neutral, // Legacy support
-  
+
   // Background colors
   background: {
     primary: neutral[50],
     secondary: neutral[100],
     tertiary: neutral[200],
   },
-  
+
   // Text colors
   text: {
     primary: neutral[900],
@@ -186,24 +186,24 @@ export const colors = {
     quaternary: neutral[400],
     inverse: neutral[0],
   },
-  
+
   // Border colors
   border: {
     primary: neutral[200],
     secondary: neutral[300],
     tertiary: neutral[400],
   },
-  
+
   // Surface colors
   surface: {
     primary: neutral[0],
     secondary: neutral[50],
     tertiary: neutral[100],
   },
-  
+
   // Category colors
   category: category,
-  
+
   // Legacy colors for compatibility
   white: '#FFFFFF',
   black: '#000000',
@@ -215,7 +215,7 @@ export const typography = {
     primary: 'Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif',
     mono: 'ui-monospace, SFMono-Regular, "SF Mono", Consolas, "Liberation Mono", Menlo, monospace',
   },
-  
+
   fontSize: {
     xs: '0.75rem',    // 12px
     sm: '0.875rem',   // 14px
@@ -228,7 +228,7 @@ export const typography = {
     '5xl': '2.25rem', // 36px
     '6xl': '3rem',    // 48px
   },
-  
+
   fontWeight: {
     light: 300,
     normal: 400,
@@ -237,13 +237,13 @@ export const typography = {
     bold: 700,
     extrabold: 800,
   },
-  
+
   lineHeight: {
     tight: 1.25,
     normal: 1.5,
     relaxed: 1.6,
   },
-  
+
   letterSpacing: {
     tight: '-0.025em',
     normal: '0',
@@ -291,38 +291,38 @@ export const shadows = {
   lg: '0 8px 12px -2px rgba(0, 0, 0, 0.08), 0 4px 8px -2px rgba(0, 0, 0, 0.04)',
   xl: '0 12px 20px -4px rgba(0, 0, 0, 0.1), 0 6px 12px -2px rgba(0, 0, 0, 0.05)',
   '2xl': '0 20px 32px -8px rgba(0, 0, 0, 0.12), 0 10px 20px -4px rgba(0, 0, 0, 0.06)',
-  
+
   // Strong shadows for cards (matching Management.css)
   card: '0 8px 32px rgba(0, 0, 0, 0.12)',
   cardHover: '0 8px 32px rgba(0, 0, 0, 0.08)',
-  
+
   // Dark theme card shadows
   cardDark: '0 8px 32px rgba(255, 255, 255, 0.1)',
   cardDarkHover: '0 8px 32px rgba(255, 255, 255, 0.05)',
-  
+
   inner: 'inset 0 1px 2px 0 rgba(0, 0, 0, 0.03)',
-  
+
   // Colored shadows for accent elements
   primary: {
     sm: '0 1px 2px 0 rgba(14, 165, 233, 0.1)',
     md: '0 4px 6px -1px rgba(14, 165, 233, 0.15), 0 2px 4px -1px rgba(14, 165, 233, 0.1)',
   },
-  
+
   success: {
     sm: '0 1px 2px 0 rgba(34, 197, 94, 0.1)',
     md: '0 4px 6px -1px rgba(34, 197, 94, 0.15), 0 2px 4px -1px rgba(34, 197, 94, 0.1)',
   },
-  
+
   warning: {
     sm: '0 1px 2px 0 rgba(245, 158, 11, 0.1)',
     md: '0 4px 6px -1px rgba(245, 158, 11, 0.15), 0 2px 4px -1px rgba(245, 158, 11, 0.1)',
   },
-  
+
   error: {
     sm: '0 1px 2px 0 rgba(239, 68, 68, 0.1)',
     md: '0 4px 6px -1px rgba(239, 68, 68, 0.15), 0 2px 4px -1px rgba(239, 68, 68, 0.1)',
   },
-  
+
   // Glow effects for interactive states
   glow: {
     primary: '0 0 0 1px rgba(14, 165, 233, 0.1), 0 0 8px rgba(14, 165, 233, 0.1)',
@@ -344,9 +344,9 @@ export const breakpoints = {
 export const lightTheme = {
   colors: {
     ...colors,
-    background: colors.background.primary,
-    surface: colors.surface.primary,
-    card: colors.surface.primary,
+    background: neutral[0],   // Pure White
+    surface: neutral[0],      // White surface for cards
+    card: neutral[0],
     text: {
       primary: colors.text.primary,
       secondary: colors.text.secondary,
@@ -365,9 +365,9 @@ export const lightTheme = {
 export const darkTheme = {
   colors: {
     ...colors,
-    background: colors.text.primary,
-    surface: neutral[900],
-    card: neutral[900],
+    background: '#000000', // Dark Black
+    surface: '#09090b',    // Slightly lighter for cards
+    card: '#09090b',
     text: {
       primary: colors.text.inverse,
       secondary: neutral[400],

@@ -61,24 +61,24 @@ export const ThemeProvider = ({ children }) => {
     root.style.setProperty('--success-50', themeObject.colors.success[50]);
     root.style.setProperty('--success-500', themeObject.colors.success[500]);
     root.style.setProperty('--success-600', themeObject.colors.success[600]);
-    
+
     root.style.setProperty('--warning-50', themeObject.colors.warning[50]);
     root.style.setProperty('--warning-500', themeObject.colors.warning[500]);
     root.style.setProperty('--warning-600', themeObject.colors.warning[600]);
-    
+
     root.style.setProperty('--error-50', themeObject.colors.error[50]);
     root.style.setProperty('--error-500', themeObject.colors.error[500]);
     root.style.setProperty('--error-600', themeObject.colors.error[600]);
-    
+
     root.style.setProperty('--info-50', themeObject.colors.info[50]);
     root.style.setProperty('--info-500', themeObject.colors.info[500]);
     root.style.setProperty('--info-600', themeObject.colors.info[600]);
 
     // Category colors
     root.style.setProperty('--category-cold', themeObject.colors.category.COLD);
-    root.style.setProperty('--category-paan', themeObject.colors.category.PAN);
-    root.style.setProperty('--category-snack', themeObject.colors.category.SNACK);
-    root.style.setProperty('--category-food', themeObject.colors.category.FOOD);
+    root.style.setProperty('--category-paan', themeObject.colors.category.PAAN);
+    root.style.setProperty('--category-snack', themeObject.colors.category.SNACK || themeObject.colors.category.OTHER);
+    root.style.setProperty('--category-food', themeObject.colors.category.FOOD || themeObject.colors.category.OTHER);
     root.style.setProperty('--category-other', themeObject.colors.category.OTHER);
 
     // Focus and accent

@@ -45,9 +45,9 @@ export const CATEGORY_NAMES = {
 
 // Category colors - using unified theme system
 export const CATEGORY_COLORS = {
-  [PRODUCT_CATEGORIES.COLDRINK]: '#0284C7', // primary[600]
+  [PRODUCT_CATEGORIES.COLDRINK]: '#EA580C', // primary[600]
   [PRODUCT_CATEGORIES.PAAN]: '#16A34A',   // semantic.success[600]
-  [PRODUCT_CATEGORIES.OTHER]: '#525252'  // neutral[600]
+  [PRODUCT_CATEGORIES.OTHER]: '#D97706'  // semantic.warning[600]
 };
 
 // Animation durations (in seconds) - refined for professional feel

@@ -59,7 +59,6 @@ import ProductManagement from './components/screens/Management';
 
 // Import UI components
 import Button from './components/ui/Button';
-import Sidebar from './components/ui/Sidebar';
 import Card from './components/ui/Card';
 import { darkTheme } from './styles/theme';
 
@@ -70,7 +69,6 @@ function AppContent() {
   const navigate = useNavigate();
   const location = useLocation();
   const [lastBill, setLastBill] = useState(null);
-  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
 
   const getActiveTab = (pathname) => {
     if (pathname === '/') return 'pos';
@@ -82,44 +80,9 @@ function AppContent() {
   const currentScreen = getActiveTab(location.pathname);
 
   const navItems = [
-    {
-      id: 'pos',
-      label: 'Bill',
-      path: '/',
-      icon: (
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-          <path d="M14 2v6h6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-          <path d="M16 13H8" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-          <path d="M16 17H8" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-          <path d="M10 9H8" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-        </svg>
-      )
-    },
-    {
-      id: 'summary',
-      label: 'Analytics',
-      path: '/analytics',
-      icon: (
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <path d="M18 20V10" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-          <path d="M12 20V4" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-          <path d="M6 20V14" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-        </svg>
-      )
-    },
-    {
-      id: 'management',
-      label: 'Management',
-      path: '/management',
-      icon: (
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-          <path d="M3.27 6.96L12 12.01l8.73-5.05" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-          <path d="M12 22.08V12" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-        </svg>
-      )
-    },
+    { id: 'pos', label: 'Bill', path: '/' },
+    { id: 'summary', label: 'Analytics', path: '/analytics' },
+    { id: 'management', label: 'Management', path: '/management' },
   ];
 
   /* Remove currentNavItem derivation as we use logic inside loop */
@@ -152,139 +115,87 @@ function AppContent() {
 
   return (
     <div style={{
-      height: '100vh',
+      minHeight: '100dvh',
       display: 'flex',
-      flexDirection: 'row', // Horizontal layout
+      flexDirection: 'column',
       backgroundColor: currentTheme.colors.background,
       color: currentTheme.colors.text.primary,
       fontFamily: currentTheme.typography.fontFamily.primary,
-      overflow: 'hidden', // Root is hidden, assuming children scroll
+      overflow: 'hidden',
     }}>
-      {/* Sidebar */}
-      < Sidebar
-        activeTab={currentScreen}
-        onTabChange={(id) => {
-          const item = navItems.find(i => i.id === id);
-          if (item) navigate(item.path);
+      {/* Header */}
+      <motion.header
+        initial={headerEnter.initial}
+        animate={headerEnter.animate}
+        transition={headerEnter.transition}
+        style={{
+          position: 'sticky',
+          top: 0,
+          zIndex: 50,
+          backgroundColor: 'transparent',
+          padding: `${currentTheme.spacing[4]} ${currentTheme.spacing[6]}`,
         }}
-        isCollapsed={isSidebarCollapsed}
-        toggleCollapse={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
-        navItems={navItems}
-      />
-
-      {/* Content Area (Header + Main) */}
-      < div style={{
-        flex: 1,
-        display: 'flex',
-        flexDirection: 'column',
-        minWidth: 0,
-        overflow: 'hidden',
-      }}>
-        {/* Header */}
-        < motion.header
-          initial={headerEnter.initial}
-          animate={headerEnter.animate}
-          transition={headerEnter.transition}
-          style={{
-            position: 'sticky',
-            top: 0,
-            zIndex: 40,
-            backgroundColor: 'transparent',
-            padding: `${currentTheme.spacing[4]} ${currentTheme.spacing[6]}`,
-          }}
-        >
-          <div style={{ maxWidth: '100%', margin: '0 0' }}>
+      >
+        <div style={{ maxWidth: '95vw', margin: '0 auto' }}>
+          <div style={{
+            backgroundColor: currentTheme.colors.card || currentTheme.colors.surface,
+            border: `1px solid ${currentTheme.colors.border}`,
+            borderRadius: currentTheme.borderRadius['2xl'],
+            boxShadow: isDark ? currentTheme.shadows.cardDark : currentTheme.shadows.card,
+            padding: `${currentTheme.spacing[3]} ${currentTheme.spacing[4]}`,
+          }}>
             <div style={{
-              backgroundColor: isDark ? 'rgba(0, 0, 0, 0.7)' : 'rgba(255, 255, 255, 0.7)',
-              backdropFilter: 'blur(16px)',
-              border: `1px solid ${isDark ? 'rgba(255, 255, 255, 0.08)' : 'rgba(0, 0, 0, 0.04)'}`,
-              borderRadius: currentTheme.borderRadius['2xl'],
-              boxShadow: isDark
-                ? '0 10px 40px -10px rgba(0,0,0,0.5)'
-                : '0 10px 40px -10px rgba(0,0,0,0.05)',
-              padding: `${currentTheme.spacing[3]} ${currentTheme.spacing[5]}`,
-            }}
-            >
-              <div style={{
-                display: 'grid',
-                gridTemplateColumns: '1fr auto 1fr',
-                alignItems: 'center',
-                gap: currentTheme.spacing[6],
-                minHeight: '3.5rem',
-              }}>
-                {/* Left side spacer to balance the grid */}
-                <div style={{ display: 'flex', alignItems: 'center', minWidth: 0 }}>
-                  <Button
-                    size="sm"
-                    variant="primary"
-                    onClick={() => navigate('/')}
-                    style={{
-                      boxShadow: `0 4px 14px 0 ${currentTheme.colors.primary[500]}40`,
-                    }}
-                  >
-                    New Bill
-                  </Button>
-                </div>
-
-                {/* Center Title */}
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minWidth: 0 }}>
+              display: 'grid',
+              gridTemplateColumns: '1fr auto 1fr',
+              alignItems: 'center',
+              gap: currentTheme.spacing[6],
+              minHeight: '3.5rem',
+            }}>
+              <div style={{ display: 'flex', alignItems: 'center', minWidth: 0 }}>
+                <div style={{
+                  display: 'flex',
+                  alignItems: 'baseline',
+                  gap: currentTheme.spacing[3],
+                }}>
                   <div style={{
-                    display: 'flex',
-                    alignItems: 'baseline',
-                    gap: currentTheme.spacing[3],
+                    fontSize: '2.75rem',
+                    fontWeight: currentTheme.typography.fontWeight.bold,
+                    color: currentTheme.colors.primary[500],
+                    margin: 0,
+                    letterSpacing: '-0.02em',
+                    lineHeight: 1,
+                    whiteSpace: 'nowrap',
                   }}>
-                    <div style={{
-                      fontSize: '2.5rem',
-                      fontWeight: 800,
-                      background: `linear-gradient(135deg, ${currentTheme.colors.primary[500]}, ${currentTheme.colors.primary[600]})`,
-                      WebkitBackgroundClip: 'text',
-                      WebkitTextFillColor: 'transparent',
-                      margin: 0,
-                      letterSpacing: '-0.03em',
-                      lineHeight: 1,
-                      whiteSpace: 'nowrap',
-                      filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.1))',
-                    }}>
-                      ReBill
-                    </div>
-                    <div style={{
-                      fontSize: '1.5rem',
-                      fontWeight: 500,
-                      color: currentTheme.colors.text.secondary,
-                      margin: 0,
-                      letterSpacing: '0.02em',
-                      lineHeight: 1,
-                      whiteSpace: 'nowrap',
-                      opacity: 0.8,
-                    }}>
-                      (Burger Bhau)
-                    </div>
+                    ReBill
+                  </div>
+                  <div style={{
+                    fontSize: '1.75rem',
+                    fontWeight: currentTheme.typography.fontWeight.medium,
+                    color: currentTheme.colors.text.primary,
+                    margin: 0,
+                    letterSpacing: '0.01em',
+                    lineHeight: 1,
+                    whiteSpace: 'nowrap',
+                    opacity: 0.7,
+                  }}>
+                    (Burger Bhau)
                   </div>
                 </div>
+              </div>
 
-                {/* Right Controls */}
-                <div style={{ display: 'flex', justifyContent: 'flex-end', minWidth: 0 }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: currentTheme.spacing[4] }}>
-
-                    <div style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      backgroundColor: isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.03)',
-                      padding: '4px 12px',
-                      borderRadius: '999px',
-                      border: `1px solid ${isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.02)'}`,
-                    }}>
-                      <div style={{
-                        fontSize: '0.8125rem',
-                        fontWeight: 600,
-                        color: currentTheme.colors.text.secondary,
-                        whiteSpace: 'nowrap',
-                      }}>
-                        {todayLabel}
-                      </div>
-                    </div>
-
+              <nav
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: currentTheme.spacing[2],
+                }}
+              >
+                {navItems.map((item) => {
+                  const isActive = currentScreen === item.id;
+                  return (
                     <motion.div
+                      key={item.id}
+                      style={{ position: 'relative' }}
                       whileHover={{ opacity: 0.86 }}
                       whileTap={{ opacity: 0.78 }}
                       transition={{ duration: 0.12, ease: [0, 0, 0.2, 1] }}
@@ -292,82 +203,131 @@ function AppContent() {
                       <Button
                         size="sm"
                         variant="ghost"
-                        onClick={toggleTheme}
-                        aria-label={isDark ? 'Switch to light mode' : 'Switch to dark mode'}
-                        title={isDark ? 'Light mode' : 'Dark mode'}
+                        onClick={() => navigate(item.path)}
+                        data-isselected={isActive}
                         style={{
-                          width: '2.5rem',
-                          height: '2.5rem',
-                          minWidth: '2.5rem',
-                          padding: 0,
-                          borderRadius: currentTheme.borderRadius.lg,
-                          border: `1px solid ${currentTheme.colors.border}`,
-                          backgroundColor: currentTheme.colors.surface,
-                          color: currentTheme.colors.text.secondary,
-                          boxShadow: currentTheme.shadows.inner,
+                          position: 'relative',
+                          fontSize: currentTheme.typography.fontSize['xl'],
+                          color: currentTheme.colors.text.primary,
+                          fontWeight: currentTheme.typography.fontWeight.medium,
+                          backgroundColor: 'transparent',
+                          paddingLeft: currentTheme.spacing[3],
+                          paddingRight: currentTheme.spacing[3],
                         }}
                       >
-                        {isDark ? (
-                          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-                            <path
-                              d="M12 18a6 6 0 1 0 0-12 6 6 0 0 0 0 12Z"
-                              stroke="currentColor"
-                              strokeWidth="2"
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                            />
-                            <path d="M12 2v2" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-                            <path d="M12 20v2" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-                            <path d="M4.93 4.93l1.41 1.41" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-                            <path d="M17.66 17.66l1.41 1.41" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-                            <path d="M2 12h2" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-                            <path d="M20 12h2" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-                            <path d="M4.93 19.07l1.41-1.41" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-                            <path d="M17.66 6.34l1.41-1.41" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-                          </svg>
-                        ) : (
-                          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-                            <path
-                              d="M21 13.2A7.5 7.5 0 0 1 10.8 3a6.6 6.6 0 1 0 10.2 10.2Z"
-                              stroke="currentColor"
-                              strokeWidth="2"
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                            />
-                          </svg>
-                        )}
+                        {item.label}
                       </Button>
+                      {isActive && (
+                        <motion.div
+                          layoutId="activeNavUnderline"
+                          style={{
+                            position: 'absolute',
+                            left: currentTheme.spacing[3],
+                            right: currentTheme.spacing[3],
+                            bottom: '-6px',
+                            height: '2px',
+                            backgroundColor: currentTheme.colors.primary[600],
+                            borderRadius: currentTheme.borderRadius.full,
+                          }}
+                          transition={{ duration: 0.22, ease: [0, 0, 0.2, 1] }}
+                        />
+                      )}
                     </motion.div>
+                  );
+                })}
+              </nav>
+
+              <div style={{ display: 'flex', justifyContent: 'flex-end', minWidth: 0 }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: currentTheme.spacing[3] }}>
+                  <div style={{
+                    fontSize: currentTheme.typography.fontSize.sm,
+                    fontWeight: currentTheme.typography.fontWeight.normal,
+                    color: currentTheme.colors.text.muted,
+                    letterSpacing: currentTheme.typography.letterSpacing.normal,
+                    whiteSpace: 'nowrap',
+                  }}>
+                    {todayLabel}
                   </div>
+
+                  <motion.div
+                    whileHover={{ opacity: 0.86 }}
+                    whileTap={{ opacity: 0.78 }}
+                    transition={{ duration: 0.12, ease: [0, 0, 0.2, 1] }}
+                  >
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      onClick={toggleTheme}
+                      aria-label={isDark ? 'Switch to light mode' : 'Switch to dark mode'}
+                      title={isDark ? 'Light mode' : 'Dark mode'}
+                      style={{
+                        width: '2.5rem',
+                        height: '2.5rem',
+                        minWidth: '2.5rem',
+                        padding: 0,
+                        borderRadius: currentTheme.borderRadius.lg,
+                        border: `1px solid ${currentTheme.colors.border}`,
+                        backgroundColor: currentTheme.colors.surface,
+                        color: currentTheme.colors.text.secondary,
+                        boxShadow: currentTheme.shadows.inner,
+                      }}
+                    >
+                      {isDark ? (
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                          <path
+                            d="M12 18a6 6 0 1 0 0-12 6 6 0 0 0 0 12Z"
+                            stroke="currentColor"
+                            strokeWidth="2"
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                          />
+                          <path d="M12 2v2" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+                          <path d="M12 20v2" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+                          <path d="M4.93 4.93l1.41 1.41" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+                          <path d="M17.66 17.66l1.41 1.41" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+                          <path d="M2 12h2" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+                          <path d="M20 12h2" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+                          <path d="M4.93 19.07l1.41-1.41" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+                          <path d="M17.66 6.34l1.41-1.41" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+                        </svg>
+                      ) : (
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                          <path
+                            d="M21 13.2A7.5 7.5 0 0 1 10.8 3a6.6 6.6 0 1 0 10.2 10.2Z"
+                            stroke="currentColor"
+                            strokeWidth="2"
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                          />
+                        </svg>
+                      )}
+                    </Button>
+                  </motion.div>
                 </div>
               </div>
             </div>
           </div>
-        </motion.header >
+        </div>
+      </motion.header>
 
-        {/* Main Content */}
-        < main style={{
-          flex: 1,
-          minHeight: 0,
-          margin: 0,
-          padding: 0,
-          overflowY: 'auto', // Enable vertical scrolling
-          overflowX: 'hidden',
-          display: 'flex',
-          flexDirection: 'column',
-          backgroundColor: isDark ? currentTheme.colors.background : '#FFFFFF', // Explicit white for light mode
-        }}>
-          <Routes>
-            <Route path="/" element={<WorkingPOSInterface onBillCreated={handleBillCreated} />} />
-            <Route path="/analytics" element={<Reports />} />
-            <Route path="/management" element={<ProductManagement />} />
-            <Route path="*" element={<WorkingPOSInterface onBillCreated={handleBillCreated} />} />
-          </Routes>
-        </main >
-      </div >
+      {/* Main Content */}
+      <main style={{
+        flex: 1,
+        minHeight: 0,
+        margin: 0,
+        padding: 0,
+        overflow: 'hidden',
+      }}>
+        <Routes>
+          <Route path="/" element={<WorkingPOSInterface onBillCreated={handleBillCreated} />} />
+          <Route path="/analytics" element={<Reports />} />
+          <Route path="/management" element={<ProductManagement />} />
+          <Route path="*" element={<WorkingPOSInterface onBillCreated={handleBillCreated} />} />
+        </Routes>
+      </main>
 
       {/* Last Bill Notification with Spotlight Effect */}
-      < AnimatePresence >
+      <AnimatePresence>
         {lastBill && (
           <>
             {/* Blur Backdrop */}
@@ -500,8 +460,8 @@ function AppContent() {
             </motion.div>
           </>
         )}
-      </AnimatePresence >
-    </div >
+      </AnimatePresence>
+    </div>
   );
 }
 

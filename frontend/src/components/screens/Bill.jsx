@@ -531,7 +531,7 @@ const WorkingPOSInterface = ({ onBillCreated }) => {
                     display: 'flex',
                     flexDirection: 'column',
                     justifyContent: 'space-between',
-                    borderTop: `2px solid ${CATEGORY_COLORS[product.category] || '#3b82f6'}`,
+                    borderTop: `2px solid ${CATEGORY_COLORS[product.category] || currentTheme.colors.primary[500]}`,
                     backgroundColor: currentTheme.colors.Card,
                     borderRadius: '15px',
                     border: `1px solid ${currentTheme.colors.border}`,
@@ -589,7 +589,7 @@ const WorkingPOSInterface = ({ onBillCreated }) => {
                   <div style={{
                     fontSize: currentTheme.typography.fontSize.lg,
                     fontWeight: currentTheme.typography.fontWeight.bold,
-                    color: CATEGORY_COLORS[product.category] || '#3b82f6',
+                    color: CATEGORY_COLORS[product.category] || currentTheme.colors.primary[500],
                   }}>
                     {formatCurrency(product.price)}
                   </div>

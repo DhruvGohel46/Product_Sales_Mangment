@@ -523,12 +523,36 @@ const Reports = () => {
     name: CATEGORY_NAMES[category] || category
   })).sort((a, b) => b.amount - a.amount);
 
-  // Calculate colors once
+  // Calculate colors dynamically based on theme
   const COLORS = [
-    '#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6',
-    '#06b6d4', '#84cc16', '#f97316', '#ec4899', '#6366f1',
-    '#14b8a6', '#22c55e', '#eab308', '#dc2626', '#7c3aed',
-    '#0891b2', '#16a34a', '#ca8a04', '#b91c1c', '#6d28d9'
+    // Primary Theme Colors (Orange)
+    currentTheme.colors.primary[500],
+    currentTheme.colors.primary[600],
+    currentTheme.colors.primary[400],
+
+    // Semantic Colors
+    currentTheme.colors.success[500],   // Green
+    currentTheme.colors.warning[500],   // Amber
+    currentTheme.colors.info[500],      // Blue
+    currentTheme.colors.error[500],     // Red
+
+    // Secondary/Neutral
+    currentTheme.colors.neutral[600],   // Gray
+    currentTheme.colors.neutral[500],
+
+    // Variations
+    currentTheme.colors.success[600],
+    currentTheme.colors.warning[600],
+    currentTheme.colors.info[600],
+    currentTheme.colors.error[600],
+
+    // Extended Palette (complementary to Orange)
+    '#8B5CF6', // Violet
+    '#EC4899', // Pink
+    '#06B6D4', // Cyan
+    '#10B981', // Emerald
+    '#F43F5E', // Rose
+    '#6366F1', // Indigo
   ];
 
   return (
@@ -1063,9 +1087,9 @@ const Reports = () => {
               >
                 {(product, index) => (
                   <div style={{
-                    background: isDark ? '#1e293b' : '#ffffff',
+                    background: isDark ? currentTheme.colors.neutral[900] : '#ffffff',
                     borderRadius: '12px',
-                    border: '1px solid ' + (isDark ? '#334155' : '#e2e8f0'),
+                    border: '1px solid ' + (isDark ? currentTheme.colors.neutral[800] : '#e2e8f0'),
                     padding: currentTheme.spacing[3],
                     position: 'relative',
                     overflow: 'hidden',
@@ -1080,12 +1104,7 @@ const Reports = () => {
                         width: '28px',
                         height: '28px',
                         borderRadius: '6px',
-                        background: [
-                          '#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6',
-                          '#06b6d4', '#84cc16', '#f97316', '#ec4899', '#6366f1',
-                          '#14b8a6', '#22c55e', '#eab308', '#dc2626', '#7c3aed',
-                          '#0891b2', '#16a34a', '#ca8a04', '#b91c1c', '#6d28d9'
-                        ][index % 20],
+                        background: COLORS[index % COLORS.length],
                         display: 'flex',
                         alignItems: 'center',
                         justifyContent: 'center',
@@ -1312,7 +1331,7 @@ const Reports = () => {
                         top: 0,
                         bottom: 0,
                         width: '4px',
-                        background: isCancelled ? (isDark ? '#ef4444' : '#fee2e2') : (isDark ? '#3b82f6' : '#eff6ff'),
+                        background: isCancelled ? (isDark ? '#ef4444' : '#fee2e2') : (isDark ? currentTheme.colors.primary[500] : currentTheme.colors.primary[50]),
                       }} />
 
                       {/* Bill Info */}
@@ -1337,7 +1356,7 @@ const Reports = () => {
                           alignItems: 'center',
                           gap: '8px'
                         }}>
-                          <ClockIcon color={isDark ? '#3b82f6' : '#2563eb'} />
+                          <ClockIcon color={isDark ? currentTheme.colors.primary[500] : currentTheme.colors.primary[600]} />
                           {formatDate(bill.created_at)} • {formatTime(bill.created_at)} • <span>{bill.items?.length || 0} items</span>
                         </div>
                         <div style={{
@@ -1356,7 +1375,7 @@ const Reports = () => {
                         <div style={{
                           fontSize: '1.125rem',
                           fontWeight: 700,
-                          color: isDark ? '#3b82f6' : '#2563eb'
+                          color: isDark ? currentTheme.colors.primary[500] : currentTheme.colors.primary[600]
                         }}>
                           {formatCurrency(bill.total_amount)}
                         </div>
@@ -1475,7 +1494,7 @@ const Reports = () => {
               <h2 style={{
                 fontSize: '1.25rem',
                 fontWeight: 600,
-                color: isDark ? '#f1f5f9' : '#1e293b',
+                color: isDark ? currentTheme.colors.text.primary : currentTheme.colors.text.primary,
                 margin: 0,
                 textTransform: 'uppercase',
                 letterSpacing: '0.1em',
@@ -1503,6 +1522,7 @@ const Reports = () => {
               border: `1px solid ${currentTheme.colors.border}`,
               boxShadow: currentTheme.shadows.sm,
               transition: 'transform 0.2s ease, box-shadow 0.2s ease',
+              height: '100%',
             }}>
 
 
@@ -1532,7 +1552,7 @@ const Reports = () => {
                   <h3 style={{
                     fontSize: '1rem',
                     fontWeight: 600,
-                    color: isDark ? '#f1f5f9' : '#0f172a',
+                    color: currentTheme.colors.text.primary,
                     margin: 0,
                     marginBottom: '2px',
                   }}>Daily Report</h3>
@@ -1546,14 +1566,15 @@ const Reports = () => {
 
               {/* Date Selection */}
               <div style={{
-                marginBottom: currentTheme.spacing[2],
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '8px',
+                flex: 1,
               }}>
                 <label style={{
-                  display: 'block',
                   fontSize: '0.75rem',
                   fontWeight: 600,
-                  color: isDark ? '#94a3b8' : '#64748b',
-                  marginBottom: '8px',
+                  color: isDark ? currentTheme.colors.text.secondary : currentTheme.colors.text.secondary,
                   textTransform: 'uppercase',
                   letterSpacing: '0.05em',
                 }}>
@@ -1567,9 +1588,9 @@ const Reports = () => {
                     width: '100%',
                     padding: '10px 12px',
                     borderRadius: '8px',
-                    border: `1px solid ${isDark ? '#334155' : '#cbd5e1'}`,
-                    backgroundColor: isDark ? '#0f172a' : '#ffffff',
-                    color: isDark ? '#f1f5f9' : '#1e293b',
+                    border: `1px solid ${isDark ? currentTheme.colors.neutral[800] : '#cbd5e1'}`,
+                    backgroundColor: isDark ? currentTheme.colors.neutral[900] : '#ffffff',
+                    color: isDark ? currentTheme.colors.text.primary : currentTheme.colors.text.primary,
                     fontSize: '0.875rem',
                     outline: 'none',
                     transition: 'border-color 0.2s',
@@ -1599,6 +1620,7 @@ const Reports = () => {
                   fontSize: '0.875rem',
                   width: '100%',
                   transition: 'all 0.2s ease',
+                  marginTop: 'auto',
                 }}
               >
                 <DownloadIcon color={currentTheme.colors.text.secondary} />
@@ -1617,7 +1639,7 @@ const Reports = () => {
               border: `1px solid ${currentTheme.colors.border}`,
               boxShadow: currentTheme.shadows.sm,
               transition: 'transform 0.2s ease, box-shadow 0.2s ease',
-              transition: 'transform 0.2s ease, box-shadow 0.2s ease',
+              height: '100%',
             }}>
 
 
@@ -1647,7 +1669,7 @@ const Reports = () => {
                   <h3 style={{
                     fontSize: '1.125rem',
                     fontWeight: 600,
-                    color: isDark ? '#f1f5f9' : '#0f172a',
+                    color: currentTheme.colors.text.primary,
                     margin: 0,
                     marginBottom: '2px',
                   }}>Monthly Report</h3>
@@ -1659,47 +1681,65 @@ const Reports = () => {
                 </div>
               </div>
 
-              <div style={{ display: 'flex', gap: currentTheme.spacing[2] }}>
-                <select
-                  value={exportMonth}
-                  onChange={(e) => setExportMonth(parseInt(e.target.value))}
-                  style={{
-                    flex: 1,
-                    padding: '10px 12px',
-                    borderRadius: '10px',
-                    border: `1px solid ${currentTheme.colors.border}`,
-                    background: currentTheme.colors.surface,
-                    color: isDark ? '#f1f5f9' : '#1e293b',
-                    fontSize: '0.9375rem',
-                    fontWeight: 500,
-                    cursor: 'pointer',
-                    transition: 'all 0.2s ease',
-                  }}
-                >
-                  {Array.from({ length: 12 }, (_, i) => i + 1).map(m => (
-                    <option key={m} value={m}>{new Date(0, m - 1).toLocaleString('default', { month: 'long' })}</option>
-                  ))}
-                </select>
-                <select
-                  value={exportYear}
-                  onChange={(e) => setExportYear(parseInt(e.target.value))}
-                  style={{
-                    flex: 1,
-                    padding: '10px 12px',
-                    borderRadius: '10px',
-                    border: `1px solid ${currentTheme.colors.border}`,
-                    background: currentTheme.colors.surface,
-                    color: isDark ? '#f1f5f9' : '#1e293b',
-                    fontSize: '0.9375rem',
-                    fontWeight: 500,
-                    cursor: 'pointer',
-                    transition: 'all 0.2s ease',
-                  }}
-                >
-                  {[2023, 2024, 2025, 2026].map(y => (
-                    <option key={y} value={y}>{y}</option>
-                  ))}
-                </select>
+              <div style={{
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '8px',
+                flex: 1,
+              }}>
+                <label style={{
+                  fontSize: '0.75rem',
+                  fontWeight: 600,
+                  color: isDark ? currentTheme.colors.text.secondary : currentTheme.colors.text.secondary,
+                  textTransform: 'uppercase',
+                  letterSpacing: '0.05em',
+                }}>
+                  Select Period
+                </label>
+                <div style={{ display: 'flex', gap: currentTheme.spacing[2] }}>
+                  <select
+                    value={exportMonth}
+                    onChange={(e) => setExportMonth(parseInt(e.target.value))}
+                    style={{
+                      flex: 1,
+                      padding: '10px 12px',
+                      borderRadius: '8px',
+                      border: `1px solid ${isDark ? currentTheme.colors.neutral[800] : '#cbd5e1'}`,
+                      backgroundColor: isDark ? currentTheme.colors.neutral[900] : '#ffffff',
+                      color: isDark ? currentTheme.colors.text.primary : currentTheme.colors.text.primary,
+                      fontSize: '0.875rem',
+                      fontWeight: 500,
+                      cursor: 'pointer',
+                      transition: 'all 0.2s ease',
+                      outline: 'none',
+                    }}
+                  >
+                    {Array.from({ length: 12 }, (_, i) => i + 1).map(m => (
+                      <option key={m} value={m}>{new Date(0, m - 1).toLocaleString('default', { month: 'long' })}</option>
+                    ))}
+                  </select>
+                  <select
+                    value={exportYear}
+                    onChange={(e) => setExportYear(parseInt(e.target.value))}
+                    style={{
+                      flex: 1,
+                      padding: '10px 12px',
+                      borderRadius: '8px',
+                      border: `1px solid ${isDark ? currentTheme.colors.neutral[800] : '#cbd5e1'}`,
+                      backgroundColor: isDark ? currentTheme.colors.neutral[900] : '#ffffff',
+                      color: isDark ? currentTheme.colors.text.primary : currentTheme.colors.text.primary,
+                      fontSize: '0.875rem',
+                      fontWeight: 500,
+                      cursor: 'pointer',
+                      transition: 'all 0.2s ease',
+                      outline: 'none',
+                    }}
+                  >
+                    {[2023, 2024, 2025, 2026].map(y => (
+                      <option key={y} value={y}>{y}</option>
+                    ))}
+                  </select>
+                </div>
               </div>
 
               <Button
@@ -1721,6 +1761,7 @@ const Reports = () => {
                   fontSize: '0.9375rem',
                   width: '100%',
                   transition: 'all 0.2s ease',
+                  marginTop: 'auto',
                 }}
               >
                 <DownloadIcon color={currentTheme.colors.text.secondary} />
@@ -1738,6 +1779,7 @@ const Reports = () => {
               borderRadius: '12px',
               border: `1px solid ${currentTheme.colors.border}`,
               boxShadow: currentTheme.shadows.sm,
+              height: '100%',
             }}>
 
 
@@ -1767,7 +1809,7 @@ const Reports = () => {
                   <h3 style={{
                     fontSize: '1rem',
                     fontWeight: 600,
-                    color: isDark ? '#f1f5f9' : '#0f172a',
+                    color: currentTheme.colors.text.primary,
                     margin: 0,
                     marginBottom: '2px',
                   }}>Weekly Report</h3>
@@ -1779,12 +1821,18 @@ const Reports = () => {
                 </div>
               </div>
 
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+              <div style={{
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '8px',
+                flex: 1,
+              }}>
                 <label style={{
-                  fontSize: '0.8125rem',
-                  fontWeight: 500,
-                  color: isDark ? '#94a3b8' : '#64748b',
-                  marginBottom: '2px',
+                  fontSize: '0.75rem',
+                  fontWeight: 600,
+                  color: isDark ? currentTheme.colors.text.secondary : currentTheme.colors.text.secondary,
+                  textTransform: 'uppercase',
+                  letterSpacing: '0.05em',
                 }}>
                   Select Reference Date
                 </label>
@@ -1796,12 +1844,13 @@ const Reports = () => {
                     width: '100%',
                     padding: '10px 12px',
                     borderRadius: '8px',
-                    border: `1px solid ${currentTheme.colors.border}`,
-                    background: currentTheme.colors.surface,
-                    color: isDark ? '#f1f5f9' : '#1e293b',
+                    border: `1px solid ${isDark ? currentTheme.colors.neutral[800] : '#cbd5e1'}`,
+                    backgroundColor: isDark ? currentTheme.colors.neutral[900] : '#ffffff',
+                    color: isDark ? currentTheme.colors.text.primary : currentTheme.colors.text.primary,
                     fontSize: '0.875rem',
                     fontWeight: 500,
                     cursor: 'pointer',
+                    outline: 'none',
                   }}
                 />
               </div>
@@ -1824,7 +1873,10 @@ const Reports = () => {
                   fontWeight: 500,
                   fontSize: '0.875rem',
                   width: '100%',
+                  fontSize: '0.875rem',
+                  width: '100%',
                   transition: 'all 0.2s ease',
+                  marginTop: 'auto',
                 }}
               >
                 <DownloadIcon color={currentTheme.colors.text.secondary} />

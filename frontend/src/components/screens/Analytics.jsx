@@ -436,7 +436,7 @@ const Reports = () => {
         alignItems: 'center',
         justifyContent: 'center',
         minHeight: '100vh',
-        background: isDark ? '#0f0f0f' : '#f8fafc',
+        background: currentTheme.colors.background,
       }}>
         <div style={{
           display: 'flex',
@@ -447,13 +447,13 @@ const Reports = () => {
           <div style={{
             fontSize: '1.125rem',
             fontWeight: 500,
-            color: isDark ? '#f1f5f9' : '#1e293b',
+            color: currentTheme.colors.text.primary,
           }}>
             Loading Analytics
           </div>
           <div style={{
             fontSize: '0.875rem',
-            color: isDark ? '#94a3b8' : '#64748b',
+            color: currentTheme.colors.text.secondary,
           }}>
             Fetching sales data and reports...
           </div>
@@ -471,11 +471,11 @@ const Reports = () => {
         alignItems: 'center',
         justifyContent: 'center',
         minHeight: '100vh',
-        background: isDark ? '#0f0f0f' : '#f8fafc',
+        background: currentTheme.colors.background,
         padding: currentTheme.spacing[8],
       }}>
         <div style={{
-          background: isDark ? '#1e293b' : '#ffffff',
+          background: currentTheme.colors.surface,
           border: `1px solid ${isDark ? '#ef4444' : '#dc2626'}`,
           borderRadius: '12px',
           padding: currentTheme.spacing[6],
@@ -534,7 +534,7 @@ const Reports = () => {
   return (
     <div style={{
       minHeight: '100vh',
-      background: isDark ? '#0f0f0f' : '#f8fafc',
+      background: currentTheme.colors.background,
       paddingTop: currentTheme.spacing[8],
       paddingLeft: currentTheme.spacing[8],
       paddingRight: currentTheme.spacing[8],
@@ -560,9 +560,9 @@ const Reports = () => {
             justifyContent: 'space-between',
             gap: '12px',
             padding: '30px',
-            border: `1px solid ${isDark ? '#334155' : '#e2e8f0'}`,
+            border: `1px solid ${currentTheme.colors.border}`,
             borderRadius: '20px',
-            backgroundColor: currentTheme.colors.Surface,
+            backgroundColor: currentTheme.colors.surface,
             margin: '0px',
             boxShadow: '0 4px 12px rgba(0,0,0,0.08)',
             transition: 'all 0.2s ease',
@@ -682,7 +682,7 @@ const Reports = () => {
               <p style={{
                 fontSize: '0.875rem',
                 fontWeight: 600,
-                color: isDark ? '#94a3b8' : '#64748b',
+                color: currentTheme.colors.text.secondary,
                 marginBottom: currentTheme.spacing[1],
                 textTransform: 'uppercase',
                 letterSpacing: '0.05em',
@@ -692,7 +692,7 @@ const Reports = () => {
               <h3 style={{
                 fontSize: '2rem',
                 fontWeight: 700,
-                color: isDark ? '#f1f5f9' : '#0f172a',
+                color: currentTheme.colors.text.primary,
                 margin: 0,
                 marginBottom: currentTheme.spacing[2],
                 letterSpacing: '-0.02em',
@@ -709,7 +709,7 @@ const Reports = () => {
             </div>
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: currentTheme.spacing[2] }}>
-            <span style={{ fontSize: '0.875rem', color: isDark ? '#94a3b8' : '#64748b' }}>
+            <span style={{ fontSize: '0.875rem', color: currentTheme.colors.text.secondary }}>
               Total revenue for today
             </span>
           </div>
@@ -721,14 +721,14 @@ const Reports = () => {
             <div>
               <p style={{
                 fontSize: '0.875rem', fontWeight: 600,
-                color: isDark ? '#94a3b8' : '#64748b',
+                color: currentTheme.colors.text.secondary,
                 marginBottom: currentTheme.spacing[1], textTransform: 'uppercase', letterSpacing: '0.05em',
               }}>
                 Total Orders
               </p>
               <h3 style={{
                 fontSize: '2rem', fontWeight: 700,
-                color: isDark ? '#f1f5f9' : '#0f172a',
+                color: currentTheme.colors.text.primary,
                 margin: 0, marginBottom: currentTheme.spacing[2], letterSpacing: '-0.02em',
               }}>
                 {safeSummary.total_bills || 0}
@@ -743,7 +743,7 @@ const Reports = () => {
             </div>
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: currentTheme.spacing[2] }}>
-            <span style={{ fontSize: '0.875rem', color: isDark ? '#94a3b8' : '#64748b' }}>
+            <span style={{ fontSize: '0.875rem', color: currentTheme.colors.text.secondary }}>
               Bills generated today
             </span>
           </div>
@@ -755,14 +755,14 @@ const Reports = () => {
             <div>
               <p style={{
                 fontSize: '0.875rem', fontWeight: 600,
-                color: isDark ? '#94a3b8' : '#64748b',
+                color: currentTheme.colors.text.secondary,
                 marginBottom: currentTheme.spacing[1], textTransform: 'uppercase', letterSpacing: '0.05em',
               }}>
                 Avg. Order Value
               </p>
               <h3 style={{
                 fontSize: '2rem', fontWeight: 700,
-                color: isDark ? '#f1f5f9' : '#0f172a',
+                color: currentTheme.colors.text.primary,
                 margin: 0, marginBottom: currentTheme.spacing[2], letterSpacing: '-0.02em',
               }}>
                 {formatCurrency(safeSummary.average_bill_value || 0)}
@@ -777,7 +777,7 @@ const Reports = () => {
             </div>
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: currentTheme.spacing[2] }}>
-            <span style={{ fontSize: '0.875rem', color: isDark ? '#94a3b8' : '#64748b' }}>
+            <span style={{ fontSize: '0.875rem', color: currentTheme.colors.text.secondary }}>
               Per transaction average
             </span>
           </div>
@@ -811,7 +811,7 @@ const Reports = () => {
                 transform: 'translateY(-50%)',
                 width: '4px',
                 height: '24px',
-                background: 'linear-gradient(to bottom, #3b82f6, #06b6d4)',
+                background: `linear-gradient(to bottom, ${currentTheme.colors.primary[500]}, ${currentTheme.colors.primary[600]})`,
                 borderRadius: '2px',
               }} />
               <h2 style={{
@@ -1212,7 +1212,7 @@ const Reports = () => {
                 transform: 'translateY(-50%)',
                 width: '4px',
                 height: '24px',
-                background: 'linear-gradient(to bottom, #3b82f6, #06b6d4)',
+                background: `linear-gradient(to bottom, ${currentTheme.colors.primary[500]}, ${currentTheme.colors.primary[600]})`,
                 borderRadius: '2px',
               }} />
               <h2 style={{
@@ -1236,9 +1236,9 @@ const Reports = () => {
                   display: 'flex',
                   alignItems: 'center',
                   gap: '8px',
-                  background: isDark ? 'rgba(59, 130, 246, 0.1)' : '#eff6ff',
-                  border: `1px solid ${isDark ? 'rgba(59, 130, 246, 0.2)' : '#dbeafe'}`,
-                  color: '#3b82f6',
+                  background: isDark ? `rgba(${parseInt(currentTheme.colors.primary[500].slice(1, 3), 16)}, ${parseInt(currentTheme.colors.primary[500].slice(3, 5), 16)}, ${parseInt(currentTheme.colors.primary[500].slice(5, 7), 16)}, 0.1)` : currentTheme.colors.primary[50],
+                  border: `1px solid ${isDark ? `rgba(${parseInt(currentTheme.colors.primary[500].slice(1, 3), 16)}, ${parseInt(currentTheme.colors.primary[500].slice(3, 5), 16)}, ${parseInt(currentTheme.colors.primary[500].slice(5, 7), 16)}, 0.2)` : currentTheme.colors.primary[100]}`,
+                  color: currentTheme.colors.primary[600],
                   borderRadius: '8px',
                   padding: '6px 16px',
                   fontWeight: 600,
@@ -1250,7 +1250,7 @@ const Reports = () => {
                   alignItems: 'center',
                   animation: loadingBills ? 'spin 1s linear infinite' : 'none'
                 }}>
-                  <RefreshIcon color="#3b82f6" />
+                  <RefreshIcon color={currentTheme.colors.primary[600]} />
                 </div>
                 Refresh
               </Button>
@@ -1281,9 +1281,9 @@ const Reports = () => {
                         display: 'flex',
                         alignItems: 'center',
                         padding: `${currentTheme.spacing[4]} ${currentTheme.spacing[6]}`,
-                        background: isDark ? 'rgba(30, 41, 59, 0.4)' : '#ffffff',
+                        background: currentTheme.colors.surface,
                         borderRadius: '12px',
-                        border: `1px solid ${isDark ? '#334155' : '#e2e8f0'}`,
+                        border: `1px solid ${currentTheme.colors.border}`,
                         marginBottom: currentTheme.spacing[2],
                         gap: currentTheme.spacing[4],
                         cursor: isCancelled ? 'default' : 'pointer',
@@ -1294,13 +1294,13 @@ const Reports = () => {
                       }}
                       onMouseEnter={(e) => {
                         if (!isCancelled) {
-                          e.currentTarget.style.borderColor = isDark ? '#3b82f6' : '#3b82f6';
+                          e.currentTarget.style.borderColor = currentTheme.colors.primary[500];
                           e.currentTarget.style.transform = 'translateY(-2px)';
-                          e.currentTarget.style.boxShadow = isDark ? '0 10px 15px -3px rgba(0, 0, 0, 0.3)' : '0 10px 15px -3px rgba(59, 130, 246, 0.1)';
+                          e.currentTarget.style.boxShadow = isDark ? `0 10px 15px -3px rgba(0, 0, 0, 0.3)` : `0 10px 15px -3px rgba(${parseInt(currentTheme.colors.primary[500].slice(1, 3), 16)}, ${parseInt(currentTheme.colors.primary[500].slice(3, 5), 16)}, ${parseInt(currentTheme.colors.primary[500].slice(5, 7), 16)}, 0.1)`;
                         }
                       }}
                       onMouseLeave={(e) => {
-                        e.currentTarget.style.borderColor = isDark ? '#334155' : '#e2e8f0';
+                        e.currentTarget.style.borderColor = currentTheme.colors.border;
                         e.currentTarget.style.transform = 'translateY(0)';
                         e.currentTarget.style.boxShadow = 'none';
                       }}
@@ -1429,9 +1429,9 @@ const Reports = () => {
                 padding: currentTheme.spacing[12],
                 textAlign: 'center',
                 color: isDark ? '#64748b' : '#94a3b8',
-                background: isDark ? 'rgba(30, 41, 59, 0.2)' : '#f8fafc',
+                background: isDark ? 'rgba(255, 255, 255, 0.03)' : currentTheme.colors.background,
                 borderRadius: '16px',
-                border: `2px dashed ${isDark ? '#334155' : '#e2e8f0'}`
+                border: `2px dashed ${currentTheme.colors.border}`
               }}>
                 <div style={{ marginBottom: currentTheme.spacing[4], opacity: 0.5 }}>
                   <ReceiptIcon color="currentColor" />
@@ -1498,10 +1498,10 @@ const Reports = () => {
               flexDirection: 'column',
               gap: currentTheme.spacing[4],
               padding: currentTheme.spacing[5],
-              background: isDark ? 'linear-gradient(to bottom, #1e293b, #1a2332)' : 'linear-gradient(to bottom, #ffffff, #fafbfc)',
+              background: currentTheme.colors.surface,
               borderRadius: '16px',
-              border: `1px solid ${isDark ? '#334155' : '#e2e8f0'}`,
-              boxShadow: isDark ? '0 4px 6px -1px rgba(0, 0, 0, 0.2), 0 2px 4px -1px rgba(0, 0, 0, 0.1)' : '0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03)',
+              border: `1px solid ${currentTheme.colors.border}`,
+              boxShadow: currentTheme.shadows.sm,
               transition: 'transform 0.2s ease, box-shadow 0.2s ease',
             }}>
 
@@ -1511,21 +1511,21 @@ const Reports = () => {
                 alignItems: 'center',
                 gap: currentTheme.spacing[3],
                 paddingBottom: currentTheme.spacing[3],
-                borderBottom: `1px solid ${isDark ? '#334155' : '#f1f5f9'}`,
+                borderBottom: `1px solid ${currentTheme.colors.border}`,
               }}>
                 <div style={{
                   width: '44px',
                   height: '44px',
                   borderRadius: '12px',
-                  background: isDark ? 'linear-gradient(135deg, #334155, #3f4f66)' : 'linear-gradient(135deg, #f1f5f9, #e8eef5)',
+                  background: isDark ? `linear-gradient(135deg, ${currentTheme.colors.primary[900]}, ${currentTheme.colors.primary[800]})` : `linear-gradient(135deg, ${currentTheme.colors.primary[50]}, ${currentTheme.colors.primary[100]})`,
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
                   flexShrink: 0,
                 }}>
                   <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M8 2v3M16 2v3M3.5 9.09h17M21 8.5V17c0 3-1.5 5-5 5H8c-3.5 0-5-2-5-5V8.5c0-3 1.5-5 5-5h8c3.5 0 5 2 5 5z" stroke={isDark ? '#7e5871ff' : '#a5287aff'} strokeWidth="1.5" strokeMiterlimit="10" strokeLinecap="round" strokeLinejoin="round" />
-                    <path d="M15.695 13.7h.009M15.695 16.7h.009M11.995 13.7h.01M11.995 16.7h.01M8.294 13.7h.01M8.294 16.7h.01" stroke={isDark ? '#7e5871ff' : '#a5287aff'} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                    <path d="M8 2v3M16 2v3M3.5 9.09h17M21 8.5V17c0 3-1.5 5-5 5H8c-3.5 0-5-2-5-5V8.5c0-3 1.5-5 5-5h8c3.5 0 5 2 5 5z" stroke={isDark ? currentTheme.colors.primary[300] : currentTheme.colors.primary[600]} strokeWidth="1.5" strokeMiterlimit="10" strokeLinecap="round" strokeLinejoin="round" />
+                    <path d="M15.695 13.7h.009M15.695 16.7h.009M11.995 13.7h.01M11.995 16.7h.01M8.294 13.7h.01M8.294 16.7h.01" stroke={isDark ? currentTheme.colors.primary[300] : currentTheme.colors.primary[600]} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
                   </svg>
                 </div>
                 <div>
@@ -1575,8 +1575,8 @@ const Reports = () => {
                     transition: 'border-color 0.2s',
                     fontFamily: 'inherit',
                   }}
-                  onFocus={(e) => e.target.style.borderColor = isDark ? '#3b82f6' : '#2563eb'}
-                  onBlur={(e) => e.target.style.borderColor = isDark ? '#334155' : '#cbd5e1'}
+                  onFocus={(e) => e.target.style.borderColor = currentTheme.colors.primary[500]}
+                  onBlur={(e) => e.target.style.borderColor = currentTheme.colors.border}
                 />
               </div>
 
@@ -1585,10 +1585,10 @@ const Reports = () => {
                 disabled={downloading.excel}
                 variant="secondary"
                 style={{
-                  backgroundColor: isDark ? '#334155' : '#ffffff',
-                  boxShadow: isDark ? '0 1px 2px 0 rgba(0, 0, 0, 0.15)' : '0 1px 2px 0 rgba(0, 0, 0, 0.05)',
-                  border: `1px solid ${isDark ? '#475569' : '#e2e8f0'}`,
-                  color: isDark ? '#f1f5f9' : '#1e293b',
+                  backgroundColor: currentTheme.colors.surface,
+                  boxShadow: currentTheme.shadows.sm,
+                  border: `1px solid ${currentTheme.colors.border}`,
+                  color: currentTheme.colors.text.primary,
                   borderRadius: '10px',
                   padding: `${currentTheme.spacing[3]} ${currentTheme.spacing[4]}`,
                   display: 'flex',
@@ -1601,7 +1601,7 @@ const Reports = () => {
                   transition: 'all 0.2s ease',
                 }}
               >
-                <DownloadIcon color={isDark ? '#f1f5f9' : '#475569'} />
+                <DownloadIcon color={currentTheme.colors.text.secondary} />
                 {downloading.excel ? 'Downloading...' : 'Download Report'}
               </Button>
             </div>
@@ -1612,10 +1612,11 @@ const Reports = () => {
               flexDirection: 'column',
               gap: currentTheme.spacing[4],
               padding: currentTheme.spacing[5],
-              background: isDark ? 'linear-gradient(to bottom, #1e293b, #1a2332)' : 'linear-gradient(to bottom, #ffffff, #fafbfc)',
+              background: currentTheme.colors.surface,
               borderRadius: '16px',
-              border: `1px solid ${isDark ? '#334155' : '#e2e8f0'}`,
-              boxShadow: isDark ? '0 4px 6px -1px rgba(0, 0, 0, 0.2), 0 2px 4px -1px rgba(0, 0, 0, 0.1)' : '0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03)',
+              border: `1px solid ${currentTheme.colors.border}`,
+              boxShadow: currentTheme.shadows.sm,
+              transition: 'transform 0.2s ease, box-shadow 0.2s ease',
               transition: 'transform 0.2s ease, box-shadow 0.2s ease',
             }}>
 
@@ -1625,21 +1626,21 @@ const Reports = () => {
                 alignItems: 'center',
                 gap: currentTheme.spacing[3],
                 paddingBottom: currentTheme.spacing[3],
-                borderBottom: `1px solid ${isDark ? '#334155' : '#f1f5f9'}`,
+                borderBottom: `1px solid ${currentTheme.colors.border}`,
               }}>
                 <div style={{
                   width: '44px',
                   height: '44px',
                   borderRadius: '12px',
-                  background: isDark ? 'linear-gradient(135deg, #334155, #3f4f66)' : 'linear-gradient(135deg, #f1f5f9, #e8eef5)',
+                  background: isDark ? `linear-gradient(135deg, ${currentTheme.colors.primary[900]}, ${currentTheme.colors.primary[800]})` : `linear-gradient(135deg, ${currentTheme.colors.primary[50]}, ${currentTheme.colors.primary[100]})`,
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
                   flexShrink: 0,
                 }}>
                   <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M8 2v3M16 2v3M3.5 9.09h17M21 8.5V17c0 3-1.5 5-5 5H8c-3.5 0-5-2-5-5V8.5c0-3 1.5-5 5-5h8c3.5 0 5 2 5 5z" stroke="#8b5cf6" strokeWidth="1.5" strokeMiterlimit="10" strokeLinecap="round" strokeLinejoin="round" />
-                    <path d="M11.995 13.7h.01M8.294 13.7h.01M8.294 16.7h.01" stroke="#8b5cf6" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                    <path d="M8 2v3M16 2v3M3.5 9.09h17M21 8.5V17c0 3-1.5 5-5 5H8c-3.5 0-5-2-5-5V8.5c0-3 1.5-5 5-5h8c3.5 0 5 2 5 5z" stroke={isDark ? currentTheme.colors.primary[300] : currentTheme.colors.primary[600]} strokeWidth="1.5" strokeMiterlimit="10" strokeLinecap="round" strokeLinejoin="round" />
+                    <path d="M11.995 13.7h.01M8.294 13.7h.01M8.294 16.7h.01" stroke={isDark ? currentTheme.colors.primary[300] : currentTheme.colors.primary[600]} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
                   </svg>
                 </div>
                 <div>
@@ -1666,8 +1667,8 @@ const Reports = () => {
                     flex: 1,
                     padding: '10px 12px',
                     borderRadius: '10px',
-                    border: `1px solid ${isDark ? '#475569' : '#e2e8f0'}`,
-                    background: isDark ? '#0f172a' : '#ffffff',
+                    border: `1px solid ${currentTheme.colors.border}`,
+                    background: currentTheme.colors.surface,
                     color: isDark ? '#f1f5f9' : '#1e293b',
                     fontSize: '0.9375rem',
                     fontWeight: 500,
@@ -1686,8 +1687,8 @@ const Reports = () => {
                     flex: 1,
                     padding: '10px 12px',
                     borderRadius: '10px',
-                    border: `1px solid ${isDark ? '#475569' : '#e2e8f0'}`,
-                    background: isDark ? '#0f172a' : '#ffffff',
+                    border: `1px solid ${currentTheme.colors.border}`,
+                    background: currentTheme.colors.surface,
                     color: isDark ? '#f1f5f9' : '#1e293b',
                     fontSize: '0.9375rem',
                     fontWeight: 500,
@@ -1706,10 +1707,10 @@ const Reports = () => {
                 disabled={downloading.monthly}
                 variant="secondary"
                 style={{
-                  backgroundColor: isDark ? '#334155' : '#ffffff',
-                  boxShadow: isDark ? '0 1px 2px 0 rgba(0, 0, 0, 0.15)' : '0 1px 2px 0 rgba(0, 0, 0, 0.05)',
-                  border: `1px solid ${isDark ? '#475569' : '#e2e8f0'}`,
-                  color: isDark ? '#f1f5f9' : '#1e293b',
+                  backgroundColor: currentTheme.colors.surface,
+                  boxShadow: currentTheme.shadows.sm,
+                  border: `1px solid ${currentTheme.colors.border}`,
+                  color: currentTheme.colors.text.primary,
                   borderRadius: '10px',
                   padding: `${currentTheme.spacing[3]} ${currentTheme.spacing[4]}`,
                   display: 'flex',
@@ -1722,7 +1723,7 @@ const Reports = () => {
                   transition: 'all 0.2s ease',
                 }}
               >
-                <DownloadIcon color={isDark ? '#f1f5f9' : '#475569'} />
+                <DownloadIcon color={currentTheme.colors.text.secondary} />
                 {downloading.monthly ? 'Downloading...' : 'Download Monthly Report'}
               </Button>
             </div>
@@ -1733,10 +1734,10 @@ const Reports = () => {
               flexDirection: 'column',
               gap: currentTheme.spacing[4],
               padding: currentTheme.spacing[5],
-              background: isDark ? '#1e293b' : '#ffffff',
+              background: currentTheme.colors.surface,
               borderRadius: '12px',
-              border: `1px solid ${isDark ? '#334155' : '#e2e8f0'}`,
-              boxShadow: isDark ? '0 1px 3px 0 rgba(0, 0, 0, 0.3)' : '0 1px 3px 0 rgba(0, 0, 0, 0.1)',
+              border: `1px solid ${currentTheme.colors.border}`,
+              boxShadow: currentTheme.shadows.sm,
             }}>
 
 
@@ -1745,21 +1746,21 @@ const Reports = () => {
                 alignItems: 'center',
                 gap: currentTheme.spacing[3],
                 paddingBottom: currentTheme.spacing[3],
-                borderBottom: `1px solid ${isDark ? '#334155' : '#f1f5f9'}`,
+                borderBottom: `1px solid ${currentTheme.colors.border}`,
               }}>
                 <div style={{
                   width: '44px',
                   height: '44px',
                   borderRadius: '12px',
-                  background: isDark ? 'linear-gradient(135deg, #334155, #3f4f66)' : 'linear-gradient(135deg, #f1f5f9, #e8eef5)',
+                  background: isDark ? `linear-gradient(135deg, ${currentTheme.colors.primary[900]}, ${currentTheme.colors.primary[800]})` : `linear-gradient(135deg, ${currentTheme.colors.primary[50]}, ${currentTheme.colors.primary[100]})`,
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
                   flexShrink: 0,
                 }}>
                   <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M8 2v3M16 2v3M3.5 9.09h17M21 8.5V17c0 3-1.5 5-5 5H8c-3.5 0-5-2-5-5V8.5c0-3 1.5-5 5-5h8c3.5 0 5 2 5 5z" stroke={isDark ? '#2dcf00ff' : '#2dcf00ff'} strokeWidth="1.5" strokeMiterlimit="10" strokeLinecap="round" strokeLinejoin="round" />
-                    <path d="M15.695 13.7h.009M15.695 16.7h.009M11.995 13.7h.01" stroke={isDark ? '#2dcf00ff' : '#2dcf00ff'} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                    <path d="M8 2v3M16 2v3M3.5 9.09h17M21 8.5V17c0 3-1.5 5-5 5H8c-3.5 0-5-2-5-5V8.5c0-3 1.5-5 5-5h8c3.5 0 5 2 5 5z" stroke={isDark ? currentTheme.colors.primary[300] : currentTheme.colors.primary[600]} strokeWidth="1.5" strokeMiterlimit="10" strokeLinecap="round" strokeLinejoin="round" />
+                    <path d="M15.695 13.7h.009M15.695 16.7h.009M11.995 13.7h.01" stroke={isDark ? currentTheme.colors.primary[300] : currentTheme.colors.primary[600]} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
                   </svg>
                 </div>
                 <div>
@@ -1795,8 +1796,8 @@ const Reports = () => {
                     width: '100%',
                     padding: '10px 12px',
                     borderRadius: '8px',
-                    border: `1px solid ${isDark ? '#475569' : '#e2e8f0'}`,
-                    background: isDark ? '#0f172a' : '#ffffff',
+                    border: `1px solid ${currentTheme.colors.border}`,
+                    background: currentTheme.colors.surface,
                     color: isDark ? '#f1f5f9' : '#1e293b',
                     fontSize: '0.875rem',
                     fontWeight: 500,
@@ -1810,10 +1811,10 @@ const Reports = () => {
                 disabled={downloading.weekly}
                 variant="secondary"
                 style={{
-                  backgroundColor: isDark ? '#334155' : '#ffffff',
-                  boxShadow: isDark ? '0 1px 2px 0 rgba(0, 0, 0, 0.15)' : '0 1px 2px 0 rgba(0, 0, 0, 0.05)',
-                  border: `1px solid ${isDark ? '#475569' : '#e2e8f0'}`,
-                  color: isDark ? '#f1f5f9' : '#1e293b',
+                  backgroundColor: currentTheme.colors.surface,
+                  boxShadow: currentTheme.shadows.sm,
+                  border: `1px solid ${currentTheme.colors.border}`,
+                  color: currentTheme.colors.text.primary,
                   borderRadius: '10px',
                   padding: `${currentTheme.spacing[3]} ${currentTheme.spacing[4]}`,
                   display: 'flex',
@@ -1826,7 +1827,7 @@ const Reports = () => {
                   transition: 'all 0.2s ease',
                 }}
               >
-                <DownloadIcon color={isDark ? '#f1f5f9' : '#475569'} />
+                <DownloadIcon color={currentTheme.colors.text.secondary} />
                 {downloading.weekly ? 'Downloading...' : 'Download Weekly Report'}
               </Button>
             </div>
@@ -1950,12 +1951,12 @@ const Reports = () => {
               exit={{ scale: 0.9, opacity: 0 }}
               transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1] }}
               style={{
-                background: isDark ? '#1e293b' : '#ffffff',
+                background: currentTheme.colors.surface,
                 borderRadius: '16px',
                 padding: currentTheme.spacing[8],
                 maxWidth: '400px',
                 width: '90%',
-                border: `1px solid ${isDark ? '#334155' : '#e2e8f0'}`,
+                border: `1px solid ${currentTheme.colors.border}`,
                 boxShadow: isDark
                   ? '0 25px 50px -12px rgba(0, 0, 0, 0.5)'
                   : '0 25px 50px -12px rgba(0, 0, 0, 0.25)',
@@ -1983,7 +1984,7 @@ const Reports = () => {
                   <h3 style={{
                     fontSize: '1.25rem',
                     fontWeight: 600,
-                    color: isDark ? '#f1f5f9' : '#1e293b',
+                    color: currentTheme.colors.text.primary,
                     margin: 0,
                     marginBottom: currentTheme.spacing[1],
                   }}>
@@ -1991,7 +1992,7 @@ const Reports = () => {
                   </h3>
                   <p style={{
                     fontSize: '0.875rem',
-                    color: isDark ? '#94a3b8' : '#64748b',
+                    color: currentTheme.colors.text.secondary,
                     margin: 0,
                   }}>
                     Caution: This affects sales reports
@@ -2027,9 +2028,9 @@ const Reports = () => {
                   onClick={() => setShowCancelConfirm(false)}
                   variant="secondary"
                   style={{
-                    background: isDark ? '#334155' : '#f8fafc',
-                    border: `1px solid ${isDark ? '#475569' : '#e2e8f0'}`,
-                    color: isDark ? '#f1f5f9' : '#475569',
+                    background: currentTheme.colors.background,
+                    border: `1px solid ${currentTheme.colors.border}`,
+                    color: currentTheme.colors.text.secondary,
                     borderRadius: '12px',
                     padding: `${currentTheme.spacing[3]} ${currentTheme.spacing[6]}`,
                     fontWeight: 500,
@@ -2041,8 +2042,8 @@ const Reports = () => {
                   onClick={handleCancelBillConfirm}
                   variant="secondary"
                   style={{
-                    background: isDark ? (currentTheme.colors.error?.[600] || '#DC2626') : (currentTheme.colors.error?.[500] || '#EF4444'),
-                    border: `1px solid ${isDark ? (currentTheme.colors.error?.[700] || '#B91C1C') : (currentTheme.colors.error?.[600] || '#DC2626')}`,
+                    background: currentTheme.colors.error.primary,
+                    border: `1px solid ${currentTheme.colors.error.primary}`,
                     color: '#ffffff',
                     borderRadius: '12px',
                     padding: `${currentTheme.spacing[3]} ${currentTheme.spacing[6]}`,

@@ -64,3 +64,4 @@ logs/
 backend/data/bills/
 backend/data/archive/
 backend/data/images/
+backend/requirements.txt

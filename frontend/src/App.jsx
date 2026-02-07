@@ -214,6 +214,16 @@ function AppContent() {
               }}>
                 {/* Left side spacer to balance the grid */}
                 <div style={{ display: 'flex', alignItems: 'center', minWidth: 0 }}>
+                  <Button
+                    size="sm"
+                    variant="primary"
+                    onClick={() => navigate('/')}
+                    style={{
+                      boxShadow: `0 4px 14px 0 ${currentTheme.colors.primary[500]}40`,
+                    }}
+                  >
+                    New Bill
+                  </Button>
                 </div>
 
                 {/* Center Title */}
@@ -255,23 +265,6 @@ function AppContent() {
                 {/* Right Controls */}
                 <div style={{ display: 'flex', justifyContent: 'flex-end', minWidth: 0 }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: currentTheme.spacing[4] }}>
-                    <Button
-                      size="sm"
-                      variant="primary"
-                      onClick={() => navigate('/')}
-                      style={{
-                        boxShadow: `0 4px 14px 0 ${currentTheme.colors.primary[500]}40`,
-                      }}
-                    >
-                      New Bill
-                    </Button>
-
-                    <div style={{
-                      width: '1px',
-                      height: '24px',
-                      backgroundColor: currentTheme.colors.border,
-                      opacity: 0.5,
-                    }} />
 
                     <div style={{
                       display: 'flex',

@@ -60,6 +60,7 @@ import ProductManagement from './components/screens/Management';
 // Import UI components
 import Button from './components/ui/Button';
 import Card from './components/ui/Card';
+import Sidebar from './components/ui/Sidebar';
 import { darkTheme } from './styles/theme';
 
 function AppContent() {
@@ -69,6 +70,8 @@ function AppContent() {
   const navigate = useNavigate();
   const location = useLocation();
   const [lastBill, setLastBill] = useState(null);
+
+  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
 
   const getActiveTab = (pathname) => {
     if (pathname === '/') return 'pos';
@@ -80,12 +83,45 @@ function AppContent() {
   const currentScreen = getActiveTab(location.pathname);
 
   const navItems = [
-    { id: 'pos', label: 'Bill', path: '/' },
-    { id: 'summary', label: 'Analytics', path: '/analytics' },
-    { id: 'management', label: 'Management', path: '/management' },
+    {
+      id: 'pos',
+      label: 'Bill',
+      path: '/',
+      icon: (
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+          <path d="M14 2v6h6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+          <path d="M16 13H8" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+          <path d="M16 17H8" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+          <path d="M10 9H8" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+        </svg>
+      )
+    },
+    {
+      id: 'summary',
+      label: 'Analytics',
+      path: '/analytics',
+      icon: (
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M18 20V10" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+          <path d="M12 20V4" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+          <path d="M6 20V14" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+        </svg>
+      )
+    },
+    {
+      id: 'management',
+      label: 'Management',
+      path: '/management',
+      icon: (
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+          <path d="M3.27 6.96L12 12.01l8.73-5.05" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+          <path d="M12 22.08V12" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+        </svg>
+      )
+    },
   ];
-
-  /* Remove currentNavItem derivation as we use logic inside loop */
 
   const todayLabel = new Date().toLocaleDateString(undefined, {
     weekday: 'short',
@@ -101,9 +137,6 @@ function AppContent() {
 
   const handleBillCreated = (bill) => {
     setLastBill(bill);
-    // Stay on POS or navigate if needed
-
-    // Auto-dismiss notification after 5 seconds
     setTimeout(() => {
       setLastBill(null);
     }, 5000);
@@ -115,357 +148,318 @@ function AppContent() {
 
   return (
     <div style={{
-      minHeight: '100dvh',
+      height: '100vh',
       display: 'flex',
-      flexDirection: 'column',
       backgroundColor: currentTheme.colors.background,
       color: currentTheme.colors.text.primary,
       fontFamily: currentTheme.typography.fontFamily.primary,
       overflow: 'hidden',
     }}>
-      {/* Header */}
-      <motion.header
-        initial={headerEnter.initial}
-        animate={headerEnter.animate}
-        transition={headerEnter.transition}
-        style={{
-          position: 'sticky',
-          top: 0,
-          zIndex: 50,
-          backgroundColor: 'transparent',
-          padding: `${currentTheme.spacing[4]} ${currentTheme.spacing[6]}`,
-        }}
-      >
-        <div style={{ maxWidth: '95vw', margin: '0 auto' }}>
-          <div style={{
-            backgroundColor: currentTheme.colors.card || currentTheme.colors.surface,
-            border: `1px solid ${currentTheme.colors.border}`,
-            borderRadius: currentTheme.borderRadius['2xl'],
-            boxShadow: isDark ? currentTheme.shadows.cardDark : currentTheme.shadows.card,
-            padding: `${currentTheme.spacing[3]} ${currentTheme.spacing[4]}`,
-          }}>
-            <div style={{
-              display: 'grid',
-              gridTemplateColumns: '1fr auto 1fr',
-              alignItems: 'center',
-              gap: currentTheme.spacing[6],
-              minHeight: '3.5rem',
-            }}>
-              <div style={{ display: 'flex', alignItems: 'center', minWidth: 0 }}>
-                <div style={{
-                  display: 'flex',
-                  alignItems: 'baseline',
-                  gap: currentTheme.spacing[3],
-                }}>
-                  <div style={{
-                    fontSize: '2.75rem',
-                    fontWeight: currentTheme.typography.fontWeight.bold,
-                    color: currentTheme.colors.primary[500],
-                    margin: 0,
-                    letterSpacing: '-0.02em',
-                    lineHeight: 1,
-                    whiteSpace: 'nowrap',
-                  }}>
-                    ReBill
-                  </div>
-                  <div style={{
-                    fontSize: '1.75rem',
-                    fontWeight: currentTheme.typography.fontWeight.medium,
-                    color: currentTheme.colors.text.primary,
-                    margin: 0,
-                    letterSpacing: '0.01em',
-                    lineHeight: 1,
-                    whiteSpace: 'nowrap',
-                    opacity: 0.7,
-                  }}>
-                    (Burger Bhau)
-                  </div>
-                </div>
-              </div>
+      {/* Search Sidebar */}
+      <Sidebar
+        activeTab={currentScreen}
+        onTabChange={(path) => navigate(path === 'pos' ? '/' : `/${path}`)}
+        isCollapsed={isSidebarCollapsed}
+        toggleCollapse={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
+        navItems={navItems}
+      />
 
-              <nav
+      {/* Main Content Area */}
+      <div style={{
+        flex: 1,
+        display: 'flex',
+        flexDirection: 'column',
+        height: '100%',
+        overflow: 'hidden',
+        position: 'relative'
+      }}>
+        {/* Header */}
+        <motion.header
+          initial={headerEnter.initial}
+          animate={headerEnter.animate}
+          transition={headerEnter.transition}
+          style={{
+            height: '80px',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            padding: `0 ${currentTheme.spacing[8]}`,
+            borderBottom: `1px solid ${currentTheme.colors.border}`,
+            backgroundColor: isDark ? 'rgba(0,0,0,0.4)' : 'rgba(255,255,255,0.8)',
+            backdropFilter: 'blur(12px)',
+            zIndex: 40,
+          }}
+        >
+          {/* Left Side - New Bill Button */}
+          <div style={{ width: '200px' }}>
+            {currentScreen === 'pos' && (
+              <Button
+                variant="primary"
+                size="md"
+                onClick={() => {
+                  if (window.confirm('Start a new bill? Current unsaved changes will be lost.')) {
+                    window.location.reload();
+                  }
+                }}
                 style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: currentTheme.spacing[2],
+                  background: 'linear-gradient(135deg, #FF6B00 0%, #FF8800 100%)',
+                  boxShadow: '0 4px 12px rgba(255, 107, 0, 0.3)',
+                  border: 'none',
+                  color: 'white',
+                  fontWeight: 600
                 }}
               >
-                {navItems.map((item) => {
-                  const isActive = currentScreen === item.id;
-                  return (
-                    <motion.div
-                      key={item.id}
-                      style={{ position: 'relative' }}
-                      whileHover={{ opacity: 0.86 }}
-                      whileTap={{ opacity: 0.78 }}
-                      transition={{ duration: 0.12, ease: [0, 0, 0.2, 1] }}
-                    >
-                      <Button
-                        size="sm"
-                        variant="ghost"
-                        onClick={() => navigate(item.path)}
-                        data-isselected={isActive}
-                        style={{
-                          position: 'relative',
-                          fontSize: currentTheme.typography.fontSize['xl'],
-                          color: currentTheme.colors.text.primary,
-                          fontWeight: currentTheme.typography.fontWeight.medium,
-                          backgroundColor: 'transparent',
-                          paddingLeft: currentTheme.spacing[3],
-                          paddingRight: currentTheme.spacing[3],
-                        }}
-                      >
-                        {item.label}
-                      </Button>
-                      {isActive && (
-                        <motion.div
-                          layoutId="activeNavUnderline"
-                          style={{
-                            position: 'absolute',
-                            left: currentTheme.spacing[3],
-                            right: currentTheme.spacing[3],
-                            bottom: '-6px',
-                            height: '2px',
-                            backgroundColor: currentTheme.colors.primary[600],
-                            borderRadius: currentTheme.borderRadius.full,
-                          }}
-                          transition={{ duration: 0.22, ease: [0, 0, 0.2, 1] }}
-                        />
-                      )}
-                    </motion.div>
-                  );
-                })}
-              </nav>
-
-              <div style={{ display: 'flex', justifyContent: 'flex-end', minWidth: 0 }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: currentTheme.spacing[3] }}>
-                  <div style={{
-                    fontSize: currentTheme.typography.fontSize.sm,
-                    fontWeight: currentTheme.typography.fontWeight.normal,
-                    color: currentTheme.colors.text.muted,
-                    letterSpacing: currentTheme.typography.letterSpacing.normal,
-                    whiteSpace: 'nowrap',
-                  }}>
-                    {todayLabel}
-                  </div>
-
-                  <motion.div
-                    whileHover={{ opacity: 0.86 }}
-                    whileTap={{ opacity: 0.78 }}
-                    transition={{ duration: 0.12, ease: [0, 0, 0.2, 1] }}
-                  >
-                    <Button
-                      size="sm"
-                      variant="ghost"
-                      onClick={toggleTheme}
-                      aria-label={isDark ? 'Switch to light mode' : 'Switch to dark mode'}
-                      title={isDark ? 'Light mode' : 'Dark mode'}
-                      style={{
-                        width: '2.5rem',
-                        height: '2.5rem',
-                        minWidth: '2.5rem',
-                        padding: 0,
-                        borderRadius: currentTheme.borderRadius.lg,
-                        border: `1px solid ${currentTheme.colors.border}`,
-                        backgroundColor: currentTheme.colors.surface,
-                        color: currentTheme.colors.text.secondary,
-                        boxShadow: currentTheme.shadows.inner,
-                      }}
-                    >
-                      {isDark ? (
-                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-                          <path
-                            d="M12 18a6 6 0 1 0 0-12 6 6 0 0 0 0 12Z"
-                            stroke="currentColor"
-                            strokeWidth="2"
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                          />
-                          <path d="M12 2v2" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-                          <path d="M12 20v2" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-                          <path d="M4.93 4.93l1.41 1.41" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-                          <path d="M17.66 17.66l1.41 1.41" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-                          <path d="M2 12h2" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-                          <path d="M20 12h2" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-                          <path d="M4.93 19.07l1.41-1.41" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-                          <path d="M17.66 6.34l1.41-1.41" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-                        </svg>
-                      ) : (
-                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-                          <path
-                            d="M21 13.2A7.5 7.5 0 0 1 10.8 3a6.6 6.6 0 1 0 10.2 10.2Z"
-                            stroke="currentColor"
-                            strokeWidth="2"
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                          />
-                        </svg>
-                      )}
-                    </Button>
-                  </motion.div>
-                </div>
-              </div>
-            </div>
+                Start New Bill
+              </Button>
+            )}
+            {/* Show "New Bill" button on other screens too if needed, or keeping it empty to balance layout */}
+            {currentScreen !== 'pos' && (
+              <Button
+                variant="primary"
+                size="md"
+                onClick={() => navigate('/')}
+                style={{
+                  background: 'linear-gradient(135deg, #FF6B00 0%, #FF8800 100%)',
+                  boxShadow: '0 4px 12px rgba(255, 107, 0, 0.3)',
+                  border: 'none',
+                  color: 'white',
+                  fontWeight: 600
+                }}
+              >
+                New Bill
+              </Button>
+            )}
           </div>
-        </div>
-      </motion.header>
 
-      {/* Main Content */}
-      <main style={{
-        flex: 1,
-        minHeight: 0,
-        margin: 0,
-        padding: 0,
-        overflow: 'hidden',
-      }}>
-        <Routes>
-          <Route path="/" element={<WorkingPOSInterface onBillCreated={handleBillCreated} />} />
-          <Route path="/analytics" element={<Reports />} />
-          <Route path="/management" element={<ProductManagement />} />
-          <Route path="*" element={<WorkingPOSInterface onBillCreated={handleBillCreated} />} />
-        </Routes>
-      </main>
+          {/* Center - Title */}
+          <div style={{
+            flex: 1,
+            display: 'flex',
+            justifyContent: 'center',
+            alignItems: 'center',
+            gap: currentTheme.spacing[3]
+          }}>
+            <h1 style={{
+              fontSize: '2rem',
+              fontWeight: 800,
+              margin: 0,
+              background: `linear-gradient(135deg, ${currentTheme.colors.primary[500]}, ${currentTheme.colors.primary[600]})`,
+              WebkitBackgroundClip: 'text',
+              WebkitTextFillColor: 'transparent',
+              letterSpacing: '-0.02em',
+            }}>
+              ReBill
+              <span style={{
+                fontSize: '1.25rem',
+                fontWeight: 500,
+                color: currentTheme.colors.text.secondary,
+                WebkitTextFillColor: currentTheme.colors.text.secondary,
+                marginLeft: '12px'
+              }}>
+                (Burger Bhau)
+              </span>
+            </h1>
+          </div>
 
-      {/* Last Bill Notification with Spotlight Effect */}
-      <AnimatePresence>
-        {lastBill && (
-          <>
-            {/* Blur Backdrop */}
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              transition={{ duration: 0.2 }}
+          {/* Right Side - Date & Theme */}
+          <div style={{
+            width: '200px',
+            display: 'flex',
+            justifyContent: 'flex-end',
+            alignItems: 'center',
+            gap: currentTheme.spacing[4]
+          }}>
+            <div style={{
+              padding: `${currentTheme.spacing[1]} ${currentTheme.spacing[3]}`,
+              backgroundColor: currentTheme.colors.surface,
+              border: `1px solid ${currentTheme.colors.border}`,
+              borderRadius: '999px',
+              fontSize: '0.875rem',
+              fontWeight: 500,
+              color: currentTheme.colors.text.secondary,
+            }}>
+              {todayLabel}
+            </div>
+
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={toggleTheme}
               style={{
-                position: 'fixed',
-                top: 0,
-                left: 0,
-                right: 0,
-                bottom: 0,
-                backgroundColor: 'rgba(0, 0, 0, 0.5)',
-                backdropFilter: 'blur(4px)',
-                zIndex: 999,
-                cursor: 'pointer',
-              }}
-              onClick={closeNotification}
-            />
-
-            {/* Notification Card */}
-            <motion.div
-              initial={{ opacity: 0, y: -50, scale: 0.9 }}
-              animate={{ opacity: 1, y: 0, scale: 1 }}
-              exit={{ opacity: 0, y: -50, scale: 0.9 }}
-              transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
-              style={{
-                position: 'fixed',
-                top: currentTheme.spacing[6],
-                right: currentTheme.spacing[6],
-                zIndex: 1000,
+                width: '40px',
+                height: '40px',
+                padding: 0,
+                borderRadius: '12px',
+                border: `1px solid ${currentTheme.colors.border}`,
+                backgroundColor: currentTheme.colors.surface,
               }}
             >
-              <div style={{
-                background: isDark ? 'rgba(30, 41, 59, 0.98)' : 'rgba(255, 255, 255, 0.98)',
-                backdropFilter: 'blur(20px)',
-                border: `1px solid ${isDark ? 'rgba(34, 197, 94, 0.3)' : 'rgba(34, 197, 94, 0.2)'}`,
-                borderRadius: '16px',
-                padding: `${currentTheme.spacing[4]} ${currentTheme.spacing[5]}`,
-                boxShadow: isDark
-                  ? '0 8px 32px rgba(34, 197, 94, 0.15), 0 4px 16px rgba(0, 0, 0, 0.3)'
-                  : '0 8px 32px rgba(34, 197, 94, 0.1), 0 4px 16px rgba(0, 0, 0, 0.1)',
-                minWidth: '320px',
-                position: 'relative',
-                overflow: 'hidden',
-                cursor: 'default',
-              }}>
-                {/* Success Indicator */}
-                <div style={{
-                  position: 'absolute',
+              {isDark ? (
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="5" /><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42" /></svg>
+              ) : (
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" /></svg>
+              )}
+            </Button>
+          </div>
+        </motion.header>
+
+        {/* Main Content */}
+        <main style={{
+          flex: 1,
+          minHeight: 0,
+          margin: 0,
+          padding: 0,
+          overflow: 'hidden',
+        }}>
+          <Routes>
+            <Route path="/" element={<WorkingPOSInterface onBillCreated={handleBillCreated} />} />
+            <Route path="/analytics" element={<Reports />} />
+            <Route path="/management" element={<ProductManagement />} />
+            <Route path="*" element={<WorkingPOSInterface onBillCreated={handleBillCreated} />} />
+          </Routes>
+        </main>
+
+        {/* Last Bill Notification with Spotlight Effect */}
+        <AnimatePresence>
+          {lastBill && (
+            <>
+              {/* Blur Backdrop */}
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 0.2 }}
+                style={{
+                  position: 'fixed',
                   top: 0,
                   left: 0,
-                  width: '4px',
-                  height: '100%',
-                  background: `linear-gradient(180deg, ${currentTheme.colors.success[500]}, ${currentTheme.colors.success[600]})`,
-                }} />
+                  right: 0,
+                  bottom: 0,
+                  backgroundColor: 'rgba(0, 0, 0, 0.5)',
+                  backdropFilter: 'blur(4px)',
+                  zIndex: 999,
+                  cursor: 'pointer',
+                }}
+                onClick={closeNotification}
+              />
 
-                {/* Header */}
+              {/* Notification Card */}
+              <motion.div
+                initial={{ opacity: 0, y: -50, scale: 0.9 }}
+                animate={{ opacity: 1, y: 0, scale: 1 }}
+                exit={{ opacity: 0, y: -50, scale: 0.9 }}
+                transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
+                style={{
+                  position: 'fixed',
+                  top: currentTheme.spacing[6],
+                  right: currentTheme.spacing[6],
+                  zIndex: 1000,
+                }}
+              >
                 <div style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: currentTheme.spacing[3],
-                  marginBottom: currentTheme.spacing[2],
+                  background: isDark ? 'rgba(30, 41, 59, 0.98)' : 'rgba(255, 255, 255, 0.98)',
+                  backdropFilter: 'blur(20px)',
+                  border: `1px solid ${isDark ? 'rgba(34, 197, 94, 0.3)' : 'rgba(34, 197, 94, 0.2)'}`,
+                  borderRadius: '16px',
+                  padding: `${currentTheme.spacing[4]} ${currentTheme.spacing[5]}`,
+                  boxShadow: isDark
+                    ? '0 8px 32px rgba(34, 197, 94, 0.15), 0 4px 16px rgba(0, 0, 0, 0.3)'
+                    : '0 8px 32px rgba(34, 197, 94, 0.1), 0 4px 16px rgba(0, 0, 0, 0.1)',
+                  minWidth: '320px',
+                  position: 'relative',
+                  overflow: 'hidden',
+                  cursor: 'default',
                 }}>
+                  {/* Success Indicator */}
                   <div style={{
-                    width: '32px',
-                    height: '32px',
-                    borderRadius: '50%',
-                    background: `linear-gradient(135deg, ${currentTheme.colors.success[500]}, ${currentTheme.colors.success[600]})`,
+                    position: 'absolute',
+                    top: 0,
+                    left: 0,
+                    width: '4px',
+                    height: '100%',
+                    background: `linear-gradient(180deg, ${currentTheme.colors.success[500]}, ${currentTheme.colors.success[600]})`,
+                  }} />
+
+                  {/* Header */}
+                  <div style={{
                     display: 'flex',
                     alignItems: 'center',
-                    justifyContent: 'center',
-                    boxShadow: `0 4px 12px ${isDark ? 'rgba(34, 197, 94, 0.3)' : 'rgba(34, 197, 94, 0.2)'}`,
+                    gap: currentTheme.spacing[3],
+                    marginBottom: currentTheme.spacing[2],
                   }}>
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                      <path d="M20 6L9 17L4 12" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                    </svg>
-                  </div>
-                  <div>
-                    <h4 style={{
-                      fontSize: '0.95rem',
-                      fontWeight: 600,
-                      color: currentTheme.colors.text.primary,
-                      margin: 0,
-                      lineHeight: 1.2,
+                    <div style={{
+                      width: '32px',
+                      height: '32px',
+                      borderRadius: '50%',
+                      background: `linear-gradient(135deg, ${currentTheme.colors.success[500]}, ${currentTheme.colors.success[600]})`,
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      boxShadow: `0 4px 12px ${isDark ? 'rgba(34, 197, 94, 0.3)' : 'rgba(34, 197, 94, 0.2)'}`,
                     }}>
-                      Bill Created Successfully!
-                    </h4>
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M20 6L9 17L4 12" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                      </svg>
+                    </div>
+                    <div>
+                      <h4 style={{
+                        fontSize: '0.95rem',
+                        fontWeight: 600,
+                        color: currentTheme.colors.text.primary,
+                        margin: 0,
+                        lineHeight: 1.2,
+                      }}>
+                        Bill Created Successfully!
+                      </h4>
+                    </div>
                   </div>
-                </div>
 
-                {/* Bill Details */}
-                <div style={{
-                  display: 'flex',
-                  flexDirection: 'column',
-                  gap: currentTheme.spacing[1],
-                  paddingLeft: '44px', // Align with header text
-                }}>
-                  <p style={{
-                    fontSize: '0.875rem',
-                    color: currentTheme.colors.text.secondary,
-                    margin: 0,
-                    lineHeight: 1.4,
+                  {/* Bill Details */}
+                  <div style={{
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: currentTheme.spacing[1],
+                    paddingLeft: '44px', // Align with header text
                   }}>
-                    <span style={{ fontWeight: 600 }}>Bill #{lastBill.bill_no}</span>
-                  </p>
-                  <p style={{
-                    fontSize: '0.875rem',
-                    color: currentTheme.colors.text.secondary,
-                    margin: 0,
-                    lineHeight: 1.4,
-                  }}>
-                    Total: <span style={{ fontWeight: 600, color: currentTheme.colors.success[600] }}>{formatCurrency(lastBill.total)}</span>
-                  </p>
-                </div>
+                    <p style={{
+                      fontSize: '0.875rem',
+                      color: currentTheme.colors.text.secondary,
+                      margin: 0,
+                      lineHeight: 1.4,
+                    }}>
+                      <span style={{ fontWeight: 600 }}>Bill #{lastBill.bill_no}</span>
+                    </p>
+                    <p style={{
+                      fontSize: '0.875rem',
+                      color: currentTheme.colors.text.secondary,
+                      margin: 0,
+                      lineHeight: 1.4,
+                    }}>
+                      Total: <span style={{ fontWeight: 600, color: currentTheme.colors.success[600] }}>{formatCurrency(lastBill.total)}</span>
+                    </p>
+                  </div>
 
-                {/* Auto-dismiss indicator */}
-                <div style={{
-                  position: 'absolute',
-                  bottom: 0,
-                  left: 0,
-                  height: '2px',
-                  width: '100%',
-                  background: `linear-gradient(90deg, ${currentTheme.colors.success[500]}, ${currentTheme.colors.success[600]})`,
-                  transformOrigin: 'left',
-                }} />
-              </div>
-            </motion.div>
-          </>
-        )}
-      </AnimatePresence>
+                  {/* Auto-dismiss indicator */}
+                  <div style={{
+                    position: 'absolute',
+                    bottom: 0,
+                    left: 0,
+                    height: '2px',
+                    width: '100%',
+                    background: `linear-gradient(90deg, ${currentTheme.colors.success[500]}, ${currentTheme.colors.success[600]})`,
+                    transformOrigin: 'left',
+                  }} />
+                </div>
+              </motion.div>
+            </>
+          )}
+        </AnimatePresence>
+      </div> {/* End Main Content Area */}
     </div>
   );
 }
 
-function App() {
+export default function App() {
   return (
     <ThemeProvider>
       <ToastProvider>
@@ -476,5 +470,3 @@ function App() {
     </ThemeProvider>
   );
 }
-
-export default App;

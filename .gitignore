@@ -66,3 +66,5 @@ backend/data/archive/
 backend/data/images/
 backend/requirements.txt
 backend/data/products.db
+
+data\products.db

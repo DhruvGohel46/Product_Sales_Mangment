@@ -17,6 +17,18 @@ const Sidebar = ({
         collapsed: { width: '80px' }
     };
 
+    const [lastTap, setLastTap] = React.useState(0);
+
+    const handleDoubleTap = (e) => {
+        const currentTime = new Date().getTime();
+        const tapLength = currentTime - lastTap;
+        if (tapLength < 300 && tapLength > 0) {
+            toggleCollapse();
+            e.preventDefault();
+        }
+        setLastTap(currentTime);
+    };
+
     return (
         <motion.div
             initial={isCollapsed ? 'collapsed' : 'expanded'}
@@ -24,6 +36,7 @@ const Sidebar = ({
             variants={sidebarVariants}
             transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
             onDoubleClick={toggleCollapse}
+            onTouchEnd={handleDoubleTap}
             style={{
                 height: '100%',
                 backgroundColor: currentTheme.colors.card || currentTheme.colors.surface,
@@ -32,6 +45,8 @@ const Sidebar = ({
                 flexDirection: 'column',
                 zIndex: 50,
                 flexShrink: 0,
+                userSelect: 'none',
+                touchAction: 'manipulation', // Improves touch response
             }}
         >
             {/* Header / Logo Area */}

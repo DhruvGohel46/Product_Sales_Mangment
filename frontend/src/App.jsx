@@ -72,6 +72,7 @@ function AppContent() {
   const [lastBill, setLastBill] = useState(null);
 
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
+  const [posKey, setPosKey] = useState(0);
 
   const getActiveTab = (pathname) => {
     if (pathname === '/') return 'pos';
@@ -158,7 +159,11 @@ function AppContent() {
       {/* Search Sidebar */}
       <Sidebar
         activeTab={currentScreen}
-        onTabChange={(path) => navigate(path === 'pos' ? '/' : `/${path}`)}
+        onTabChange={(id) => {
+          if (id === 'pos') navigate('/');
+          else if (id === 'summary') navigate('/analytics');
+          else if (id === 'management') navigate('/management');
+        }}
         isCollapsed={isSidebarCollapsed}
         toggleCollapse={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
         navItems={navItems}
@@ -188,47 +193,29 @@ function AppContent() {
             backgroundColor: isDark ? 'rgba(0,0,0,0.4)' : 'rgba(255,255,255,0.8)',
             backdropFilter: 'blur(12px)',
             zIndex: 40,
+            flexShrink: 0,
           }}
         >
           {/* Left Side - New Bill Button */}
           <div style={{ width: '200px' }}>
-            {currentScreen === 'pos' && (
-              <Button
-                variant="primary"
-                size="md"
-                onClick={() => {
-                  if (window.confirm('Start a new bill? Current unsaved changes will be lost.')) {
-                    window.location.reload();
-                  }
-                }}
-                style={{
-                  background: 'linear-gradient(135deg, #FF6B00 0%, #FF8800 100%)',
-                  boxShadow: '0 4px 12px rgba(255, 107, 0, 0.3)',
-                  border: 'none',
-                  color: 'white',
-                  fontWeight: 600
-                }}
-              >
-                Start New Bill
-              </Button>
-            )}
-            {/* Show "New Bill" button on other screens too if needed, or keeping it empty to balance layout */}
-            {currentScreen !== 'pos' && (
-              <Button
-                variant="primary"
-                size="md"
-                onClick={() => navigate('/')}
-                style={{
-                  background: 'linear-gradient(135deg, #FF6B00 0%, #FF8800 100%)',
-                  boxShadow: '0 4px 12px rgba(255, 107, 0, 0.3)',
-                  border: 'none',
-                  color: 'white',
-                  fontWeight: 600
-                }}
-              >
-                New Bill
-              </Button>
-            )}
+            {/* Show "Start New Bill" button on all screens */}
+            <Button
+              variant="primary"
+              size="md"
+              onClick={() => {
+                setPosKey(prev => prev + 1);
+                navigate('/');
+              }}
+              style={{
+                background: 'linear-gradient(135deg, #FF6B00 0%, #FF8800 100%)',
+                boxShadow: '0 4px 12px rgba(255, 107, 0, 0.3)',
+                border: 'none',
+                color: 'white',
+                fontWeight: 600
+              }}
+            >
+              Start New Bill
+            </Button>
           </div>
 
           {/* Center - Title */}
@@ -309,13 +296,14 @@ function AppContent() {
           minHeight: 0,
           margin: 0,
           padding: 0,
-          overflow: 'hidden',
+          overflowY: 'auto', // Enable vertical scrolling
+          overflowX: 'hidden',
         }}>
           <Routes>
-            <Route path="/" element={<WorkingPOSInterface onBillCreated={handleBillCreated} />} />
+            <Route path="/" element={<WorkingPOSInterface key={posKey} onBillCreated={handleBillCreated} />} />
             <Route path="/analytics" element={<Reports />} />
             <Route path="/management" element={<ProductManagement />} />
-            <Route path="*" element={<WorkingPOSInterface onBillCreated={handleBillCreated} />} />
+            <Route path="*" element={<WorkingPOSInterface key={posKey} onBillCreated={handleBillCreated} />} />
           </Routes>
         </main>
 

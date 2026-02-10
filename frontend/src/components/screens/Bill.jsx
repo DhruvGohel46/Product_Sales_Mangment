@@ -57,6 +57,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useTheme } from '../../context/ThemeContext';
+import { useSettings } from '../../context/SettingsContext';
 import { useToast } from '../../context/ToastContext';
 import { productsAPI, billingAPI, categoriesAPI } from '../../utils/api';
 import { handleAPIError, formatCurrency } from '../../utils/api';
@@ -76,6 +77,8 @@ const TrashIcon = ({ color }) => (
 
 const WorkingPOSInterface = ({ onBillCreated }) => {
   const { currentTheme, isDark } = useTheme();
+  const { settings } = useSettings();
+  const showImages = settings?.show_product_images !== 'false';
   const { showSuccess } = useToast();
 
   const [products, setProducts] = useState([]);
@@ -293,10 +296,11 @@ const WorkingPOSInterface = ({ onBillCreated }) => {
 
   const mainContainerStyle = {
     display: 'flex',
-    height: '82vh',
+    height: '100%',
     backgroundColor: currentTheme.colors.background,
     fontFamily: currentTheme.typography.fontFamily.primary,
     overflow: 'hidden',
+    boxSizing: 'border-box',
   };
 
   const leftSidebarStyle = {
@@ -305,24 +309,25 @@ const WorkingPOSInterface = ({ onBillCreated }) => {
     borderRight: `1px solid ${currentTheme.colors.border}`,
     display: 'flex',
     flexDirection: 'column',
-    height: "82vh",
+    height: "100%",
   };
 
   const middleSectionStyle = {
     flex: 1,
     padding: currentTheme.spacing[6],
     overflowY: 'auto',
-    height: '82vh',
+    height: '100%',
     backgroundColor: currentTheme.colors.background,
   };
 
+  // rightSectionStyle is unused now as we inlined it to fix nesting, but keeping for safety if referenced elsewhere or cleanup later.
   const rightSectionStyle = {
     width: '400px',
     backgroundColor: currentTheme.colors.surface,
     borderLeft: `1px solid ${currentTheme.colors.border}`,
     display: 'flex',
     flexDirection: 'column',
-    height: '82vh',
+    height: '100%',
   };
 
   return (
@@ -369,8 +374,8 @@ const WorkingPOSInterface = ({ onBillCreated }) => {
                     ? `1px solid ${currentTheme.colors.primary[200]}`
                     : `1px solid ${currentTheme.colors.border}`,
                   backgroundColor: selectedCategory === category.id
-                    ? (isDark ? '#444444ff' : '#E9E9E9')
-                    : (isDark ? '#1A1A1A' : '#F1F1F1'),
+                    ? (isDark ? currentTheme.colors.border.primary : '#E9E9E9')
+                    : (isDark ? currentTheme.colors.surface : '#F1F1F1'),
 
                   boxShadow: isDark ? currentTheme.shadows.cardDark : currentTheme.shadows.card,
                   transition: 'all 0.2s cubic-bezier(0, 0, 0.2, 1)',
@@ -478,31 +483,19 @@ const WorkingPOSInterface = ({ onBillCreated }) => {
               </p>
             </div>
           ) : (
-            <motion.div
-              initial="initial"
-              animate="animate"
-              variants={{
-                initial: { opacity: 0 },
-                animate: {
-                  opacity: 1,
-                  transition: {
-                    staggerChildren: 0.05
-                  }
-                }
-              }}
-              style={{
-                display: 'grid',
-                gridTemplateColumns: 'repeat(auto-fill, minmax(180px, 1fr))',
-                gap: currentTheme.spacing[8],
-              }}
-            >
+            <div style={{
+              display: 'grid',
+              gridTemplateColumns: 'repeat(auto-fill, minmax(160px, 1fr))',
+              gap: currentTheme.spacing[4],
+              paddingBottom: currentTheme.spacing[4],
+            }}>
               {filteredProducts.map((product) => (
                 <motion.div
+                  layout
                   key={product.product_id}
-                  variants={{
-                    initial: { opacity: 0, y: 20 },
-                    animate: { opacity: 1, y: 0 }
-                  }}
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, scale: 0.95 }}
                   whileHover={{
                     y: -4,
                     scale: 1.02,
@@ -527,80 +520,100 @@ const WorkingPOSInterface = ({ onBillCreated }) => {
                   style={{
                     cursor: 'pointer',
                     textAlign: 'center',
-                    minHeight: '240px',
+                    minHeight: showImages ? '240px' : 'auto',
+                    height: showImages ? 'auto' : '110px',
                     display: 'flex',
                     flexDirection: 'column',
-                    justifyContent: 'space-between',
+                    justifyContent: showImages ? 'space-between' : 'center',
                     borderTop: `2px solid ${CATEGORY_COLORS[product.category] || currentTheme.colors.primary[500]}`,
                     backgroundColor: currentTheme.colors.Card,
                     borderRadius: '15px',
                     border: `1px solid ${currentTheme.colors.border}`,
-                    padding: currentTheme.spacing.lg,
+                    padding: showImages ? currentTheme.spacing.lg : '12px',
                     boxShadow: isDark ? currentTheme.shadows.cardDark : currentTheme.shadows.card,
                     id: `product-${product.product_id}`,
+                    transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
                   }}
                 >
-                  <div style={{
-                    width: '100%',
-                    height: '160px',
-                    marginBottom: currentTheme.spacing[3],
-                    borderRadius: '8px',
-                    overflow: 'hidden',
-                    backgroundColor: isDark ? 'rgba(0,0,0,0.2)' : 'rgba(0,0,0,0.05)',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                  }}>
-                    {product.image_filename ? (
-                      <img
-                        src={productsAPI.getImageUrl(product.image_filename)}
-                        alt={product.name}
-                        style={{
-                          width: '100%',
-                          height: '100%',
-                          objectFit: 'contain'
-                        }}
-                        onError={(e) => {
-                          e.target.style.display = 'none';
-                          e.target.parentElement.innerHTML = '<span style="font-size:0.75rem; color:var(--text-tertiary)">Image Error</span>';
-                        }}
-                      />
-                    ) : (
-                      <span style={{
-                        fontSize: '0.75rem',
-                        color: currentTheme.colors.text.secondary,
-                        textAlign: 'center',
-                        padding: '0 8px'
-                      }}>
-                        No image of product
-                      </span>
-                    )}
-                  </div>
+                  {showImages && (
+                    <div style={{
+                      width: '100%',
+                      height: '160px',
+                      marginBottom: currentTheme.spacing[3],
+                      borderRadius: '8px',
+                      overflow: 'hidden',
+                      backgroundColor: isDark ? 'rgba(0,0,0,0.2)' : 'rgba(0,0,0,0.05)',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                    }}>
+                      {product.image_filename ? (
+                        <img
+                          src={productsAPI.getImageUrl(product.image_filename)}
+                          alt={product.name}
+                          style={{
+                            width: '100%',
+                            height: '100%',
+                            objectFit: 'contain'
+                          }}
+                          onError={(e) => {
+                            e.target.style.display = 'none';
+                            e.target.parentElement.innerHTML = '<span style="font-size:0.75rem; color:var(--text-tertiary)">Image Error</span>';
+                          }}
+                        />
+                      ) : (
+                        <span style={{
+                          fontSize: '0.75rem',
+                          color: currentTheme.colors.text.secondary,
+                          textAlign: 'center',
+                          padding: '0 8px'
+                        }}>
+                          No image of product
+                        </span>
+                      )}
+                    </div>
+                  )}
 
-                  <h4 style={{
-                    fontSize: currentTheme.typography.fontSize.base,
-                    fontWeight: currentTheme.typography.fontWeight.semibold,
-                    color: currentTheme.colors.text.primary,
-                    marginBottom: currentTheme.spacing[1],
-                    lineHeight: currentTheme.typography.lineHeight.tight,
-                  }}>
-                    {product.name}
-                  </h4>
-                  <div style={{
-                    fontSize: currentTheme.typography.fontSize.lg,
-                    fontWeight: currentTheme.typography.fontWeight.bold,
-                    color: CATEGORY_COLORS[product.category] || currentTheme.colors.primary[500],
-                  }}>
-                    {formatCurrency(product.price)}
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: showImages ? '4px' : '2px', flex: 1, justifyContent: showImages ? 'flex-start' : 'center' }}>
+                    <h4 style={{
+                      fontSize: showImages ? currentTheme.typography.fontSize.base : '1.05rem',
+                      fontWeight: currentTheme.typography.fontWeight.semibold,
+                      color: currentTheme.colors.text.primary,
+                      marginBottom: showImages ? currentTheme.spacing[1] : '4px',
+                      lineHeight: currentTheme.typography.lineHeight.tight,
+                      display: '-webkit-box',
+                      WebkitLineClamp: 2,
+                      WebkitBoxOrient: 'vertical',
+                      overflow: 'hidden',
+                      textOverflow: 'ellipsis',
+                    }}>
+                      {product.name}
+                    </h4>
+                    <div style={{
+                      fontSize: showImages ? currentTheme.typography.fontSize.lg : '1rem',
+                      fontWeight: currentTheme.typography.fontWeight.bold,
+                      color: CATEGORY_COLORS[product.category] || currentTheme.colors.primary[500],
+                    }}>
+                      {formatCurrency(product.price)}
+                    </div>
                   </div>
                 </motion.div>
               ))}
-            </motion.div>
+            </div>
           )}
         </div>
-      </div>
+      </div >
 
-      <div style={rightSectionStyle}>
+      {/* Right Side - Billing Panel */}
+      <div style={{
+        width: '400px',
+        backgroundColor: currentTheme.colors.surface,
+        borderLeft: `1px solid ${currentTheme.colors.border}`,
+        display: 'flex',
+        flexDirection: 'column',
+        height: '100%',
+        overflow: 'hidden',
+      }}>
         <div style={{
           flex: 1,
           padding: currentTheme.spacing[4],
@@ -831,23 +844,25 @@ const WorkingPOSInterface = ({ onBillCreated }) => {
         </div>
       </div>
 
-      {error && (
-        <div style={{
-          position: 'fixed',
-          bottom: currentTheme.spacing[4],
-          left: '50%',
-          transform: 'translateX(-50%)',
-          zIndex: 1000,
-        }}>
-          <Card variant="error" padding="md">
-            <div style={{
-              fontSize: currentTheme.typography.fontSize.sm,
-              color: currentTheme.colors.error[600],
-              fontWeight: currentTheme.typography.fontWeight.medium,
-            }}>{error}</div>
-          </Card>
-        </div>
-      )}
+      {
+        error && (
+          <div style={{
+            position: 'fixed',
+            bottom: currentTheme.spacing[4],
+            left: '50%',
+            transform: 'translateX(-50%)',
+            zIndex: 1000,
+          }}>
+            <Card variant="error" padding="md">
+              <div style={{
+                fontSize: currentTheme.typography.fontSize.sm,
+                color: currentTheme.colors.error[600],
+                fontWeight: currentTheme.typography.fontWeight.medium,
+              }}>{error}</div>
+            </Card>
+          </div>
+        )
+      }
 
       {/* Clear Confirmation Modal */}
       <AnimatePresence>
@@ -887,7 +902,7 @@ const WorkingPOSInterface = ({ onBillCreated }) => {
           </motion.div>
         )}
       </AnimatePresence>
-    </div>
+    </div >
   );
 };
 

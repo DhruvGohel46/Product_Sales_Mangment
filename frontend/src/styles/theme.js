@@ -365,21 +365,37 @@ export const lightTheme = {
 export const darkTheme = {
   colors: {
     ...colors,
-    background: '#000000', // Dark Black
-    surface: '#09090b',    // Slightly lighter for cards
-    card: '#09090b',
+    background: '#121212', // Strict Monochromatic Background
+    surface: '#1E1E1E',    // Slightly lighter gray for cards (Standard Dark Mode Pattern)
+    card: '#1E1E1E',       // Matching surface
     text: {
-      primary: colors.text.inverse,
-      secondary: neutral[400],
-      muted: neutral[500],
+      primary: '#E0E0E0',  // High contrast gray
+      secondary: '#B0B0B0', // Medium gray
+      muted: '#888888',    // Muted gray
+      inverse: '#121212',
     },
-    border: neutral[800],
-    focus: colors.primary[400],
+    border: {
+      primary: '#444444',   // Strict gray border
+      secondary: '#333333', // Darker gray
+      tertiary: '#2C2C2C',  // Subtle gray
+    },
+    focus: colors.primary[500],
   },
   typography,
   spacing,
   borderRadius,
-  shadows,
+  shadows: {
+    ...shadows,
+    card: '0 4px 6px -1px rgba(0, 0, 0, 0.5), 0 2px 4px -1px rgba(0, 0, 0, 0.3)',
+    cardHover: '0 10px 15px -3px rgba(0, 0, 0, 0.5), 0 4px 6px -2px rgba(0, 0, 0, 0.3)',
+    cardDark: '0 8px 32px rgba(0, 0, 0, 0.5)',
+    cardDarkHover: '0 8px 32px rgba(0, 0, 0, 0.4)',
+    // Removed colored glow to ensure strict monochromatic feel aside from accents
+    glow: {
+      primary: '0 0 15px rgba(249, 115, 22, 0.15)', // Keep PRIMARY accent glow only
+      success: '0 0 15px rgba(34, 197, 94, 0.15)',
+    }
+  },
 };
 
 // Default theme

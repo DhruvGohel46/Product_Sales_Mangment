@@ -6,6 +6,7 @@ import { useToast } from '../../context/ToastContext';
 import CategoryManagement from './CategoryManagement';
 import '../../styles/Management.css';
 import { useTheme } from '../../context/ThemeContext';
+import { useSettings } from '../../context/SettingsContext';
 
 const IconPlus = (props) => (
   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" {...props}>
@@ -44,6 +45,8 @@ const IconTrash = (props) => (
 const ProductManagement = () => {
   const { staggerContainer, staggerItem } = useAnimation();
   const { showSuccess } = useToast();
+  const { settings } = useSettings();
+  const showImages = settings?.show_product_images !== 'false';
   const topRef = useRef(null);
 
   const [products, setProducts] = useState([]);
@@ -512,52 +515,71 @@ const ProductManagement = () => {
         ) : (
           <motion.div className="pmGrid" variants={staggerContainer} initial="initial" animate="animate">
             {filteredProducts.map((product) => (
-              <motion.div key={product.product_id} variants={staggerItem} className={`pmCard ${!product.active ? 'pmCardInactive' : ''}`}>
-                <div className="pmCardImageContainer">
-                  {product.image_filename ? (
-                    <img
-                      src={productsAPI.getImageUrl(product.image_filename)}
-                      alt={product.name}
-                      className="pmCardImage"
-                      onError={(e) => {
-                        e.target.style.display = 'none';
-                        e.target.nextSibling.style.display = 'flex';
-                      }}
-                    />
-                  ) : null}
-                  {/* Fallback placeholder (shown if no image or error) */}
-                  <div className="pmCardImagePlaceholder" style={{ display: product.image_filename ? 'none' : 'flex', position: product.image_filename ? 'absolute' : 'relative', width: '100%', height: '100%', alignItems: 'center', justifyContent: 'center' }}>
-                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                      <path d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                    </svg>
-                    <span>No Image</span>
+              <motion.div
+                key={product.product_id}
+                variants={staggerItem}
+                className={`pmCard ${!product.active ? 'pmCardInactive' : ''}`}
+                style={{
+                  minHeight: showImages ? '180px' : 'auto',
+                  padding: showImages ? '20px' : '16px',
+                }}
+              >
+                {showImages && (
+                  <div className="pmCardImageContainer">
+                    {product.image_filename ? (
+                      <img
+                        src={productsAPI.getImageUrl(product.image_filename)}
+                        alt={product.name}
+                        className="pmCardImage"
+                        onError={(e) => {
+                          e.target.style.display = 'none';
+                          e.target.nextSibling.style.display = 'flex';
+                        }}
+                      />
+                    ) : null}
+                    {/* Fallback placeholder (shown if no image or error) */}
+                    <div className="pmCardImagePlaceholder" style={{ display: product.image_filename ? 'none' : 'flex', position: product.image_filename ? 'absolute' : 'relative', width: '100%', height: '100%', alignItems: 'center', justifyContent: 'center' }}>
+                      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                      </svg>
+                      <span>No Image</span>
+                    </div>
                   </div>
-                </div>
+                )}
 
-                <div className="pmCardContent">
+                <div className="pmCardContent" style={{ padding: showImages ? '16px' : '0 0 8px 0', gap: showImages ? '12px' : '8px' }}>
                   <div className="pmCardHeader">
-                    <div className="pmName" title={product.name}>{product.name}</div>
+                    <div className="pmName" title={product.name} style={{ fontSize: showImages ? '16px' : '17px', WebkitLineClamp: showImages ? 2 : 1 }}>{product.name}</div>
                     <div className="pmPriceRow">
                       <div className="pmPrice">{formatCurrency(product.price)}</div>
                       <div className="pmBadge">{product.category_name || product.category || 'Other'}</div>
                     </div>
                   </div>
 
-                  <div className="pmMetaRow" style={{ justifyContent: 'flex-start' }}>
-                    <div className="pmId">ID: {product.product_id}</div>
-                  </div>
+                  {showImages && (
+                    <div className="pmMetaRow" style={{ justifyContent: 'flex-start' }}>
+                      <div className="pmId">ID: {product.product_id}</div>
+                    </div>
+                  )}
 
-                  <div className="pmActions" style={{ marginTop: 'auto', borderTop: '1px solid var(--border-subtle)', paddingTop: '10px', gridTemplateColumns: '1fr 1fr 1fr', gap: '6px' }}>
+                  <div className="pmActions" style={{
+                    marginTop: 'auto',
+                    borderTop: showImages ? '1px solid var(--border-subtle)' : 'none',
+                    paddingTop: showImages ? '10px' : '0',
+                    gridTemplateColumns: '1fr 1fr 1fr',
+                    gap: '6px',
+                    width: '100%'
+                  }}>
                     <button className="pmActionBtn" onClick={() => handleEdit(product)}>
-                      <IconEdit /> Edit
+                      <IconEdit /> {showImages ? 'Edit' : ''}
                     </button>
                     {product.active ? (
                       <button className="pmActionBtn pmActionDanger" onClick={() => onRequestDeactivate(product)}>
-                        <IconPower /> Deactivate
+                        <IconPower /> {showImages ? 'Deactivate' : ''}
                       </button>
                     ) : (
                       <button className="pmActionBtn pmActionReactivate" onClick={() => handleReactivate(product)}>
-                        <IconPower /> Reactivate
+                        <IconPower /> {showImages ? 'Reactivate' : ''}
                       </button>
                     )}
                     <button className="pmActionBtn pmActionDanger" onClick={() => handleDeleteRequest(product)} title="Delete permanently">

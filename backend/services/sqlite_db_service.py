@@ -140,6 +140,9 @@ class SQLiteDatabaseService:
                 ON bills (bill_no, date(created_at))
             ''')
             
+            # Create settings table
+            self.create_settings_table(cursor)
+            
             conn.commit()
     
     def get_connection(self):
@@ -267,7 +270,7 @@ class SQLiteDatabaseService:
             return False
     
     def create_bill(self, bill_data: Dict[str, Any]) -> int:
-        """Create a new bill with daily numbering starting from 1"""
+        """Create a new bill with configured numbering rule"""
         # Enrich items with product names from database
         enriched_items = []
         for item in bill_data['items']:
@@ -283,15 +286,26 @@ class SQLiteDatabaseService:
         with self.get_connection() as conn:
             cursor = conn.cursor()
             
-            # Get the next bill number for today (using local time)
-            cursor.execute('''
-                SELECT COALESCE(MAX(bill_no), 0) + 1 
-                FROM bills 
-                WHERE date(created_at, 'localtime') = date('now', 'localtime')
-            ''')
-            next_bill_no = cursor.fetchone()[0]
+            # Check bill reset setting
+            cursor.execute("SELECT value FROM settings WHERE key = 'bill_reset_daily'")
+            row = cursor.fetchone()
+            reset_daily = row['value'] == 'true' if row else True # Default true
             
-            # Insert the bill with today's bill number
+            next_bill_no = 1
+            if reset_daily:
+                # Get the next bill number for today (using local time)
+                cursor.execute('''
+                    SELECT COALESCE(MAX(bill_no), 0) + 1 
+                    FROM bills 
+                    WHERE date(created_at, 'localtime') = date('now', 'localtime')
+                ''')
+                next_bill_no = cursor.fetchone()[0]
+            else:
+                # Continuous numbering
+                cursor.execute('SELECT COALESCE(MAX(bill_no), 0) + 1 FROM bills')
+                next_bill_no = cursor.fetchone()[0]
+            
+            # Insert the bill
             cursor.execute('''
                 INSERT INTO bills (bill_no, customer_name, total_amount, items)
                 VALUES (?, ?, ?, ?)
@@ -686,3 +700,123 @@ class SQLiteDatabaseService:
         except Exception as e:
             print(f"Error deleting category: {e}")
             return False
+
+    # SETTINGS MANAGEMENT METHODS
+
+    def create_settings_table(self, cursor):
+        """Create settings table if it doesn't exist"""
+        cursor.execute('''
+            CREATE TABLE IF NOT EXISTS settings (
+                key TEXT PRIMARY KEY,
+                value TEXT,
+                group_name TEXT, -- e.g., 'shop', 'billing', 'printer', 'app'
+                updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            )
+        ''')
+        
+        # Seed default settings if empty
+        cursor.execute("SELECT COUNT(*) FROM settings")
+        if cursor.fetchone()[0] == 0:
+            print("Seeding default settings...")
+            default_settings = [
+                # Shop Settings
+                ('shop_name', 'Burger Bhau', 'shop'),
+                ('shop_address', 'Main Street, City', 'shop'),
+                ('shop_contact', '', 'shop'),
+                ('gst_no', '', 'shop'),
+                ('currency_symbol', '₹', 'shop'),
+                
+                # Billing Settings
+                ('bill_reset_daily', 'true', 'billing'),
+                ('default_tax_rate', '0', 'billing'),
+                ('tax_enabled', 'false', 'billing'),
+                
+                # Printer Settings
+                ('printer_enabled', 'false', 'printer'),
+                ('printer_width', '58mm', 'printer'),
+                ('auto_print', 'false', 'printer'),
+                
+                # App Preferences
+                ('dark_mode', 'false', 'app'),
+                ('sound_enabled', 'true', 'app')
+            ]
+            
+            cursor.executemany(
+                "INSERT INTO settings (key, value, group_name) VALUES (?, ?, ?)",
+                default_settings
+            )
+
+    def get_all_settings(self) -> Dict[str, Any]:
+        """Get all settings as a dictionary"""
+        try:
+            with self.get_connection() as conn:
+                cursor = conn.cursor()
+                cursor.execute("SELECT key, value, group_name FROM settings")
+                
+                settings = {}
+                for row in cursor.fetchall():
+                    # Organize by group or flat? Flat is easier for lookup
+                    # Let's return a flat dict for values, maybe with metadata if needed
+                    # For now, just key-value pairs
+                    settings[row['key']] = row['value']
+                
+                return settings
+        except Exception as e:
+            print(f"Error getting settings: {e}")
+            return {}
+
+    def get_setting(self, key: str, default: str = None) -> str:
+        """Get a single setting value"""
+        try:
+            with self.get_connection() as conn:
+                cursor = conn.cursor()
+                cursor.execute("SELECT value FROM settings WHERE key = ?", (key,))
+                row = cursor.fetchone()
+                return row['value'] if row else default
+        except Exception as e:
+            print(f"Error getting setting {key}: {e}")
+            return default
+
+    def update_setting(self, key: str, value: str, group_name: str = 'general') -> bool:
+        """Update or create a single setting"""
+        try:
+            with self.get_connection() as conn:
+                cursor = conn.cursor()
+                cursor.execute('''
+                    INSERT INTO settings (key, value, group_name, updated_at)
+                    VALUES (?, ?, ?, CURRENT_TIMESTAMP)
+                    ON CONFLICT(key) DO UPDATE SET
+                    value = excluded.value,
+                    updated_at = excluded.updated_at
+                ''', (key, str(value), group_name))
+                conn.commit()
+                return True
+        except Exception as e:
+            print(f"Error updating setting {key}: {e}")
+            return False
+
+    def update_settings_bulk(self, settings_list: List[Dict[str, str]]) -> bool:
+        """Update multiple settings at once"""
+        try:
+            with self.get_connection() as conn:
+                cursor = conn.cursor()
+                for setting in settings_list:
+                    cursor.execute('''
+                        INSERT INTO settings (key, value, group_name, updated_at)
+                        VALUES (?, ?, ?, CURRENT_TIMESTAMP)
+                        ON CONFLICT(key) DO UPDATE SET
+                        value = excluded.value,
+                        group_name = COALESCE(?, settings.group_name),
+                        updated_at = excluded.updated_at
+                    ''', (
+                        setting['key'], 
+                        str(setting['value']), 
+                        setting.get('group_name', 'general'),
+                        setting.get('group_name') # Update group if provided
+                    ))
+                conn.commit()
+                return True
+        except Exception as e:
+            print(f"Error updating bulk settings: {e}")
+            return False
+

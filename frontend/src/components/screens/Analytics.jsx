@@ -557,7 +557,8 @@ const Reports = () => {
 
   return (
     <div style={{
-      minHeight: '100vh',
+      height: '100%',
+      overflowY: 'auto',
       background: currentTheme.colors.background,
       paddingTop: currentTheme.spacing[8],
       paddingLeft: currentTheme.spacing[8],

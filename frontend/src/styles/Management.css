@@ -3,6 +3,8 @@
   max-width: 1560px;
   margin: 0 auto;
   padding: 22px 22px 26px 22px;
+  height: 100%;
+  overflow-y: auto;
 }
 
 .pmPage {
@@ -252,8 +254,13 @@
 
 /* Loading Spinner Animation */
 @keyframes spin {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
+  0% {
+    transform: rotate(0deg);
+  }
+
+  100% {
+    transform: rotate(360deg);
+  }
 }
 
 /* Category Card Specific Styles */

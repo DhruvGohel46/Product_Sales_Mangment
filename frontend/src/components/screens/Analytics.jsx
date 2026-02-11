@@ -165,6 +165,9 @@ const Reports = () => {
   const [showCancelConfirm, setShowCancelConfirm] = useState(false);
   const [selectedBill, setSelectedBill] = useState(null);
 
+  // Date filter for Bills (defaults to today)
+  const [selectedBillDate, setSelectedBillDate] = useState(new Date().toISOString().split('T')[0]);
+
   // Safeguard so we never read properties from null
   const safeSummary = summary || {};
 
@@ -175,8 +178,11 @@ const Reports = () => {
     loadSummary(selectedDate);
     loadAvailableReports();
     loadProductSales(selectedDate);
-    loadBills(selectedDate);
   }, [selectedDate]);
+
+  useEffect(() => {
+    loadBills(selectedBillDate);
+  }, [selectedBillDate]);
 
   async function loadSummary(date) {
     try {
@@ -233,11 +239,19 @@ const Reports = () => {
   async function loadBills(date) {
     try {
       setLoadingBills(true);
-      const url = date ? `/api/bill/management/all?date=${date}` : '/api/bill/management/all';
+      // Use specific endpoint for date filtering (defaults to today if date matches or is null)
+      const targetDate = date || new Date().toISOString().split('T')[0];
+      const url = `/api/bill/date/${targetDate}`;
+
       const response = await api.get(url);
       if (response.data.success) {
-        // Sort bills in descending order by bill_no to show latest order first
-        const sortedBills = response.data.bills.sort((a, b) => b.bill_no - a.bill_no);
+        // Sort bills in descending order by created_at (latest first)
+        // ensure created_at is strictly used, fallback to bill_no if created_at is identical
+        const sortedBills = response.data.bills.sort((a, b) => {
+          const dateA = new Date(a.created_at || 0);
+          const dateB = new Date(b.created_at || 0);
+          return dateB - dateA || b.bill_no - a.bill_no;
+        });
         setBills(sortedBills);
       }
     } catch (err) {
@@ -269,7 +283,7 @@ const Reports = () => {
         setSelectedBill(null);
         // Refresh all data
         await Promise.all([
-          loadBills(),
+          loadBills(selectedBillDate),
           loadSummary(),
           loadProductSales()
         ]);
@@ -384,7 +398,7 @@ const Reports = () => {
         await loadSummary();
         await loadAvailableReports();
         await loadProductSales();
-        await loadBills();
+        await loadBills(selectedBillDate);
       } else {
         throw new Error(result.message || 'Failed to clear bills data');
       }
@@ -1267,11 +1281,57 @@ const Reports = () => {
                 letterSpacing: '0.1em',
               }}>
                 Bill Management
+                <span style={{
+                  fontSize: '0.8rem',
+                  backgroundColor: isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.05)',
+                  padding: '2px 8px',
+                  borderRadius: '4px',
+                  marginLeft: '10px',
+                  fontWeight: 'normal',
+                  verticalAlign: 'middle',
+                  color: currentTheme.colors.text.secondary
+                }}>
+                  Showing: {selectedBillDate === new Date().toISOString().split('T')[0] ? 'Today' : selectedBillDate}
+                </span>
               </h2>
             </div>
-            <div style={{ marginLeft: 'auto' }}>
+            <div style={{ marginLeft: 'auto', display: 'flex', gap: '12px', alignItems: 'center' }}>
+              {/* Today Button */}
               <Button
-                onClick={loadBills}
+                onClick={() => setSelectedBillDate(new Date().toISOString().split('T')[0])}
+                variant="ghost"
+                size="sm"
+                style={{
+                  fontSize: '0.875rem',
+                  fontWeight: 600,
+                  color: selectedBillDate === new Date().toISOString().split('T')[0] ? currentTheme.colors.primary[600] : currentTheme.colors.text.secondary,
+                  background: selectedBillDate === new Date().toISOString().split('T')[0] ? (isDark ? 'rgba(7, 89, 133, 0.2)' : '#e0f2fe') : 'transparent',
+                }}
+              >
+                Today
+              </Button>
+
+              {/* Date Picker */}
+              <div style={{ position: 'relative' }}>
+                <input
+                  type="date"
+                  value={selectedBillDate}
+                  onChange={(e) => setSelectedBillDate(e.target.value)}
+                  style={{
+                    padding: '6px 12px',
+                    borderRadius: '8px',
+                    border: `1px solid ${currentTheme.colors.border}`,
+                    background: currentTheme.colors.background,
+                    color: currentTheme.colors.text.primary,
+                    fontSize: '0.875rem',
+                    outline: 'none',
+                    cursor: 'pointer',
+                  }}
+                />
+              </div>
+
+              <Button
+                onClick={() => loadBills(selectedBillDate)}
                 variant="secondary"
                 size="sm"
                 disabled={loadingBills}
@@ -1480,7 +1540,7 @@ const Reports = () => {
                   <ReceiptIcon color="currentColor" />
                 </div>
                 <h3 style={{ margin: 0, fontSize: '1rem', fontWeight: 600 }}>
-                  {loadingBills ? 'Loading transaction records...' : 'No bills found for today'}
+                  {loadingBills ? 'Loading transaction records...' : `No bills found for ${selectedBillDate === new Date().toISOString().split('T')[0] ? 'today' : selectedBillDate}`}
                 </h3>
                 <p style={{ margin: `${currentTheme.spacing[2]} 0 0`, fontSize: '0.875rem' }}>
                   {loadingBills ? 'Please wait while we fetch the latest data.' : 'Your transaction history will appear here once orders are processed.'}

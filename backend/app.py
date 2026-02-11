@@ -8,32 +8,34 @@ from config import config
 # Load environment variables from .env file
 load_dotenv()
 
-# Import route blueprints
-from routes.products import products_bp
-from routes.billing import billing_bp
-from routes.summary import summary_bp
-from routes.reports import reports_bp
-from routes.categories import categories_bp
-from routes.settings import settings_bp
 
-# Import dashboard refresher
-from dashboard_refresher import DashboardRefresher
+
 
 
 def start_dashboard_refresher():
     """Start the dashboard refresher in a separate thread"""
+    from dashboard_refresher import DashboardRefresher
     try:
         refresher = DashboardRefresher()
-        print("🔄 Dashboard Refresher started - Daily refresh at 12:01 AM")
-        print(f"📁 Archive directory: {refresher.archive_dir}")
+        print("Dashboard Refresher started - Daily refresh at 12:01 AM")
+        print(f"Archive directory: {refresher.archive_dir}")
         refresher.start_scheduler()
     except Exception as e:
-        print(f"❌ Failed to start dashboard refresher: {e}")
+        print(f"Failed to start dashboard refresher: {e}")
 
 
 def create_app(config_name='default'):
     """Create and configure Flask application"""
     app = Flask(__name__)
+    
+    # Import route blueprints logic moved inside to allow env vars to take effect before config loading in modules
+    from dashboard_refresher import DashboardRefresher
+    from routes.products import products_bp
+    from routes.billing import billing_bp
+    from routes.summary import summary_bp
+    from routes.reports import reports_bp
+    from routes.categories import categories_bp
+    from routes.settings import settings_bp
     
     # Load configuration
     app.config.from_object(config[config_name])
@@ -118,14 +120,34 @@ def create_app(config_name='default'):
 
 
 if __name__ == '__main__':
-    # Create app and run development server
-    app = create_app('development')
+    import argparse
+    import sys
+    
+    # Parse command line arguments
+    parser = argparse.ArgumentParser(description='POS Backend Server')
+    parser.add_argument('--data-dir', help='Path to data directory')
+    parser.add_argument('--port', type=int, default=5050, help='Port to run server on')
+    args = parser.parse_args()
+    
+    # Set data directory if provided
+    if args.data_dir:
+        os.environ['POS_DATA_DIR'] = args.data_dir
+        print(f"Data directory set to: {args.data_dir}")
+        
+    # Create app and run
+    # If frozen (PyInstaller), use 'production' config by default
+    config_name = 'production' if getattr(sys, 'frozen', False) else 'development'
+    app = create_app(config_name)
     
     # Ensure data directory exists
-    os.makedirs(app.config['DATA_DIR'], exist_ok=True)
-    os.makedirs(app.config['BILLS_DIR'], exist_ok=True)
-    os.makedirs(app.config['ARCHIVE_DIR'], exist_ok=True)
-    os.makedirs(app.config['EXPORT_DIR'], exist_ok=True)
+    try:
+        os.makedirs(app.config['DATA_DIR'], exist_ok=True)
+        os.makedirs(app.config['BILLS_DIR'], exist_ok=True)
+        os.makedirs(app.config['ARCHIVE_DIR'], exist_ok=True)
+        os.makedirs(app.config['EXPORT_DIR'], exist_ok=True)
+    except OSError as e:
+        print(f"Error creating directories: {e}")
+        # Continue anyway, might be permission issue handled by user
     
     # Start dashboard refresher in background thread
     refresher_thread = threading.Thread(target=start_dashboard_refresher, daemon=True)
@@ -133,12 +155,12 @@ if __name__ == '__main__':
     
     print("Starting POS Backend Server...")
     print(f"Data directory: {app.config['DATA_DIR']}")
-    print(f"Server running on: http://localhost:5050")
-    print("🔄 Dashboard Refresher is running in background")
+    print(f"Server running on: http://localhost:{args.port}")
+    print("Dashboard Refresher is running in background")
     
     app.run(
         host='0.0.0.0',
-        port=5050,
+        port=args.port,
         debug=app.config['DEBUG'],
         use_reloader=False  # Prevent duplicate refresher threads
     )

@@ -117,6 +117,9 @@ export const billingAPI = {
   // Get all bills for today
   getTodayBills: () => api.get('/api/bill/today'),
 
+  // Get bills for a specific date
+  getBillsByDate: (date) => api.get(`/api/bill/date/${date}`),
+
   // Get next bill number for today
   getNextBillNumber: () => api.get('/api/bill/next-number'),
 

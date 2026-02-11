@@ -42,7 +42,7 @@
  * =============================================================================
  */
 import React, { useState, useEffect } from 'react';
-import { BrowserRouter, Routes, Route, useNavigate, useLocation } from 'react-router-dom';
+import { HashRouter, Routes, Route, useNavigate, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ThemeProvider } from './context/ThemeContext';
 import { ToastProvider } from './context/ToastContext';
@@ -475,9 +475,9 @@ export default function App() {
     <ThemeProvider>
       <ToastProvider>
         <SettingsProvider>
-          <BrowserRouter>
+          <HashRouter>
             <AppContent />
-          </BrowserRouter>
+          </HashRouter>
         </SettingsProvider>
       </ToastProvider>
     </ThemeProvider>

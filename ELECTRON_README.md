@@ -6,6 +6,7 @@ This is the Electron desktop application version of the Product Sales Management
 ## Prerequisites
 - Node.js 16+ 
 - Python 3.7+
+- PyInstaller (`pip install pyinstaller`)
 - Windows 10/11 (for .exe build)
 
 ## Installation & Setup
@@ -49,8 +50,8 @@ npm run electron-dev
 
 #### Build .exe Installer
 ```bash
-# Build React app and create Windows installer
-npm run build-all
+# Build React app, compile Backend, and create Windows installer
+npm run dist
 
 # Output will be in: dist/Product Sales Management Setup 1.0.0.exe
 ```

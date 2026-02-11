@@ -1,9 +1,104 @@
 const { app, BrowserWindow, Menu, shell, ipcMain } = require('electron');
 const path = require('path');
-const isDev = process.env.NODE_ENV === 'development';
+const { spawn } = require('child_process');
+const http = require('http');
 
-// Keep a global reference of the window object
+// Configuration
+// Configuration
+const BACKEND_PORT = 5050; // Use same port as backend default
+const HEALTH_ENDPOINT = `http://127.0.0.1:${BACKEND_PORT}/health`;
+const isDev = !app.isPackaged; // Better check for dev mode
+
+// Keep global references
 let mainWindow;
+let backendProcess = null;
+
+// Logger
+function log(message) {
+  console.log(`[Electron]: ${message}`);
+}
+
+// Get backend executable path
+function getBackendPath() {
+  if (isDev) {
+    // In dev, run python script
+    // Assumes running from project root or electron folder
+    return {
+      command: 'python',
+      args: [path.join(__dirname, '../backend/app.py')]
+    };
+  } else {
+    // In production, run bundled executable
+    // 'backend' folder will be in resources/backend/
+    // The executable is backend/backend.exe
+    const backendPath = path.join(process.resourcesPath, 'backend', 'backend.exe');
+    return {
+      command: backendPath,
+      args: []
+    };
+  }
+}
+
+// Start backend
+function startBackend() {
+  log('Starting backend...');
+
+  const { command, args } = getBackendPath();
+
+  // In Dev: Use local backend/data to keep existing data
+  // In Prod: Use AppData to ensure write permissions
+  const dataDir = isDev
+    ? path.join(__dirname, '../backend/data')
+    : app.getPath('userData');
+
+  // Pass data directory to backend
+  const backendArgs = [...args, '--data-dir', dataDir, '--port', BACKEND_PORT.toString()];
+
+  log(`Spawning: ${command} ${backendArgs.join(' ')}`);
+
+  backendProcess = spawn(command, backendArgs, {
+    cwd: isDev ? path.join(__dirname, '..') : path.dirname(command),
+    stdio: 'pipe', // Change to 'inherit' for debugging in console, 'pipe' to capture
+    env: { ...process.env, POS_DATA_DIR: dataDir }
+  });
+
+  backendProcess.stdout.on('data', (data) => {
+    log(`[Backend]: ${data}`);
+  });
+
+  backendProcess.stderr.on('data', (data) => {
+    console.error(`[Backend Error]: ${data}`);
+  });
+
+  backendProcess.on('close', (code) => {
+    log(`Backend process exited with code ${code}`);
+    backendProcess = null;
+    // Optional: Quit app if backend crashes?
+    // app.quit();
+  });
+}
+
+// Check if backend is ready
+function waitForBackend(callback) {
+  log('Waiting for backend...');
+
+  const checkHealth = () => {
+    http.get(HEALTH_ENDPOINT, (res) => {
+      if (res.statusCode === 200) {
+        log('Backend is ready!');
+        callback();
+      } else {
+        log(`Backend returned status ${res.statusCode}, retrying...`);
+        setTimeout(checkHealth, 1000);
+      }
+    }).on('error', (err) => {
+      log(`Backend not ready yet (${err.message}), retrying...`);
+      setTimeout(checkHealth, 1000);
+    });
+  };
+
+  checkHealth();
+}
 
 function createWindow() {
   // Create the browser window
@@ -19,14 +114,13 @@ function createWindow() {
       enableRemoteModule: false,
       preload: path.join(__dirname, 'preload.js')
     },
-    show: false,
+    show: false, // Don't show until ready
     titleBarStyle: 'default'
   });
 
   // Load the app
   if (isDev) {
     mainWindow.loadURL('http://localhost:3050');
-    // Open DevTools in development
     mainWindow.webContents.openDevTools();
   } else {
     mainWindow.loadFile(path.join(__dirname, '../frontend/build/index.html'));
@@ -48,26 +142,14 @@ function createWindow() {
     return { action: 'deny' };
   });
 
-  // Create menu
+  // Build menu
   const template = [
     {
       label: 'File',
       submenu: [
-        {
-          label: 'New Bill',
-          accelerator: 'CmdOrCtrl+N',
-          click: () => {
-            mainWindow.webContents.send('menu-new-bill');
-          }
-        },
+        { label: 'New Bill', accelerator: 'CmdOrCtrl+N', click: () => mainWindow.webContents.send('menu-new-bill') },
         { type: 'separator' },
-        {
-          label: 'Exit',
-          accelerator: process.platform === 'darwin' ? 'Cmd+Q' : 'Ctrl+Q',
-          click: () => {
-            app.quit();
-          }
-        }
+        { label: 'Exit', accelerator: 'CmdOrCtrl+Q', click: () => app.quit() }
       ]
     },
     {
@@ -97,18 +179,33 @@ function createWindow() {
   Menu.setApplicationMenu(menu);
 }
 
-// App event handlers
-app.whenReady().then(createWindow);
-
+// Quit when all windows are closed.
 app.on('window-all-closed', () => {
   if (process.platform !== 'darwin') {
     app.quit();
   }
 });
 
+// App lifecycle
+app.whenReady().then(() => {
+  startBackend();
+  waitForBackend(() => {
+    createWindow();
+  });
+});
+
 app.on('activate', () => {
   if (BrowserWindow.getAllWindows().length === 0) {
     createWindow();
+  }
+});
+
+// Kill backend on exit
+app.on('will-quit', () => {
+  if (backendProcess) {
+    log('Killing backend process...');
+    backendProcess.kill();
+    backendProcess = null;
   }
 });
 
@@ -120,14 +217,6 @@ app.on('web-contents-created', (event, contents) => {
   });
 });
 
-// Handle app protocol for deep links (optional)
-app.setAsDefaultProtocolClient('product-sales');
-
 // IPC handlers
-ipcMain.handle('get-app-version', () => {
-  return app.getVersion();
-});
-
-ipcMain.handle('get-platform', () => {
-  return process.platform;
-});
+ipcMain.handle('get-app-version', () => app.getVersion());
+ipcMain.handle('get-platform', () => process.platform);

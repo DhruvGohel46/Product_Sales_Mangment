@@ -3,9 +3,20 @@ import os
 from typing import List, Dict, Optional, Any
 import json
 
+from config import config
+
 class SQLiteDatabaseService:
-    def __init__(self, db_path: str = 'data/products.db'):
-        self.db_path = db_path
+    def __init__(self, db_path: str = None):
+        if db_path is None:
+            # Use default from config (using 'default' or current env? 
+            # Config is a dict of classes. We need the value from the class.
+            # We can use Config class directly or access via dict.
+            # Since Config.DB_FILE is evaluated at class level, it depends on when Config was imported.
+            # We trust that Config is imported AFTER env vars are set if we use delayed imports.
+            self.db_path = config['default'].DB_FILE
+        else:
+            self.db_path = db_path
+            
         self.init_database()
     
     def init_database(self):
@@ -379,6 +390,35 @@ class SQLiteDatabaseService:
                 return bills
         except Exception as e:
             print(f"Error getting monthly bills: {e}")
+            return []
+
+    def get_bills_by_date(self, date_str: str) -> List[Dict[str, Any]]:
+        """
+        Get all bills for a specific date
+        Date should be in 'YYYY-MM-DD' format
+        """
+        try:
+            with self.get_connection() as conn:
+                cursor = conn.cursor()
+                
+                # Use DATE() function to extract date part from timestamp
+                # Ensure we filter by LOCAL time date
+                cursor.execute('''
+                    SELECT * FROM bills 
+                    WHERE date(created_at, 'localtime') = date(?)
+                    AND TRIM(status) != 'CANCELLED'
+                    ORDER BY created_at ASC
+                ''', (date_str,))
+                
+                bills = []
+                for row in cursor.fetchall():
+                    bill = dict(row)
+                    bill['items'] = json.loads(bill['items'])
+                    bills.append(bill)
+                
+                return bills
+        except Exception as e:
+            print(f"Error getting bills by date: {e}")
             return []
 
     def get_bills_by_date_range(self, start_date: str, end_date: str) -> List[Dict[str, Any]]:

@@ -156,20 +156,20 @@ class DashboardRefresher:
             refresh_success = self.refresh_dashboard_data()
             
             if archive_success and refresh_success:
-                logger.info("✅ Daily refresh and archive completed successfully")
+                logger.info("Daily refresh and archive completed successfully")
             else:
-                logger.error("❌ Some operations failed during daily refresh")
+                logger.error("Some operations failed during daily refresh")
             
             logger.info("=" * 60)
             
         except Exception as e:
-            logger.error(f"❌ Error in daily refresh: {e}")
+            logger.error(f"Error in daily refresh: {e}")
     
     def start_scheduler(self):
         """Start the scheduler"""
-        logger.info("🚀 Starting Dashboard Refresh Scheduler...")
-        logger.info(f"📅 Dashboard will refresh daily at 12:01 AM")
-        logger.info(f"📁 Archive directory: {self.archive_dir}")
+        logger.info("Starting Dashboard Refresh Scheduler...")
+        logger.info(f"Dashboard will refresh daily at 12:01 AM")
+        logger.info(f"Archive directory: {self.archive_dir}")
         
         # Schedule job for 12:01 AM every day (start of new day)
         schedule.every().day.at("00:01").do(self.daily_refresh_and_archive)
@@ -181,7 +181,7 @@ class DashboardRefresher:
     
     def run_immediate(self):
         """Run refresh immediately (for testing)"""
-        logger.info("🔄 Running immediate dashboard refresh...")
+        logger.info("Running immediate dashboard refresh...")
         self.daily_refresh_and_archive()
 
 def main():
@@ -197,7 +197,7 @@ def main():
             refresher.start_scheduler()
             
     except KeyboardInterrupt:
-        logger.info("🛑 Scheduler stopped by user")
+        logger.info("Scheduler stopped by user")
     except Exception as e:
         logger.error(f"❌ Fatal error: {e}")
 

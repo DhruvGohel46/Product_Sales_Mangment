@@ -1,15 +1,26 @@
 import os
+import sys
 
 
 class Config:
     """Configuration class for POS system"""
     
     # Base directory paths
-    BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-    DATA_DIR = os.path.join(BASE_DIR, "data")
+    if getattr(sys, 'frozen', False):
+        # If the application is run as a bundle, the PyInstaller bootloader
+        # extends the sys module by a flag frozen=True and sets the app 
+        # path into variable _MEIPASS'.
+        BASE_DIR = sys._MEIPASS
+    else:
+        BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+
+    # Data directory - allow override via env var (passed from Electron)
+    # Default to a 'data' folder next to the executable if not specified
+    DATA_DIR = os.environ.get('POS_DATA_DIR') or os.path.join(os.path.dirname(sys.executable) if getattr(sys, 'frozen', False) else BASE_DIR, "data")
     
     # XML file paths
     PRODUCTS_FILE = os.path.join(DATA_DIR, "products.xml")
+    DB_FILE = os.path.join(DATA_DIR, "products.db")
     BILLS_DIR = os.path.join(DATA_DIR, "bills")
     ARCHIVE_DIR = os.path.join(DATA_DIR, "archive")
     
@@ -34,6 +45,7 @@ class Config:
     
     # Business configuration
     DEFAULT_CURRENCY = '₹'
+    MAX_CHARS_PER_LINE = 32 # Re-declare to be safe if overwritten above? No, just good practice to keep grouped.
     TAX_RATE = float(os.environ.get('TAX_RATE', 0.0))  # Tax rate as decimal (0.18 for 18%)
     
     # Security configuration

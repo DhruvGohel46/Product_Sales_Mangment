@@ -2,6 +2,7 @@
   "name": "rebill-frontend",
   "version": "1.0.0",
   "description": "ReBill - Modern POS & Billing System",
+  "homepage": "./",
   "private": true,
   "dependencies": {
     "@fortawesome/fontawesome-free": "^6.5.1",

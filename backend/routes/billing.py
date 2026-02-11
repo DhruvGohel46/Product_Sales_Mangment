@@ -167,6 +167,35 @@ def get_today_bills():
         }), 500
 
 
+@billing_bp.route('/date/<string:date_str>', methods=['GET'])
+def get_bills_by_date(date_str):
+    """Get all bills for a specific date (YYYY-MM-DD)"""
+    try:
+        # Validate date format
+        import datetime
+        try:
+            datetime.datetime.strptime(date_str, '%Y-%m-%d')
+        except ValueError:
+             return jsonify({
+                'success': False,
+                'message': 'Invalid date format. Use YYYY-MM-DD'
+            }), 400
+
+        # Use the DB service's specific method for date filtering
+        bills = db.get_bills_by_date(date_str)
+        
+        return jsonify({
+            'success': True,
+            'bills': bills
+        }), 200
+        
+    except Exception as e:
+        return jsonify({
+            'success': False,
+            'message': f'Internal server error: {str(e)}'
+        }), 500
+
+
 @billing_bp.route('/next-number', methods=['GET'])
 def get_next_bill_number():
     """Get the next bill number for today"""

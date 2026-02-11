@@ -1,6 +1,7 @@
 import React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useTheme } from '../../context/ThemeContext';
+import { useSettings } from '../../context/SettingsContext';
 import Button from './Button';
 
 const Sidebar = ({
@@ -11,6 +12,20 @@ const Sidebar = ({
     navItems = []
 }) => {
     const { currentTheme, isDark } = useTheme();
+    const { settings } = useSettings();
+    const restaurantName = settings?.shop_name || 'ReBill POS';
+
+    // Generate acronym for collapsed state (e.g. "Burger Bhau" -> "BB")
+    const getAcronym = (name) => {
+        return name
+            .split(' ')
+            .map(word => word[0])
+            .join('')
+            .toUpperCase()
+            .slice(0, 2); // Max 2 chars
+    };
+
+    const acronym = getAcronym(restaurantName);
 
     const sidebarVariants = {
         expanded: { width: '260px' },
@@ -39,8 +54,8 @@ const Sidebar = ({
             onTouchEnd={handleDoubleTap}
             style={{
                 height: '100%',
-                backgroundColor: currentTheme.colors.card || currentTheme.colors.surface,
-                borderRight: `1px solid ${currentTheme.colors.border}`,
+                backgroundColor: currentTheme.colors.sidebar,
+                borderLeft: `1px solid ${currentTheme.colors.border}`,
                 display: 'flex',
                 flexDirection: 'column',
                 zIndex: 50,
@@ -67,7 +82,7 @@ const Sidebar = ({
                         WebkitTextFillColor: 'transparent',
                         whiteSpace: 'nowrap',
                     }}>
-                        Burger Bhau
+                        {restaurantName}
                     </div>
                 )}
                 {isCollapsed && (
@@ -76,7 +91,7 @@ const Sidebar = ({
                         fontWeight: currentTheme.typography.fontWeight.bold,
                         color: currentTheme.colors.primary[500],
                     }}>
-                        BB
+                        {acronym}
                     </div>
                 )}
             </div>

@@ -65,6 +65,7 @@ import { CATEGORY_COLORS } from '../../utils/constants';
 import Button from '../ui/Button';
 import Card from '../ui/Card';
 import Input from '../ui/Input';
+import SearchBar from '../ui/SearchBar';
 import '../../styles/Management.css';
 
 
@@ -336,49 +337,44 @@ const WorkingPOSInterface = ({ onBillCreated }) => {
         <div style={{
           padding: currentTheme.spacing[5],
           borderBottom: `1px solid ${currentTheme.colors.border}`,
+          backgroundColor: currentTheme.colors.surface,
         }}>
-          <Input
-            type="text"
-            placeholder="Search items..."
+          <SearchBar
             value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            size="md"
+            onChange={setSearchTerm}
+            placeholder="Search items..."
           />
         </div>
 
         <div style={{
           flex: 1,
           overflowY: 'auto',
-          padding: `0 ${currentTheme.spacing[6]} ${currentTheme.spacing[6]}`,
+          padding: `0 ${currentTheme.spacing[4]} ${currentTheme.spacing[6]}`,
+          backgroundColor: 'transparent',
         }}>
           {categories.map((category) => (
             <motion.div
               key={category.id}
-              whileHover={{ opacity: 0.92 }}
-              whileTap={{ opacity: 0.86 }}
+              whileHover={{ x: 4 }}
+              transition={{ duration: 0.2 }}
             >
               <Card
-                variant={selectedCategory === category.id ? 'elevated' : 'default'}
+                variant={selectedCategory === category.id ? 'primary' : 'ghost'} // Use ghost for unselected
                 hover={selectedCategory !== category.id}
-                padding="md"
+                padding="sm"
                 style={{
                   display: 'flex',
                   alignItems: 'center',
-                  justifyContent: 'center',
-                  margin: currentTheme.spacing[2],
-                  padding: "10px",
-                  borderRadius: '15px',
-                  marginBottom: currentTheme.spacing[5],
+                  marginBottom: currentTheme.spacing[2],
+                  marginTop: currentTheme.spacing[2],
                   cursor: 'pointer',
                   border: selectedCategory === category.id
-                    ? `1px solid ${currentTheme.colors.primary[200]}`
-                    : `1px solid ${currentTheme.colors.border}`,
+                    ? `1px solid ${currentTheme.colors.primary[500]}`
+                    : '1px solid transparent',
                   backgroundColor: selectedCategory === category.id
-                    ? (isDark ? currentTheme.colors.border.primary : '#E9E9E9')
-                    : (isDark ? currentTheme.colors.surface : '#F1F1F1'),
-
-                  boxShadow: isDark ? currentTheme.shadows.cardDark : currentTheme.shadows.card,
-                  transition: 'all 0.2s cubic-bezier(0, 0, 0.2, 1)',
+                    ? (isDark ? 'rgba(249, 115, 22, 0.2)' : '#fff7ed')
+                    : 'transparent',
+                  borderRadius: '12px',
                 }}
                 onClick={() => setSelectedCategory(category.id)}
               >
@@ -386,27 +382,36 @@ const WorkingPOSInterface = ({ onBillCreated }) => {
                   display: 'flex',
                   alignItems: 'center',
                   gap: currentTheme.spacing[3],
+                  width: '100%',
                 }}>
+                  <div style={{
+                    width: '32px',
+                    height: '32px',
+                    borderRadius: '8px',
+                    backgroundColor: selectedCategory === category.id ? currentTheme.colors.primary[500] : (isDark ? 'rgba(255,255,255,0.1)' : '#e2e8f0'),
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    color: selectedCategory === category.id ? '#fff' : currentTheme.colors.text.secondary,
+                    fontWeight: 'bold',
+                    fontSize: '0.8rem',
+                  }}>
+                    {category.name.charAt(0)}
+                  </div>
                   <div style={{ flex: 1 }}>
                     <div style={{
-                      fontSize: currentTheme.typography.fontSize.base,
-                      fontWeight: currentTheme.typography.fontWeight.semibold,
-                      color: currentTheme.colors.text.primary,
-                      marginBottom: currentTheme.spacing[1],
+                      fontSize: '0.9rem',
+                      fontWeight: selectedCategory === category.id ? 600 : 500,
+                      color: selectedCategory === category.id ? currentTheme.colors.primary[600] : currentTheme.colors.text.primary,
                     }}>
                       {category.name}
                     </div>
-                    <div style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      fontSize: currentTheme.typography.fontSize.xs,
-                      color: currentTheme.colors.text.secondary,
-                      letterSpacing: currentTheme.typography.letterSpacing.normal,
-                    }}>
-                      {products.filter(p => category.id === 'all' || p.category_id === category.id || p.category === category.id).length} items
-                    </div>
                   </div>
+                  {selectedCategory === category.id && (
+                    <motion.div layoutId="active-indicator" style={{
+                      width: '6px', height: '6px', borderRadius: '50%', backgroundColor: currentTheme.colors.primary[500]
+                    }} />
+                  )}
                 </div>
               </Card>
             </motion.div>
@@ -416,40 +421,23 @@ const WorkingPOSInterface = ({ onBillCreated }) => {
 
       <div style={middleSectionStyle}>
         <div style={{
-          padding: currentTheme.spacing[5],
-          minHeight: 'calc(100% - 3rem)',
+          padding: currentTheme.spacing[2], // Reduced padding for better grid fit
+          minHeight: 'calc(100% - 1rem)',
         }}>
           {loading ? (
+            // Skeleton Loader for Products
             <div style={{
-              display: 'flex',
-              flexDirection: 'column',
-              justifyContent: 'center',
-              alignItems: 'center',
-              minHeight: '400px',
+              display: 'grid',
+              gridTemplateColumns: 'repeat(auto-fill, minmax(160px, 1fr))',
               gap: currentTheme.spacing[4],
             }}>
-              <motion.div
-                style={{
-                  width: '48px',
-                  height: '48px',
-                  border: `3px solid ${currentTheme.colors.border}`,
-                  borderTop: `3px solid ${currentTheme.colors.primary[600]}`,
-                  borderRadius: '50%',
-                }}
-                animate={{ rotate: 360 }}
-                transition={{
-                  duration: 1,
-                  ease: 'linear',
-                  repeat: Infinity,
-                }}
-              />
-              <div style={{
-                fontSize: currentTheme.typography.fontSize.lg,
-                color: currentTheme.colors.text.secondary,
-                fontWeight: currentTheme.typography.fontWeight.medium,
-              }}>
-                Loading products...
-              </div>
+              {[...Array(8)].map((_, i) => (
+                <Card key={i} style={{ height: '220px', padding: '12px' }}>
+                  <div style={{ height: '120px', backgroundColor: isDark ? '#334155' : '#e2e8f0', borderRadius: '8px', marginBottom: '12px', opacity: 0.5 }}></div>
+                  <div style={{ height: '20px', width: '80%', backgroundColor: isDark ? '#334155' : '#e2e8f0', borderRadius: '4px', marginBottom: '8px', opacity: 0.5 }}></div>
+                  <div style={{ height: '20px', width: '40%', backgroundColor: isDark ? '#334155' : '#e2e8f0', borderRadius: '4px', opacity: 0.5 }}></div>
+                </Card>
+              ))}
             </div>
           ) : filteredProducts.length === 0 ? (
             <div style={{
@@ -457,14 +445,7 @@ const WorkingPOSInterface = ({ onBillCreated }) => {
               padding: currentTheme.spacing[12],
               color: currentTheme.colors.text.secondary
             }}>
-              <div style={{
-                width: '56px',
-                height: '56px',
-                borderRadius: currentTheme.borderRadius.full,
-                border: `1px solid ${currentTheme.colors.border}`,
-                backgroundColor: currentTheme.colors.surface,
-                margin: `0 auto ${currentTheme.spacing[6]}`,
-              }} />
+              {/* No Products UI - Kept mostly same but cleaner */}
               <div style={{
                 fontSize: currentTheme.typography.fontSize['2xl'],
                 fontWeight: currentTheme.typography.fontWeight.semibold,
@@ -476,8 +457,6 @@ const WorkingPOSInterface = ({ onBillCreated }) => {
               <p style={{
                 fontSize: currentTheme.typography.fontSize.base,
                 color: currentTheme.colors.text.secondary,
-                maxWidth: '300px',
-                margin: '0 auto',
               }}>
                 Try adjusting your search or category filter
               </p>
@@ -485,124 +464,109 @@ const WorkingPOSInterface = ({ onBillCreated }) => {
           ) : (
             <div style={{
               display: 'grid',
-              gridTemplateColumns: 'repeat(auto-fill, minmax(160px, 1fr))',
+              gridTemplateColumns: 'repeat(auto-fill, minmax(180px, 1fr))', // Slightly wider cards
               gap: currentTheme.spacing[4],
               paddingBottom: currentTheme.spacing[4],
             }}>
               {filteredProducts.map((product) => (
-                <motion.div
-                  layout
+                <Card
                   key={product.product_id}
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, scale: 0.95 }}
-                  whileHover={{
-                    y: -4,
-                    scale: 1.02,
-                    transition: { duration: 0.2, ease: [0.16, 1, 0.3, 1] }
-                  }}
-                  whileTap={{ y: 0 }}
-                  onHoverStart={() => {
-                    // Add hover class or state
-                    const element = document.getElementById(`product-${product.product_id}`);
-                    if (element) {
-                      element.style.border = '1px solid var(--primary-300)';
-                    }
-                  }}
-                  onHoverEnd={() => {
-                    // Remove hover class or state
-                    const element = document.getElementById(`product-${product.product_id}`);
-                    if (element) {
-                      element.style.border = `1px solid ${currentTheme.colors.border}`;
-                    }
-                  }}
+                  variant="default" // Using default variant now which has glass/hover effects in Card.js
+                  hover={true}
+                  padding="none" // Custom padding inside
                   onClick={(e) => handleAddItem(product, e)}
                   style={{
-                    cursor: 'pointer',
-                    textAlign: 'center',
-                    minHeight: showImages ? '240px' : 'auto',
-                    height: showImages ? 'auto' : '110px',
+                    height: '100%',
                     display: 'flex',
                     flexDirection: 'column',
-                    justifyContent: showImages ? 'space-between' : 'center',
-                    borderTop: `2px solid ${CATEGORY_COLORS[product.category] || currentTheme.colors.primary[500]}`,
-                    backgroundColor: currentTheme.colors.Card,
-                    borderRadius: '15px',
-                    border: `1px solid ${currentTheme.colors.border}`,
-                    padding: showImages ? currentTheme.spacing.lg : '12px',
-                    boxShadow: isDark ? currentTheme.shadows.cardDark : currentTheme.shadows.card,
-                    id: `product-${product.product_id}`,
-                    transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
+                    justifyContent: 'space-between',
+                    cursor: 'pointer',
+                    overflow: 'visible', // For hover effects
                   }}
                 >
-                  {showImages && (
-                    <div style={{
-                      width: '100%',
-                      height: '160px',
-                      marginBottom: currentTheme.spacing[3],
-                      borderRadius: '8px',
-                      overflow: 'hidden',
-                      backgroundColor: isDark ? 'rgba(0,0,0,0.2)' : 'rgba(0,0,0,0.05)',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                    }}>
-                      {product.image_filename ? (
-                        <img
-                          src={productsAPI.getImageUrl(product.image_filename)}
-                          alt={product.name}
-                          style={{
-                            width: '100%',
-                            height: '100%',
-                            objectFit: 'contain'
-                          }}
-                          onError={(e) => {
-                            e.target.style.display = 'none';
-                            e.target.parentElement.innerHTML = '<span style="font-size:0.75rem; color:var(--text-tertiary)">Image Error</span>';
-                          }}
-                        />
-                      ) : (
-                        <span style={{
-                          fontSize: '0.75rem',
-                          color: currentTheme.colors.text.secondary,
-                          textAlign: 'center',
-                          padding: '0 8px'
-                        }}>
-                          No image of product
-                        </span>
-                      )}
-                    </div>
-                  )}
+                  <div style={{ position: 'relative', padding: '12px' }}>
+                    {/* Interaction Area */}
+                    {showImages && (
+                      <div style={{
+                        height: '140px',
+                        marginBottom: '12px',
+                        borderRadius: '12px',
+                        overflow: 'hidden',
+                        backgroundColor: isDark ? 'rgba(0,0,0,0.2)' : '#f8fafc',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                      }}>
+                        {product.image_filename ? (
+                          <img
+                            src={productsAPI.getImageUrl(product.image_filename)}
+                            alt={product.name}
+                            style={{ width: '100%', height: '100%', objectFit: 'contain' }}
+                            loading="lazy"
+                          />
+                        ) : (
+                          <span style={{ fontSize: '0.75rem', color: currentTheme.colors.text.muted }}>No Image</span>
+                        )}
+                      </div>
+                    )}
 
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: showImages ? '4px' : '2px', flex: 1, justifyContent: showImages ? 'flex-start' : 'center' }}>
-                    <h4 style={{
-                      fontSize: showImages ? currentTheme.typography.fontSize.base : '1.05rem',
-                      fontWeight: currentTheme.typography.fontWeight.semibold,
-                      color: currentTheme.colors.text.primary,
-                      marginBottom: showImages ? currentTheme.spacing[1] : '4px',
-                      lineHeight: currentTheme.typography.lineHeight.tight,
-                      display: '-webkit-box',
-                      WebkitLineClamp: 2,
-                      WebkitBoxOrient: 'vertical',
-                      overflow: 'hidden',
-                      textOverflow: 'ellipsis',
-                    }}>
-                      {product.name}
-                    </h4>
                     <div style={{
-                      fontSize: showImages ? currentTheme.typography.fontSize.lg : '1rem',
-                      fontWeight: currentTheme.typography.fontWeight.bold,
-                      color: CATEGORY_COLORS[product.category] || currentTheme.colors.primary[500],
+                      display: 'flex',
+                      flexDirection: 'column',
+                      gap: '4px',
                     }}>
-                      {formatCurrency(product.price)}
+                      <h4 style={{
+                        fontSize: '1rem',
+                        fontWeight: 600,
+                        color: currentTheme.colors.text.primary,
+                        margin: 0,
+                        lineHeight: 1.3,
+                        display: '-webkit-box',
+                        WebkitLineClamp: 2,
+                        WebkitBoxOrient: 'vertical',
+                        overflow: 'hidden',
+                      }}>
+                        {product.name}
+                      </h4>
+                      <span style={{
+                        fontSize: '1.1rem',
+                        fontWeight: 700,
+                        color: currentTheme.colors.primary[500],
+                        marginTop: 'auto',
+                      }}>
+                        {formatCurrency(product.price)}
+                      </span>
                     </div>
+
+                    {/* Add Button Overlay */}
+                    <motion.div
+                      initial={{ opacity: 0, scale: 0.8 }}
+                      whileHover={{ opacity: 1, scale: 1 }}
+                      style={{
+                        position: 'absolute',
+                        bottom: '12px',
+                        right: '12px',
+                        backgroundColor: currentTheme.colors.primary[500],
+                        borderRadius: '50%',
+                        width: '32px',
+                        height: '32px',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        boxShadow: '0 4px 6px -1px rgba(0,0,0,0.1)',
+                      }}
+                    >
+                      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" stroke="#fff" strokeWidth="2">
+                        <path d="M12 5V19M5 12H19" strokeLinecap="round" strokeLinejoin="round" />
+                      </svg>
+                    </motion.div>
                   </div>
-                </motion.div>
+                </Card>
               ))}
             </div>
           )}
         </div>
-      </div >
+      </div>
 
       {/* Right Side - Billing Panel */}
       <div style={{

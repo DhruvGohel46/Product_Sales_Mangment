@@ -35,8 +35,10 @@ const Card = React.forwardRef(({
 
   const variantStyles = {
     default: {
-      border: `1px solid ${currentTheme.colors.border}`,
+      border: currentTheme.isDark ? `1px solid ${currentTheme.colors.border.secondary}` : `1px solid ${currentTheme.colors.border}`,
       boxShadow: currentTheme.isDark ? currentTheme.shadows.cardDark : currentTheme.shadows.card,
+      backgroundColor: currentTheme.isDark ? 'rgba(30, 41, 59, 0.7)' : currentTheme.colors.card,
+      backdropFilter: currentTheme.isDark ? 'blur(12px)' : 'none',
     },
     elevated: {
       border: 'none',
@@ -63,9 +65,9 @@ const Card = React.forwardRef(({
       boxShadow: currentTheme.shadows.sm,
     },
     glass: {
-      border: `1px solid ${currentTheme.colors.border}`,
-      backgroundColor: `${currentTheme.colors.card}CC`,
-      backdropFilter: 'blur(8px)',
+      border: currentTheme.isDark ? `1px solid rgba(255, 255, 255, 0.08)` : `1px solid rgba(255, 255, 255, 0.4)`,
+      backgroundColor: currentTheme.isDark ? 'rgba(30, 41, 59, 0.6)' : 'rgba(255, 255, 255, 0.7)',
+      backdropFilter: 'blur(12px)',
       boxShadow: currentTheme.shadows.md,
     },
   };
@@ -73,11 +75,11 @@ const Card = React.forwardRef(({
   const hoverStyles = hover ? {
     cursor: onClick ? 'pointer' : 'default',
     '&:hover': {
-      transform: 'translateY(-2px)',
+      transform: 'translateY(-2px) translateZ(0)', // Hardware acceleration
       boxShadow: currentTheme.isDark ? currentTheme.shadows.cardDarkHover : currentTheme.shadows.cardHover,
     },
     '&:active': {
-      transform: 'translateY(-1px)',
+      transform: 'translateY(-1px) translateZ(0)',
     },
   } : {};
 
@@ -86,6 +88,9 @@ const Card = React.forwardRef(({
     ...paddingStyles[padding],
     ...variantStyles[variant],
     ...hoverStyles,
+    // Ensure hardware acceleration for smoother animations
+    transform: 'translateZ(0)',
+    willChange: hover ? 'transform, box-shadow' : 'auto',
   };
 
   const MotionComponent = onClick || hover ? motion.div : 'div';
@@ -94,8 +99,9 @@ const Card = React.forwardRef(({
     animate: cardVariants.animate,
     exit: cardVariants.exit,
     transition: cardTransition,
-    whileHover: hover ? { 
+    whileHover: hover ? {
       y: -2,
+      scale: 1.02, // Subtle scale effect requested
       boxShadow: currentTheme.isDark ? currentTheme.shadows.cardDarkHover : currentTheme.shadows.cardHover,
     } : undefined,
     whileTap: onClick ? { scale: 0.98 } : undefined,

@@ -232,11 +232,15 @@ export const downloadFile = (blob, filename) => {
 };
 
 // Utility function to format currency
+let currentCurrencySymbol = '₹';
+
+export const setCurrencySymbol = (symbol) => {
+  if (symbol) currentCurrencySymbol = symbol;
+};
+
 export const formatCurrency = (amount) => {
-  return new Intl.NumberFormat('en-IN', {
-    style: 'currency',
-    currency: 'INR',
-  }).format(amount);
+  // Use custom formatting to support arbitrary symbols
+  return `${currentCurrencySymbol}${Number(amount).toFixed(2)}`;
 };
 
 export default api;

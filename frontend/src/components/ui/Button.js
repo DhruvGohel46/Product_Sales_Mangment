@@ -65,31 +65,33 @@ const Button = React.forwardRef(({
       backgroundColor: currentTheme.colors.primary[600],
       color: currentTheme.colors.white,
       boxShadow: currentTheme.shadows.sm,
-      '&:hover:not(:disabled)': {
+      border: '1px solid transparent',
+      '&:hover': {
         backgroundColor: currentTheme.colors.primary[700],
-        boxShadow: currentTheme.shadows.md,
+        boxShadow: `0 4px 12px ${currentTheme.colors.primary[500]}40`, // Colored shadow
         transform: 'translateY(-1px)',
       },
-      '&:active:not(:disabled)': {
+      '&:active': {
         backgroundColor: currentTheme.colors.primary[800],
-        boxShadow: currentTheme.shadows.sm,
+        boxShadow: 'none',
         transform: 'translateY(0)',
       },
     },
     secondary: {
-      backgroundColor: currentTheme.colors.card,
+      backgroundColor: currentTheme.isDark ? 'rgba(255, 255, 255, 0.05)' : currentTheme.colors.surface,
       color: currentTheme.colors.text.primary,
-      border: `1px solid ${currentTheme.colors.border}`,
+      border: `1px solid ${currentTheme.colors.border.primary}`,
+      backdropFilter: 'blur(8px)',
       boxShadow: currentTheme.shadows.sm,
-      '&:hover:not(:disabled)': {
-        backgroundColor: currentTheme.colors.surface,
-        borderColor: currentTheme.colors.primary[300],
+      '&:hover': {
+        backgroundColor: currentTheme.isDark ? 'rgba(255, 255, 255, 0.1)' : currentTheme.colors.neutral[50],
+        borderColor: currentTheme.colors.primary[500],
         boxShadow: currentTheme.shadows.md,
         transform: 'translateY(-1px)',
       },
-      '&:active:not(:disabled)': {
-        backgroundColor: currentTheme.colors.surface,
-        borderColor: currentTheme.colors.primary[400],
+      '&:active': {
+        backgroundColor: currentTheme.isDark ? 'rgba(255, 255, 255, 0.05)' : currentTheme.colors.neutral[100],
+        borderColor: currentTheme.colors.primary[600],
         transform: 'translateY(0)',
       },
     },
@@ -97,27 +99,29 @@ const Button = React.forwardRef(({
       backgroundColor: currentTheme.colors.success[600],
       color: currentTheme.colors.white,
       boxShadow: currentTheme.shadows.sm,
-      '&:hover:not(:disabled)': {
+      border: '1px solid transparent',
+      '&:hover': {
         backgroundColor: currentTheme.colors.success[700],
-        boxShadow: currentTheme.shadows.md,
+        boxShadow: `0 4px 12px ${currentTheme.colors.success[500]}40`,
         transform: 'translateY(-1px)',
       },
-      '&:active:not(:disabled)': {
+      '&:active': {
         backgroundColor: currentTheme.colors.success[800],
         transform: 'translateY(0)',
       },
     },
     warning: {
-      backgroundColor: currentTheme.colors.warning[600],
-      color: currentTheme.colors.white,
+      backgroundColor: currentTheme.colors.warning[500], // Brighter for warning
+      color: '#1a1a1a', // Dark text for better contrast on yellow/orange
       boxShadow: currentTheme.shadows.sm,
-      '&:hover:not(:disabled)': {
-        backgroundColor: currentTheme.colors.warning[700],
-        boxShadow: currentTheme.shadows.md,
+      border: '1px solid transparent',
+      '&:hover': {
+        backgroundColor: currentTheme.colors.warning[400],
+        boxShadow: `0 4px 12px ${currentTheme.colors.warning[500]}40`,
         transform: 'translateY(-1px)',
       },
-      '&:active:not(:disabled)': {
-        backgroundColor: currentTheme.colors.warning[800],
+      '&:active': {
+        backgroundColor: currentTheme.colors.warning[600],
         transform: 'translateY(0)',
       },
     },
@@ -125,25 +129,28 @@ const Button = React.forwardRef(({
       backgroundColor: currentTheme.colors.error[600],
       color: currentTheme.colors.white,
       boxShadow: currentTheme.shadows.sm,
-      '&:hover:not(:disabled)': {
+      border: '1px solid transparent',
+      '&:hover': {
         backgroundColor: currentTheme.colors.error[700],
-        boxShadow: currentTheme.shadows.md,
+        boxShadow: `0 4px 12px ${currentTheme.colors.error[500]}40`,
         transform: 'translateY(-1px)',
       },
-      '&:active:not(:disabled)': {
+      '&:active': {
         backgroundColor: currentTheme.colors.error[800],
         transform: 'translateY(0)',
       },
     },
     ghost: {
       backgroundColor: 'transparent',
-      color: currentTheme.colors.text.primary,
-      '&:hover:not(:disabled)': {
-        backgroundColor: currentTheme.colors.surface,
+      color: currentTheme.colors.text.secondary,
+      border: '1px solid transparent',
+      '&:hover': {
+        backgroundColor: currentTheme.isDark ? 'rgba(255, 255, 255, 0.05)' : currentTheme.colors.neutral[100],
+        color: currentTheme.colors.primary[500],
         transform: 'translateY(-1px)',
       },
-      '&:active:not(:disabled)': {
-        backgroundColor: currentTheme.colors.border,
+      '&:active': {
+        backgroundColor: currentTheme.isDark ? 'rgba(255, 255, 255, 0.1)' : currentTheme.colors.neutral[200],
         transform: 'translateY(0)',
       },
     },
@@ -178,7 +185,7 @@ const Button = React.forwardRef(({
 
   const renderIcon = () => {
     if (!icon) return null;
-    
+
     const iconStyles = {
       display: 'flex',
       alignItems: 'center',

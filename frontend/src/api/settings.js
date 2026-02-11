@@ -1,0 +1,22 @@
+import api from '../utils/api';
+
+export const settingsAPI = {
+    /**
+     * Get all settings
+     * @returns {Promise<Object>} Object containing all settings key-value pairs
+     */
+    getAllSettings: async () => {
+        const response = await api.get('/api/settings');
+        return response.data;
+    },
+
+    /**
+     * Update settings (bulk or single)
+     * @param {Object|Array} settings - Object with key-value pairs or array of setting objects
+     * @returns {Promise<Object>} Response from the server
+     */
+    updateSettings: async (settings) => {
+        const response = await api.put('/api/settings', settings);
+        return response.data;
+    }
+};

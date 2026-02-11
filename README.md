@@ -4,202 +4,225 @@ A production-grade offline POS and billing system for retail shops, cafes, and s
 
 ## 🚀 Features
 
+### Core Functionality
 - **Offline Operation**: Works completely without internet
-- **SQLite Database**: Modern, reliable database storage
-- **Auto-Generated IDs**: Automatic product ID generation
-- **Thermal Printing**: Bill printing support
-- **Daily Reports**: Excel and CSV export
-- **REST APIs**: Clean backend APIs
-- **React Frontend**: Modern web interface with premium UI
-- **Product Management**: Add, edit, deactivate products
-- **Real-time Updates**: Live inventory and sales tracking
+- **SQLite Database**: Modern, reliable database storage with automatic backups
+- **Auto-Generated IDs**: Automatic product ID generation (e.g., COLD123)
+- **Thermal Printing**: Seamless integration with varied POS printers
+- **Daily Reports**: Comprehensive Excel and CSV exports with business headers
 
-## 📋 System Requirements
+### User Interface & Experience
+- **Glassmorphic Design**: Modern, translucent UI with blur effects
+- **Responsive Layout**: Optimized sidebar navigation and header
+- **Global Scrolling**: Smooth scrolling across Analytics, Management, and Settings
+- **Dedicated Billing View**: Full-height, independent scrolling for billing operations
 
-- **Python 3.8+** (with pip)
-- **Node.js 14+** (with npm)
-- **Windows OS** (for .bat files)
-- **4GB+ RAM** recommended
-- **500MB+ disk space**
+### Advanced Billing Logic
+- **Daily Resets**: Bill numbers automatically reset to 1 each day
+- **Real-time Refresh**: Daily sales data auto-refreshes at midnight
+- **Live Inventory**: Instant updates to stock levels upon billing
+
+### Desktop Integration (Electron)
+- **Native Experience**: Runs as a standalone Windows application
+- **System Tray**: Minimized operation for background processing
+- **Auto-Update**: Built-in mechanism for seamless updates
+
+## 💻 Application Tour & Usage Guide
+
+### 1. Billing Terminal (POS)
+The heart of your operations, designed for speed and efficiency.
+
+**Key Tasks:**
+- **Create a Bill**: 
+  - Click on product cards in the grid OR use the search bar to find items.
+  - Adjust quantities using the `+` / `-` buttons.
+- **Checkout**:
+  - Review the "Current Bill" section on the right.
+  - Select Payment Mode (Cash/Online).
+  - Click **"Print Bill"** (or press `Enter`) to finalize and print.
+- **New Customer**:
+  - Click **"Start New Bill"** (or press `F5`) to clear the screen for the next customer.
+
+### 2. Analytics Dashboard
+Track your business growth with visual reports.
+
+**Key Tasks:**
+- **View Daily Stats**: The default view shows today's Total Sales, Bill Count, and Average Order Value.
+- **Analyze Trends**: Use the graphs to identify peak hours and best-selling categories.
+- **Export Data**:
+  - Click **"Export to Excel"** for a detailed spreadsheet compatible with accounting software.
+  - Click **"Export to CSV"** for a raw data file.
+
+### 3. Product Management
+Control your inventory and pricing.
+
+**Key Tasks:**
+- **Add Product**:
+  - Click the **"Add Product"** button.
+  - Enter Name, Price, and select a Category.
+  - *Note: ID is auto-generated.*
+- **Edit Product**:
+  - Click the **Pencil Icon** on any product row.
+  - Update details and click **"Save"**.
+- **Remove Product**:
+  - Toggle the **"Active"** switch to hide a product from the billing screen without deleting history.
+
+### 4. Settings & Configuration
+Customize the application for your shop.
+
+**Key Tasks:**
+- **Shop Profile**: Enter your Shop Name and Address. These appear on every printed bill.
+- **Printer Configuration**: Select your thermal printer driver and set the paper width (58mm/80mm).
+- **Theme**: Toggle "Dark Mode" for low-light environments.
+
+## �📋 System Requirements
+
+- **OS**: Windows 10/11 (Preferred for Desktop App)
+- **Runtime**: Node.js 16+ & Python 3.8+
+- **Memory**: 4GB+ RAM recommended
+- **Storage**: 500MB+ disk space
 
 ## 🛠️ Installation & Setup
 
-### Method 1: Automatic Setup (Recommended)
+### Method 1: Desktop App (Recommended)
+1. **Download** the latest installer (`.exe`)
+2. **Run** the installer and follow prompts
+3. **Launch** from Desktop shortcut
 
-1. **Clone or download** this project
-2. **Run the setup script**:
+### Method 2: Source Code Setup
+1. **Clone Repository**:
+   ```bash
+   git clone https://github.com/DhruvGohel46/Product_Sales_Mangment.git
+   ```
+2. **Run Setup Script**:
    ```bash
    first_time_start.bat
    ```
-3. **Follow the on-screen instructions**
-
-The setup script will:
-- ✅ Check Python and Node.js installation
-- ✅ Install all backend dependencies
-- ✅ Initialize SQLite database
-- ✅ Migrate existing XML data (if found)
-- ✅ Install frontend dependencies
-- ✅ Create sample data if needed
-
-### Method 2: Manual Setup
-
-1. **Backend Setup**:
-   ```bash
-   cd backend
-   pip install -r requirements.txt
-   python init_db.py
-   ```
-
-2. **Frontend Setup**:
-   ```bash
-   cd frontend
-   npm install
-   ```
+   *This manages all dependencies for both backend and frontend.*
 
 ## 🚀 Running the Application
 
-### Quick Start
+### Option A: Quick Start (Batch Script)
+1. **Double-click**: `Product_Sales_Start.bat`
+2. **Access**: Opens automatically in your default browser at http://localhost:3050
 
-1. **Run the startup script**:
-   ```bash
-   Product_Sales_Start.bat
-   ```
-2. **Open your browser** and go to: http://localhost:3050
+### Option B: Electron Development
+To run the application in Electron mode during development:
+```bash
+npm run electron-dev
+```
 
-### Manual Start
-
-1. **Start Backend** (Terminal 1):
+### Option C: Manual Start (Terminal)
+1. **Backend**:
    ```bash
    cd backend
    python app.py
    ```
-
-2. **Start Frontend** (Terminal 2):
+2. **Frontend**:
    ```bash
    cd frontend
    npm start
    ```
 
-3. **Access the application**:
-   - Frontend: http://localhost:3050
-   - Backend API: http://localhost:5050
-
-## 📊 Database Migration
-
-The system automatically migrates from XML to SQLite:
-
-- **XML Data**: Automatically imported from `backend/data/products.xml`
-- **Sample Data**: Created if no XML data found
-- **Backup**: Original XML file preserved
-
-## 🎯 Usage Guide
-
-### First Steps
-
-1. **Add Products**: Go to Product Management → Add New Product
-2. **Test Billing**: Create a test bill with sample products
-3. **Check Reports**: View daily sales and analytics
-
-### Product Management
-
-- **Add Products**: Auto-generated IDs (e.g., COLD123, PAAN456)
-- **Edit Products**: Update prices, names, categories
-- **Deactivate**: Hide products from POS without deleting data
-
-### Categories
-
-- **Cold Drinks**: Beverages, soft drinks
-- **Paan**: Traditional paan items
-- **Others**: Miscellaneous items
-
-## 🔧 API Endpoints
-
-### Products
-- `GET /api/products` - Get all active products
-- `GET /api/products?include_inactive=true` - Get all products including inactive
-- `POST /api/products` - Create new product
-- `PUT /api/products/<id>` - Update product
-- `GET /api/products/<id>` - Get specific product
-
-### Billing
-- `POST /api/bill/create` - Create new bill
-- `GET /api/bill/<no>` - Get specific bill
-- `GET /api/bill/today` - Get today's bills
-
-### Summary & Reports
-- `GET /api/summary/today` - Get today's summary
-- `GET /api/reports/excel/today` - Export Excel report
-- `GET /api/reports/csv/today` - Export CSV report
+## 📊 Database & Reports
+- **Automatic Migration**: XML data is automatically migrated to SQLite on first run.
+- **Daily Refresh**: The system auto-archives previous day's data and resets for a fresh start.
+- **Excel Reports**: Generated with "Rebill" branding and restaurant details.
 
 ## 📁 Project Structure
 
 ```
-project-root/
+product-sales-management/
+├── electron/
+│   ├── main.js                # Electron main process
+│   ├── preload.js             # Secure IPC bridge
+│   └── assets/                # Icons and build resources
 ├── backend/
-│   ├── app.py                 # Flask application
-│   ├── config.py              # Configuration
-│   ├── requirements.txt       # Python dependencies
-│   ├── init_db.py            # Database initialization
-│   ├── routes/                # API routes
-│   │   ├── products.py        # Product management
-│   │   ├── billing.py         # Billing operations
-│   │   ├── summary.py         # Sales summary
-│   │   └── reports.py         # Report generation
-│   ├── services/              # Business logic
-│   │   ├── sqlite_db_service.py # SQLite database service
-│   │   ├── excel_service.py   # Excel export
-│   │   └── printer_service.py # Thermal printing
-│   └── data/                  # SQLite database
-│       └── products.db        # Main database file
+│   ├── app.py                 # Flask application entry
+│   ├── routes/
+│   │   ├── products.py        # Item management
+│   │   ├── billing.py         # Transaction processing
+│   │   ├── reports.py         # Excel/CSV generation
+│   │   ├── categories.py      # Category management
+│   │   └── settings.py        # App configuration
+│   ├── services/
+│   │   ├── sqlite_db_service.py # Database interactions
+│   │   └── printer_service.py # Hardware integration
+│   └── data/                  # SQLite storage (products.db)
 ├── frontend/
-│   ├── package.json           # Node dependencies
-│   ├── public/                # Static assets
-│   └── src/                   # React source
-│       ├── components/        # React components
-│       ├── screens/           # Main screens
-│       └── utils/             # Utilities
-├── Product_Sales_Start.bat    # Daily startup script
-├── first_time_start.bat       # First-time setup
-└── README.md                  # This file
+│   ├── src/
+│   │   ├── components/        # Reusable UI components
+│   │   ├── screens/           # Main views (Billing, Management, etc.)
+│   │   └── utils/             # Helper functions
+│   └── public/                # Static assets
+├── Product_Sales_Start.bat    # Daily launcher
+├── first_time_start.bat       # Dependency installer
+└── README.md                  # Documentation
 ```
 
-## 🔍 Troubleshooting
+## ⌨️ Keyboard Shortcuts
 
-### Common Issues
+Speed up your workflow with these hotkeys:
 
-1. **Python not found**: Install Python 3.8+ and add to PATH
-2. **Node.js not found**: Install Node.js LTS version
-3. **Port already in use**: Close other applications using ports 3000/5000
-4. **Database errors**: Delete `data/products.db` and run `init_db.py`
+| Action | Shortcut | Scope |
+|--------|----------|-------|
+| **Start New Bill** | `F5` | Billing Screen |
+| **Print Bill** | `Enter` | Billing Modal |
+| **Search Products** | `Ctrl + F` (Browser Default) | All Screens |
+| **Toggle Fullscreen** | `F11` | Application |
+| **Reload App** | `Ctrl + R` | Application |
+| **Open Dev Tools** | `Ctrl + Shift + I` | Electron Mode |
 
-### Getting Help
+## 🛠️ Advanced Configuration
 
-- **Check logs**: Backend console shows detailed error messages
-- **Browser console**: Press F12 for frontend debugging
-- **Database**: Check `data/products.db` file exists
+### Printer Customization
+You can fine-tune print settings in `backend/services/printer_service.py`:
+- **Paper Width**: Default is `58mm`. Change `PAPER_WIDTH` constant for 80mm printers.
+- **Character Set**: Default is `PC437` for international support.
 
-## 🔄 Updates & Maintenance
+### Network Settings
+To allow other devices to access the POS:
+1. Open `backend/app.py`.
+2. Change `host='127.0.0.1'` to `host='0.0.0.0'`.
+3. Open `frontend/package.json`.
+4. Update proxy settings if running in dev mode.
 
-### Backup Data
-- **Database**: Copy `backend/data/products.db`
-- **Configuration**: Backup custom settings
+## 👨‍💻 Developer Guide
 
-### Updates
-1. **Backup current data**
-2. **Pull latest code**
-3. **Run setup script** if dependencies changed
-4. **Test functionality**
+### Tech Stack
+- **Frontend**: React.js, Framer Motion (Animations), Axios (API).
+- **Backend**: Flask (Python), SQLite (Database), SQLAlchemy (ORM).
+- **Desktop**: Electron.js (Wrapper).
 
-## 📄 License
+### Key Files
+- `frontend/src/App.jsx`: Main routing and layout logic.
+- `backend/routes/billing.py`: Core logic for bill creation and printing.
+- `backend/data/products.db`: SQLite database file (auto-created).
 
-MIT License - Free for commercial and personal use
+### Adding a New Feature
+1. **Backend**: Add a new route in `backend/routes/`.
+2. **Frontend**: Create a component in `frontend/src/components/`.
+3. **Link**: Register the route in `app.py` and the component in `App.jsx`.
+
+## ❓ FAQ & Troubleshooting
+
+### Q: The printer is not printing?
+- **A**: Ensure the thermal printer is connected via USB and drivers are installed. The system uses the default system printer or a specific USB endpoint. Check `printer_service.py` logs.
+
+### Q: How do I reset the database?
+- **A**: Delete the `backend/data/products.db` file. Restart the backend to auto-generate a fresh database.
+
+### Q: Can I run this on multiple computers?
+- **A**: Yes, but they must be on the same WiFi network. Set the backend host to `0.0.0.0` and access via the host's IP address.
+
+### Q: Images are not showing?
+- **A**: Ensure images are placed in `backend/static/images` and filenames match the database records.
 
 ## 🤝 Support
+For detailed issues, please check the [GitHub Issues](https://github.com/DhruvGohel46/Product_Sales_Mangment/issues) page.
 
-For issues and questions:
-- Check the troubleshooting section
-- Review error logs
-- Verify system requirements
+## 📄 License
+MIT License - Open source and free to use.
 
 ---
 

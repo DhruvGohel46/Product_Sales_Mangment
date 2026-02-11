@@ -68,6 +68,7 @@ import { formatCurrency, handleAPIError, downloadFile } from '../../utils/api';
 import { CATEGORY_COLORS, CATEGORY_NAMES, ANIMATION_DURATIONS, EASINGS } from '../../utils/constants';
 import Button from '../ui/Button';
 import Card from '../ui/Card';
+import Skeleton from '../ui/Skeleton';
 import '../../styles/Management.css';
 import AnimatedList from '../ui/AnimatedList';
 
@@ -427,36 +428,58 @@ const Reports = () => {
     }
   };
 
-  // Loading state
+  // ... (imports remain same)
+
+  // Loading state with Skeleton
   if (loading) {
     return (
       <div style={{
-        display: 'flex',
-        flexDirection: 'column',
-        alignItems: 'center',
-        justifyContent: 'center',
-        minHeight: '100vh',
+        height: '100%',
+        overflowY: 'auto',
         background: currentTheme.colors.background,
+        paddingTop: currentTheme.spacing[8],
+        paddingLeft: currentTheme.spacing[8],
+        paddingRight: currentTheme.spacing[8],
+        paddingBottom: currentTheme.spacing[12],
       }}>
+        {/* Header Skeleton */}
+        <div style={{ marginBottom: currentTheme.spacing[8], display: 'flex', justifyContent: 'space-between' }}>
+          <Skeleton height="80px" width="40%" borderRadius="20px" />
+          <div style={{ display: 'flex', gap: '12px' }}>
+            <Skeleton height="50px" width="140px" borderRadius="12px" />
+            <Skeleton height="50px" width="140px" borderRadius="12px" />
+          </div>
+        </div>
+
+        {/* KPI Cards Skeleton */}
         <div style={{
-          display: 'flex',
-          flexDirection: 'column',
-          alignItems: 'center',
-          gap: currentTheme.spacing[2]
+          display: 'grid',
+          gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))',
+          gap: currentTheme.spacing[6],
+          marginBottom: currentTheme.spacing[8],
         }}>
-          <div style={{
-            fontSize: '1.125rem',
-            fontWeight: 500,
-            color: currentTheme.colors.text.primary,
-          }}>
-            Loading Analytics
-          </div>
-          <div style={{
-            fontSize: '0.875rem',
-            color: currentTheme.colors.text.secondary,
-          }}>
-            Fetching sales data and reports...
-          </div>
+          {[...Array(3)].map((_, i) => (
+            <Card key={i} style={{ height: '160px', padding: '24px' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '20px' }}>
+                <div style={{ width: '60%' }}>
+                  <Skeleton height="20px" width="80px" style={{ marginBottom: '10px' }} />
+                  <Skeleton height="40px" width="120px" />
+                </div>
+                <Skeleton height="48px" width="48px" borderRadius="12px" />
+              </div>
+              <Skeleton height="16px" width="100%" />
+            </Card>
+          ))}
+        </div>
+
+        {/* Charts Skeleton */}
+        <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: currentTheme.spacing[6] }}>
+          <Card style={{ height: '400px' }}>
+            <Skeleton height="100%" width="100%" />
+          </Card>
+          <Card style={{ height: '400px' }}>
+            <Skeleton height="100%" width="100%" />
+          </Card>
         </div>
       </div>
     );
@@ -557,7 +580,8 @@ const Reports = () => {
 
   return (
     <div style={{
-      minHeight: '100vh',
+      height: '100%',
+      overflowY: 'auto',
       background: currentTheme.colors.background,
       paddingTop: currentTheme.spacing[8],
       paddingLeft: currentTheme.spacing[8],

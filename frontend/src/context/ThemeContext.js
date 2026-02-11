@@ -51,6 +51,7 @@ export const ThemeProvider = ({ children }) => {
     root.style.setProperty('--surface-tertiary', themeObject.colors.surface.tertiary);
 
     // Brand colors
+    root.style.setProperty('--primary', themeObject.colors.primary[500]);
     root.style.setProperty('--primary-50', themeObject.colors.primary[50]);
     root.style.setProperty('--primary-100', themeObject.colors.primary[100]);
     root.style.setProperty('--primary-500', themeObject.colors.primary[500]);
@@ -102,6 +103,7 @@ export const ThemeProvider = ({ children }) => {
     theme,
     currentTheme,
     toggleTheme,
+    setTheme, // Expose direct setter
     isDark: theme === 'dark',
     isLight: theme === 'light',
   };

@@ -1,0 +1,360 @@
+import React, { useState, useEffect } from 'react';
+import { motion } from 'framer-motion';
+import { useSettings } from '../../context/SettingsContext';
+import { useToast } from '../../context/ToastContext';
+import { useTheme } from '../../context/ThemeContext';
+import '../../styles/Settings.css';
+
+const Settings = () => {
+    const { showSuccess, showError } = useToast();
+    const { isDark } = useTheme(); // Use global theme context for simple toggle
+    const { settings: globalSettings, loading, updateSettings } = useSettings();
+
+    const [saving, setSaving] = useState(false);
+    const [activeTab, setActiveTab] = useState('shop');
+
+    const [formSettings, setFormSettings] = useState({
+        // Shop
+        shop_name: '',
+        shop_address: '',
+        shop_contact: '',
+        gst_no: '',
+        currency_symbol: '₹',
+
+        // Billing
+        bill_reset_daily: 'true',
+        default_tax_rate: '0',
+        tax_enabled: 'false',
+
+        // Printer
+        printer_enabled: 'false',
+        printer_width: '58mm',
+        auto_print: 'false',
+
+        // App
+        show_product_images: 'true',
+        dark_mode: 'false',
+        sound_enabled: 'true'
+    });
+
+    // Sync form with global settings when they load
+    useEffect(() => {
+        if (globalSettings && Object.keys(globalSettings).length > 0) {
+            setFormSettings(prev => ({
+                ...prev,
+                ...globalSettings
+            }));
+        }
+    }, [globalSettings]);
+
+    const handleChange = (key, value) => {
+        setFormSettings(prev => ({
+            ...prev,
+            [key]: value
+        }));
+    };
+
+    const handleSave = async () => {
+        try {
+            setSaving(true);
+
+            // The context handles the API call and state update
+            await updateSettings(formSettings);
+
+            showSuccess('Settings saved successfully');
+
+        } catch (error) {
+            showError('Failed to save settings');
+            console.error(error);
+        } finally {
+            setSaving(false);
+        }
+    };
+
+    const handleDiscard = () => {
+        if (globalSettings) {
+            setFormSettings(prev => ({ ...prev, ...globalSettings }));
+        }
+        showSuccess('Changes discarded');
+    };
+
+    const tabs = [
+        { id: 'shop', label: 'Shop Details' },
+        { id: 'billing', label: 'Billing Configuration' },
+        { id: 'printer', label: 'Printer Settings' },
+        { id: 'app', label: 'App Preferences' }
+    ];
+
+    if (loading) {
+        return <div className="stShell"><div className="stPage">Loading settings...</div></div>;
+    }
+
+    return (
+        <div className="stShell">
+            <div className="stPage">
+                <div className="stHeader">
+                    <div className="stTitle">System Settings</div>
+                </div>
+
+                <div className="stTabs">
+                    {tabs.map(tab => (
+                        <button
+                            key={tab.id}
+                            className={`stTabButton ${activeTab === tab.id ? 'stTabActive' : ''}`}
+                            onClick={() => setActiveTab(tab.id)}
+                        >
+                            {tab.label}
+                        </button>
+                    ))}
+                </div>
+
+                <motion.div
+                    key={activeTab}
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.2 }}
+                    className="stSection"
+                >
+                    {activeTab === 'shop' && (
+                        <>
+                            <div className="stSectionTitle">Store Information</div>
+
+                            <div className="stFormGroup">
+                                <div className="stLabel">
+                                    <span className="stLabelTitle">Shop Name</span>
+                                    <span className="stLabelDesc">Appears on bills and reports</span>
+                                </div>
+                                <input
+                                    className="stInput"
+                                    value={formSettings.shop_name || ''}
+                                    onChange={(e) => handleChange('shop_name', e.target.value)}
+                                    placeholder="e.g. Burger Bhau"
+                                />
+                            </div>
+
+                            <div className="stFormGroup">
+                                <div className="stLabel">
+                                    <span className="stLabelTitle">Address</span>
+                                    <span className="stLabelDesc">Shop location for bill header</span>
+                                </div>
+                                <input
+                                    className="stInput"
+                                    value={formSettings.shop_address || ''}
+                                    onChange={(e) => handleChange('shop_address', e.target.value)}
+                                    placeholder="Shop address"
+                                />
+                            </div>
+
+                            <div className="stFormGroup">
+                                <div className="stLabel">
+                                    <span className="stLabelTitle">Contact Number</span>
+                                    <span className="stLabelDesc">Displayed on bills</span>
+                                </div>
+                                <input
+                                    className="stInput"
+                                    value={formSettings.shop_contact || ''}
+                                    onChange={(e) => handleChange('shop_contact', e.target.value)}
+                                    placeholder="Phone number"
+                                />
+                            </div>
+
+                            <div className="stFormGroup">
+                                <div className="stLabel">
+                                    <span className="stLabelTitle">GST / Tax ID</span>
+                                    <span className="stLabelDesc">Optional tax identification number</span>
+                                </div>
+                                <input
+                                    className="stInput"
+                                    value={formSettings.gst_no || ''}
+                                    onChange={(e) => handleChange('gst_no', e.target.value)}
+                                    placeholder="GSTIN (Optional)"
+                                />
+                            </div>
+
+                            <div className="stFormGroup">
+                                <div className="stLabel">
+                                    <span className="stLabelTitle">Currency Symbol</span>
+                                    <span className="stLabelDesc">Default currency for prices</span>
+                                </div>
+                                <input
+                                    className="stInput"
+                                    style={{ width: '80px' }}
+                                    value={formSettings.currency_symbol || ''}
+                                    onChange={(e) => handleChange('currency_symbol', e.target.value)}
+                                />
+                            </div>
+                        </>
+                    )}
+
+                    {activeTab === 'billing' && (
+                        <>
+                            <div className="stSectionTitle">Billing Rules</div>
+
+                            <div className="stFormGroup">
+                                <div className="stLabel">
+                                    <span className="stLabelTitle">Daily Bill Reset</span>
+                                    <span className="stLabelDesc">Reset bill number to 1 every day</span>
+                                </div>
+                                <label className="stToggle">
+                                    <input
+                                        type="checkbox"
+                                        checked={formSettings.bill_reset_daily === 'true'}
+                                        onChange={(e) => handleChange('bill_reset_daily', e.target.checked ? 'true' : 'false')}
+                                    />
+                                    <span className="stSlider"></span>
+                                </label>
+                            </div>
+
+                            <div className="stFormGroup">
+                                <div className="stLabel">
+                                    <span className="stLabelTitle">Enable Tax</span>
+                                    <span className="stLabelDesc">Calculate tax on bills</span>
+                                </div>
+                                <label className="stToggle">
+                                    <input
+                                        type="checkbox"
+                                        checked={formSettings.tax_enabled === 'true'}
+                                        onChange={(e) => handleChange('tax_enabled', e.target.checked ? 'true' : 'false')}
+                                    />
+                                    <span className="stSlider"></span>
+                                </label>
+                            </div>
+
+                            {formSettings.tax_enabled === 'true' && (
+                                <div className="stFormGroup">
+                                    <div className="stLabel">
+                                        <span className="stLabelTitle">Default Tax Rate (%)</span>
+                                        <span className="stLabelDesc">Percentage added to total</span>
+                                    </div>
+                                    <input
+                                        type="number"
+                                        className="stInput"
+                                        style={{ width: '100px' }}
+                                        value={formSettings.default_tax_rate || ''}
+                                        onChange={(e) => handleChange('default_tax_rate', e.target.value)}
+                                    />
+                                </div>
+                            )}
+                        </>
+                    )}
+
+                    {activeTab === 'printer' && (
+                        <>
+                            <div className="stSectionTitle">Printer Configuration</div>
+
+                            <div className="stFormGroup">
+                                <div className="stLabel">
+                                    <span className="stLabelTitle">Enable Thermal Printer</span>
+                                    <span className="stLabelDesc">Send print commands to connected printer</span>
+                                </div>
+                                <label className="stToggle">
+                                    <input
+                                        type="checkbox"
+                                        checked={formSettings.printer_enabled === 'true'}
+                                        onChange={(e) => handleChange('printer_enabled', e.target.checked ? 'true' : 'false')}
+                                    />
+                                    <span className="stSlider"></span>
+                                </label>
+                            </div>
+
+                            <div className="stFormGroup">
+                                <div className="stLabel">
+                                    <span className="stLabelTitle">Auto Print</span>
+                                    <span className="stLabelDesc">Print automatically after saving bill</span>
+                                </div>
+                                <label className="stToggle">
+                                    <input
+                                        type="checkbox"
+                                        checked={formSettings.auto_print === 'true'}
+                                        onChange={(e) => handleChange('auto_print', e.target.checked ? 'true' : 'false')}
+                                    />
+                                    <span className="stSlider"></span>
+                                </label>
+                            </div>
+
+                            <div className="stFormGroup">
+                                <div className="stLabel">
+                                    <span className="stLabelTitle">Page Width</span>
+                                    <span className="stLabelDesc">Paper roll width</span>
+                                </div>
+                                <select
+                                    className="stInput"
+                                    style={{ width: '120px' }}
+                                    value={formSettings.printer_width || '58mm'}
+                                    onChange={(e) => handleChange('printer_width', e.target.value)}
+                                >
+                                    <option value="58mm">58mm</option>
+                                    <option value="80mm">80mm</option>
+                                </select>
+                            </div>
+                        </>
+                    )}
+
+                    {activeTab === 'app' && (
+                        <>
+                            <div className="stSectionTitle">Application Preferences</div>
+
+                            <div className="stFormGroup">
+                                <div className="stLabel">
+                                    <span className="stLabelTitle">Show Product Images</span>
+                                    <span className="stLabelDesc">Disable to improve performance on low-end devices</span>
+                                </div>
+                                <label className="stToggle">
+                                    <input
+                                        type="checkbox"
+                                        checked={formSettings.show_product_images !== 'false'}
+                                        onChange={(e) => handleChange('show_product_images', e.target.checked ? 'true' : 'false')}
+                                    />
+                                    <span className="stSlider"></span>
+                                </label>
+                            </div>
+
+                            <div className="stFormGroup">
+                                <div className="stLabel">
+                                    <span className="stLabelTitle">Dark Mode (Default)</span>
+                                    <span className="stLabelDesc">Set dark mode as default on startup</span>
+                                </div>
+                                <label className="stToggle">
+                                    <input
+                                        type="checkbox"
+                                        checked={formSettings.dark_mode === 'true'}
+                                        onChange={(e) => handleChange('dark_mode', e.target.checked ? 'true' : 'false')}
+                                    />
+                                    <span className="stSlider"></span>
+                                </label>
+                            </div>
+
+                            <div className="stFormGroup">
+                                <div className="stLabel">
+                                    <span className="stLabelTitle">Sound Effects</span>
+                                    <span className="stLabelDesc">Play sound on successful bill</span>
+                                </div>
+                                <label className="stToggle">
+                                    <input
+                                        type="checkbox"
+                                        checked={formSettings.sound_enabled === 'true'}
+                                        onChange={(e) => handleChange('sound_enabled', e.target.checked ? 'true' : 'false')}
+                                    />
+                                    <span className="stSlider"></span>
+                                </label>
+                            </div>
+                        </>
+                    )}
+
+                    <div className="stActions">
+                        <button className="stButton" onClick={handleDiscard}>Discard Changes</button>
+                        <button
+                            className="stButton stButtonPrimary"
+                            onClick={handleSave}
+                            disabled={saving}
+                        >
+                            {saving ? 'Saving...' : 'Save Settings'}
+                        </button>
+                    </div>
+                </motion.div>
+            </div>
+        </div>
+    );
+};
+
+export default Settings;

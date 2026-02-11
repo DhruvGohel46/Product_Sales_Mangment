@@ -14,6 +14,7 @@ from routes.billing import billing_bp
 from routes.summary import summary_bp
 from routes.reports import reports_bp
 from routes.categories import categories_bp
+from routes.settings import settings_bp
 
 # Import dashboard refresher
 from dashboard_refresher import DashboardRefresher
@@ -52,6 +53,7 @@ def create_app(config_name='default'):
     app.register_blueprint(summary_bp)
     app.register_blueprint(reports_bp)
     app.register_blueprint(categories_bp)
+    app.register_blueprint(settings_bp)
 
     # Serve product images
     @app.route('/api/images/<path:filename>')
@@ -73,7 +75,8 @@ def create_app(config_name='default'):
                 'billing': '/api/bill',
                 'summary': '/api/summary',
                 'reports': '/api/reports',
-                'categories': '/api/categories'
+                'categories': '/api/categories',
+                'settings': '/api/settings'
             }
         })
     

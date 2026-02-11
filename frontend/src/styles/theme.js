@@ -68,84 +68,84 @@
 
 // Primary brand color - Burger Bhau Burnt Orange
 export const primary = {
-  50: '#FFF7ED',  // Orange 50
-  100: '#FFEDD5', // Orange 100
-  200: '#FED7AA', // Orange 200
-  300: '#FDBA74', // Orange 300
-  400: '#FB923C', // Orange 400
-  500: '#F97316', // Orange 500 (Base)
-  600: '#EA580C', // Orange 600
-  700: '#C2410C', // Orange 700
-  800: '#9A3412', // Orange 800
-  900: '#7C2D12', // Orange 900
+  50: '#fff7ed',  // Orange 50
+  100: '#ffedd5', // Orange 100
+  200: '#fed7aa', // Orange 200
+  300: '#fdba74', // Orange 300
+  400: '#fb923c', // Orange 400
+  500: '#f97316', // Orange 500 (Base)
+  600: '#ea580c', // Orange 600
+  700: '#c2410c', // Orange 700
+  800: '#9a3412', // Orange 800
+  900: '#7c2d12', // Orange 900
   950: '#431407', // Orange 950
 };
 
-// Neutral color system - Warm Browns/Grays
+// Neutral color system - Professional Slate Scale (Blue-tinted grays)
 export const neutral = {
-  0: '#FFFFFF',     // Pure White
-  50: '#FAFAF9',    // Warm Gray 50
-  100: '#F5F5F4',   // Warm Gray 100
-  200: '#E7E5E4',   // Warm Gray 200
-  300: '#D6D3D1',   // Warm Gray 300
-  400: '#A8A29E',   // Warm Gray 400
-  500: '#78716C',   // Warm Gray 500
-  600: '#57534E',   // Warm Gray 600
-  700: '#44403C',   // Warm Gray 700
-  800: '#292524',   // Warm Gray 800
-  900: '#1C1917',   // Warm Gray 900
-  950: '#0C0A09',   // Warm Gray 950
+  0: '#ffffff',     // Pure White
+  50: '#f8fafc',    // Slate 50
+  100: '#f1f5f9',   // Slate 100
+  200: '#e2e8f0',   // Slate 200
+  300: '#cbd5e1',   // Slate 300
+  400: '#94a3b8',   // Slate 400
+  500: '#64748b',   // Slate 500
+  600: '#475569',   // Slate 600
+  700: '#334155',   // Slate 700
+  800: '#1e293b',   // Slate 800
+  900: '#0f172a',   // Slate 900
+  950: '#020617',   // Slate 950
 };
 
 // Semantic colors - consistent across all screens
 export const semantic = {
   success: {
-    50: '#F0FDF4',
-    100: '#DCFCE7',
-    200: '#BBF7D0',
-    300: '#86EFAC',
-    400: '#4ADE80',
-    500: '#22C55E',
-    600: '#16A34A',
-    700: '#15803D',
+    50: '#f0fdf4',
+    100: '#dcfce7',
+    200: '#bbf7d0',
+    300: '#86efac',
+    400: '#4ade80',
+    500: '#22c55e',
+    600: '#16a34a',
+    700: '#15803d',
     800: '#166534',
-    900: '#14532D',
+    900: '#14532d',
   },
   warning: {
-    50: '#FFFBEB',
-    100: '#FEF3C7',
-    200: '#FDE68A',
-    300: '#FCD34D',
-    400: '#FBBF24',
-    500: '#F59E0B',
-    600: '#D97706',
-    700: '#B45309',
-    800: '#92400E',
-    900: '#78350F',
+    50: '#fffbeb',
+    100: '#fef3c7',
+    200: '#fde68a',
+    300: '#fcd34d',
+    400: '#fbbf24',
+    500: '#f59e0b',
+    600: '#d97706',
+    700: '#b45309',
+    800: '#92400e',
+    900: '#78350f',
   },
   error: {
-    50: '#FEF2F2',
-    100: '#FEE2E2',
-    200: '#FECACA',
-    300: '#FCA5A5',
-    400: '#F87171',
-    500: '#EF4444',
-    600: '#DC2626',
-    700: '#B91C1C',
-    800: '#991B1B',
-    900: '#7F1D1D',
+    50: '#fef2f2',
+    100: '#fee2e2',
+    200: '#fecaca',
+    300: '#fca5a5',
+    400: '#f87171',
+    500: '#ef4444',
+    600: '#dc2626',
+    700: '#b91c1c',
+    800: '#991b1b',
+    900: '#7f1d1d',
   },
   info: {
-    50: '#F0F9FF',
-    100: '#E0F2FE',
-    200: '#BAE6FD',
-    300: '#7DD3FC',
-    400: '#38BDF8',
-    500: '#0EA5E9',
-    600: '#0284C7',
-    700: '#0369A1',
+    50: '#f0f9ff',
+    100: '#e0f2fe',
+    200: '#bae6fd',
+    300: '#7dd3fc',
+    400: '#38bdf8',
+    500: '#0ea5e9',
+    600: '#0284c7',
+    700: '#0369a1',
     800: '#075985',
-    900: '#0C4A6E',
+    900: '#0c4a6e',
   }
 };
 
@@ -293,12 +293,12 @@ export const shadows = {
   '2xl': '0 20px 32px -8px rgba(0, 0, 0, 0.12), 0 10px 20px -4px rgba(0, 0, 0, 0.06)',
 
   // Strong shadows for cards (matching Management.css)
-  card: '0 8px 32px rgba(0, 0, 0, 0.12)',
-  cardHover: '0 8px 32px rgba(0, 0, 0, 0.08)',
+  card: '0 8px 32px rgba(0, 0, 0, 0.08)',
+  cardHover: '0 12px 40px rgba(0, 0, 0, 0.12)',
 
   // Dark theme card shadows
-  cardDark: '0 8px 32px rgba(255, 255, 255, 0.1)',
-  cardDarkHover: '0 8px 32px rgba(255, 255, 255, 0.05)',
+  cardDark: '0 8px 32px rgba(0, 0, 0, 0.3)',
+  cardDarkHover: '0 12px 40px rgba(0, 0, 0, 0.4)',
 
   inner: 'inset 0 1px 2px 0 rgba(0, 0, 0, 0.03)',
 
@@ -344,15 +344,15 @@ export const breakpoints = {
 export const lightTheme = {
   colors: {
     ...colors,
-    background: neutral[0],   // Pure White
-    surface: neutral[0],      // White surface for cards
-    card: neutral[0],
+    background: '#ffffff',   // Pure White
+    surface: '#ffffff',      // White surface for cards
+    card: '#ffffff',
     text: {
-      primary: colors.text.primary,
-      secondary: colors.text.secondary,
-      muted: colors.text.tertiary,
+      primary: neutral[900],   // Slate 900
+      secondary: neutral[500], // Slate 500
+      muted: neutral[400],     // Slate 400
     },
-    border: colors.border.primary,
+    border: neutral[200],      // Slate 200
     focus: colors.primary[500],
   },
   typography,
@@ -361,25 +361,40 @@ export const lightTheme = {
   shadows,
 };
 
-// Dark theme configuration
+// Dark theme configuration - Professional Neutral Gray (Low Contrast)
 export const darkTheme = {
   colors: {
     ...colors,
-    background: '#000000', // Dark Black
-    surface: '#09090b',    // Slightly lighter for cards
-    card: '#09090b',
+    background: '#121212', // Level 0: Main app background (Deepest)
+    surface: '#1e1e1e',    // Level 1: Standard panels/cards (Dark Gray)
+    card: '#252525',       // Level 2: Cards/Content areas (Lighter Gray)
     text: {
-      primary: colors.text.inverse,
-      secondary: neutral[400],
-      muted: neutral[500],
+      primary: '#e5e5e5',  // Neutral Gray 200 (Software standard)
+      secondary: '#a3a3a3', // Neutral Gray 400
+      muted: '#737373',    // Neutral Gray 500
+      inverse: '#121212',
     },
-    border: neutral[800],
-    focus: colors.primary[400],
+    border: '#404040',   // Neutral 700
+    focus: colors.primary[500],
+    // Distinct shades for specific components
+    sidebar: '#18181b',    // Zinc 900 - Distinct but subtle
+    modal: '#2d2d2d',      // Highest elevation
   },
   typography,
   spacing,
   borderRadius,
-  shadows,
+  shadows: {
+    ...shadows,
+    card: '0 4px 6px -1px rgba(0, 0, 0, 0.5), 0 2px 4px -1px rgba(0, 0, 0, 0.3)',
+    cardHover: '0 10px 15px -3px rgba(0, 0, 0, 0.5), 0 4px 6px -2px rgba(0, 0, 0, 0.3)',
+    cardDark: '0 8px 32px rgba(0, 0, 0, 0.4)',
+    cardDarkHover: '0 12px 40px rgba(0, 0, 0, 0.5)',
+    // Professional subtle glow
+    glow: {
+      primary: '0 0 20px rgba(249, 115, 22, 0.15)',
+      success: '0 0 20px rgba(34, 197, 94, 0.15)',
+    }
+  },
 };
 
 // Default theme

@@ -85,8 +85,8 @@ const Input = React.forwardRef(({
   const focusStyles = {
     '&:focus': {
       borderColor: error ? currentTheme.colors.error[500] : currentTheme.colors.primary[500],
-      boxShadow: error 
-        ? `0 0 0 3px ${currentTheme.colors.error[100]}` 
+      boxShadow: error
+        ? `0 0 0 3px ${currentTheme.colors.error[100]}`
         : `0 0 0 3px ${currentTheme.colors.primary[100]}`,
     },
   };
@@ -138,31 +138,51 @@ const Input = React.forwardRef(({
           )}
         </label>
       )}
-      
-      <motion.input
-        ref={ref}
-        type={type}
-        placeholder={placeholder}
-        value={value}
-        onChange={handleChange}
-        onBlur={handleBlur}
-        onFocus={handleFocus}
-        disabled={disabled}
-        required={required}
-        style={inputStyles}
-        whileFocus={{
-          scale: 1.01,
-          transition: { duration: 0.2 }
-        }}
-        {...props}
-      />
-      
+
+      <div style={{ position: 'relative', width: '100%' }}>
+        {props.leftIcon && (
+          <div style={{
+            position: 'absolute',
+            left: currentTheme.spacing[3],
+            top: '50%',
+            transform: 'translateY(-50%)',
+            color: currentTheme.colors.text.secondary,
+            display: 'flex',
+            alignItems: 'center',
+            pointerEvents: 'none',
+            zIndex: 1,
+          }}>
+            {props.leftIcon}
+          </div>
+        )}
+        <motion.input
+          ref={ref}
+          type={type}
+          placeholder={placeholder}
+          value={value}
+          onChange={handleChange}
+          onBlur={handleBlur}
+          onFocus={handleFocus}
+          disabled={disabled}
+          required={required}
+          style={{
+            ...inputStyles,
+            paddingLeft: props.leftIcon ? `calc(${currentTheme.spacing[3]} + 24px)` : inputStyles.paddingLeft,
+          }}
+          whileFocus={{
+            scale: 1.01,
+            transition: { duration: 0.2 }
+          }}
+          {...props}
+        />
+      </div>
+
       {helperText && (
         <span style={helperTextStyles}>
           {helperText}
         </span>
       )}
-      
+
       {error && (
         <motion.span
           style={errorStyles}

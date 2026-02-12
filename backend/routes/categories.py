@@ -1,9 +1,9 @@
 from flask import Blueprint, request, jsonify
-from services.sqlite_db_service import SQLiteDatabaseService
+from services.db_service import DatabaseService
 from config import config
 
 categories_bp = Blueprint('categories', __name__, url_prefix='/api/categories')
-db = SQLiteDatabaseService()
+db = DatabaseService()
 
 @categories_bp.route('', methods=['GET'])
 def get_categories():

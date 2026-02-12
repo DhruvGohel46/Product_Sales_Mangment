@@ -1,5 +1,5 @@
 from flask import Blueprint, request, jsonify
-from services.sqlite_db_service import SQLiteDatabaseService
+from services.db_service import DatabaseService
 from config import config
 import os
 import re
@@ -13,7 +13,7 @@ bg_session = new_session("u2netp")
 
 
 products_bp = Blueprint('products', __name__, url_prefix='/api/products')
-db = SQLiteDatabaseService()
+db = DatabaseService()
 
 
 @products_bp.route('', methods=['POST'])

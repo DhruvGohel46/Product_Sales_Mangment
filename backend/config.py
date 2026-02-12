@@ -14,6 +14,13 @@ class Config:
     else:
         BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
+    # SQLAlchemy Configuration
+    # Use environment variable for DB URI, fallback to local postgres
+    # Default: postgresql://postgres:YOUR_PASSWORD@localhost:5432/rebill_db
+    SQLALCHEMY_DATABASE_URI = os.environ.get('DATABASE_URL') or \
+        "postgresql://postgres:dharmik@localhost:5432/rebill_db"
+    SQLALCHEMY_TRACK_MODIFICATIONS = False
+
     # Data directory - allow override via env var (passed from Electron)
     # Default to a 'data' folder next to the executable if not specified
     DATA_DIR = os.environ.get('POS_DATA_DIR') or os.path.join(os.path.dirname(sys.executable) if getattr(sys, 'frozen', False) else BASE_DIR, "data")
@@ -70,3 +77,4 @@ config = {
     'production': ProductionConfig,
     'default': DevelopmentConfig
 }
+

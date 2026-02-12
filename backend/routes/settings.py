@@ -1,8 +1,9 @@
 from flask import Blueprint, jsonify, request
-from services.sqlite_db_service import SQLiteDatabaseService
+from flask import Blueprint, jsonify, request
+from services.db_service import DatabaseService
 
 settings_bp = Blueprint('settings', __name__)
-db_service = SQLiteDatabaseService()
+db_service = DatabaseService()
 
 @settings_bp.route('/api/settings', methods=['GET'])
 def get_settings():

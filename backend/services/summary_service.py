@@ -1,12 +1,12 @@
 from datetime import datetime, date
 from typing import List, Dict, Optional
-from .sqlite_db_service import SQLiteDatabaseService
+from .db_service import DatabaseService
 
 
 class SummaryService:
     """Service for generating daily sales summaries"""
     
-    def __init__(self, db_service: SQLiteDatabaseService):
+    def __init__(self, db_service: DatabaseService):
         self.db_service = db_service
     
     def get_today_summary(self) -> Dict:

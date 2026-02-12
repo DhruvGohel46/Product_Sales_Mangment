@@ -1,5 +1,5 @@
 from flask import Blueprint, request, jsonify, send_file
-from services.sqlite_db_service import SQLiteDatabaseService
+from services.db_service import DatabaseService
 from services.excel_service import ExcelService
 from services.excel_xlsx_service import ExcelXLSXService
 from services.summary_service import SummaryService
@@ -8,7 +8,7 @@ from datetime import date
 
 
 reports_bp = Blueprint('reports', __name__, url_prefix='/api/reports')
-db = SQLiteDatabaseService()
+db = DatabaseService()
 excel_service = ExcelService()
 excel_xlsx_service = ExcelXLSXService()
 summary_service = SummaryService(db)

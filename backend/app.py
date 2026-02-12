@@ -40,6 +40,10 @@ def create_app(config_name='default'):
     # Load configuration
     app.config.from_object(config[config_name])
     
+    # Initialize SQLAlchemy
+    from models import db
+    db.init_app(app)
+    
     # Enable CORS for all routes
     CORS(app, resources={
         r"/api/*": {

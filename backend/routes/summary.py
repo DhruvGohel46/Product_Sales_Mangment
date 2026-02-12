@@ -1,11 +1,11 @@
 from flask import Blueprint, jsonify, request
 import json
-from services.sqlite_db_service import SQLiteDatabaseService
+from services.db_service import DatabaseService
 from services.summary_service import SummaryService
 
 
 summary_bp = Blueprint('summary', __name__, url_prefix='/api/summary')
-db = SQLiteDatabaseService()
+db = DatabaseService()
 summary_service = SummaryService(db)
 
 

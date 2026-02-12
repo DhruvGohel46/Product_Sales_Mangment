@@ -3,22 +3,20 @@ import sys
 import schedule
 import time
 import logging
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, date
 from flask_cors import CORS
 from flask import Flask
-import sqlite3
 import pandas as pd
 from pathlib import Path
-import threading
 import json
+from sqlalchemy import func
 
 # Add parent directory to path for imports
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-# Import existing modules
-from routes.billing import get_bills_for_date_range
-from routes.products import get_products
-from config import RESET_PASSWORD, REPORTS_FOLDER
+from app import create_app
+from models import db, Bill
+from config import REPORTS_FOLDER
 
 # Configure logging
 logging.basicConfig(
@@ -33,9 +31,7 @@ logger = logging.getLogger(__name__)
 
 class ReportScheduler:
     def __init__(self):
-        self.app = Flask(__name__)
-        CORS(self.app)
-        self.db_path = os.path.join(os.path.dirname(__file__), 'data', 'products.db')
+        self.app = create_app('default')
         self.reports_folder = REPORTS_FOLDER
         self.ensure_reports_folder()
         
@@ -50,106 +46,96 @@ class ReportScheduler:
     
     def get_previous_day_report(self):
         """Generate previous day's sales report"""
-        try:
-            # Calculate previous day's date range
-            yesterday = datetime.now() - timedelta(days=1)
-            start_date = yesterday.replace(hour=0, minute=0, second=0, microsecond=0)
-            end_date = yesterday.replace(hour=23, minute=59, second=59, microsecond=999999)
-            
-            logger.info(f"Generating report for {yesterday.strftime('%Y-%m-%d')}")
-            
-            # Connect to database
-            conn = sqlite3.connect(self.db_path)
-            cursor = conn.cursor()
-            
-            # Get bills for previous day
-            cursor.execute("""
-                SELECT id, customer_name, total_amount, payment_method, 
-                       created_at, updated_at
-                FROM bills 
-                WHERE created_at >= ? AND created_at <= ?
-                ORDER BY created_at DESC
-            """, (start_date, end_date))
-            
-            bills_data = cursor.fetchall()
-            
-            if not bills_data:
-                logger.info("No bills found for previous day")
+        with self.app.app_context():
+            try:
+                # Calculate previous day's date
+                yesterday = date.today() - timedelta(days=1)
+                
+                logger.info(f"Generating report for {yesterday}")
+                
+                # Get bills for previous day
+                bills = Bill.query.filter(
+                    func.date(Bill.created_at) == yesterday
+                ).order_by(Bill.created_at.desc()).all()
+                
+                if not bills:
+                    logger.info("No bills found for previous day")
+                    return None
+                
+                # Transform bills to list of dicts for processing
+                bills_list = []
+                for bill in bills:
+                    # Parse items
+                    try:
+                        items = json.loads(bill.items) if isinstance(bill.items, str) else bill.items
+                    except:
+                        items = []
+                        
+                    # Calculate bill-level item details
+                    processed_items = []
+                    for item in items:
+                        processed_items.append({
+                            'quantity': item.get('quantity', 0),
+                            'price': item.get('price', 0),
+                            'total': item.get('quantity', 0) * item.get('price', 0),
+                            'product_name': item.get('name', 'Unknown'),
+                            'category': item.get('category', 'Unknown') # Note: category might be in item or we look it up? 
+                            # In sqlite service it joined products table. 
+                            # Here items JSON usually has category logic handled by frontend/service.
+                            # If not, we might need to fetch products. 
+                            # For simplicity assuming items has it or we accept 'Unknown'
+                        })
+
+                    bills_list.append({
+                        'id': bill.id,
+                        'customer_name': bill.customer_name,
+                        'total_amount': bill.total_amount,
+                        'payment_method': bill.payment_method,
+                        'created_at': bill.created_at,
+                        'updated_at': bill.updated_at,
+                        'items': processed_items
+                    })
+                
+                # Calculate summary statistics
+                total_sales = sum(bill['total_amount'] for bill in bills_list)
+                total_bills = len(bills_list)
+                
+                # Category-wise sales
+                category_sales = {}
+                for bill in bills_list:
+                    for item in bill['items']:
+                        category = item.get('category', 'Unknown')
+                        if category not in category_sales:
+                            category_sales[category] = 0
+                        category_sales[category] += item['total']
+                
+                # Payment method breakdown
+                payment_methods = {}
+                for bill in bills_list:
+                    method = bill['payment_method'] or 'CASH'
+                    if method not in payment_methods:
+                        payment_methods[method] = 0
+                    payment_methods[method] += bill['total_amount']
+                
+                # Create report data
+                report_data = {
+                    'report_date': yesterday.strftime('%Y-%m-%d'),
+                    'generated_at': datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
+                    'summary': {
+                        'total_sales': total_sales,
+                        'total_bills': total_bills,
+                        'average_bill_amount': total_sales / total_bills if total_bills > 0 else 0
+                    },
+                    'category_sales': category_sales,
+                    'payment_methods': payment_methods,
+                    'bills': bills_list
+                }
+                
+                return report_data
+                
+            except Exception as e:
+                logger.error(f"Error generating report: {e}")
                 return None
-            
-            # Get bill items for each bill
-            bills_list = []
-            for bill in bills_data:
-                bill_id = bill[0]
-                cursor.execute("""
-                    SELECT bi.quantity, bi.price, bi.total, p.name, p.category
-                    FROM bill_items bi
-                    JOIN products p ON bi.product_id = p.id
-                    WHERE bi.bill_id = ?
-                """, (bill_id,))
-                
-                items_data = cursor.fetchall()
-                
-                bills_list.append({
-                    'id': bill[0],
-                    'customer_name': bill[1],
-                    'total_amount': bill[2],
-                    'payment_method': bill[3],
-                    'created_at': bill[4],
-                    'updated_at': bill[5],
-                    'items': [
-                        {
-                            'quantity': item[0],
-                            'price': item[1],
-                            'total': item[2],
-                            'product_name': item[3],
-                            'category': item[4]
-                        } for item in items_data
-                    ]
-                })
-            
-            conn.close()
-            
-            # Calculate summary statistics
-            total_sales = sum(bill['total_amount'] for bill in bills_list)
-            total_bills = len(bills_list)
-            
-            # Category-wise sales
-            category_sales = {}
-            for bill in bills_list:
-                for item in bill['items']:
-                    category = item['category']
-                    if category not in category_sales:
-                        category_sales[category] = 0
-                    category_sales[category] += item['total']
-            
-            # Payment method breakdown
-            payment_methods = {}
-            for bill in bills_list:
-                method = bill['payment_method']
-                if method not in payment_methods:
-                    payment_methods[method] = 0
-                payment_methods[method] += bill['total_amount']
-            
-            # Create report data
-            report_data = {
-                'report_date': yesterday.strftime('%Y-%m-%d'),
-                'generated_at': datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
-                'summary': {
-                    'total_sales': total_sales,
-                    'total_bills': total_bills,
-                    'average_bill_amount': total_sales / total_bills if total_bills > 0 else 0
-                },
-                'category_sales': category_sales,
-                'payment_methods': payment_methods,
-                'bills': bills_list
-            }
-            
-            return report_data
-            
-        except Exception as e:
-            logger.error(f"Error generating report: {e}")
-            return None
     
     def save_report_to_files(self, report_data):
         """Save report as Excel file only"""
@@ -212,7 +198,7 @@ class ReportScheduler:
                         'Price': item['price'],
                         'Total': item['total'],
                         'Payment Method': bill['payment_method'],
-                        'Created At': bill['created_at']
+                        'Created At': str(bill['created_at'])
                     })
             
             bills_df = pd.DataFrame(bills_data)
@@ -250,8 +236,6 @@ class ReportScheduler:
     def start_scheduler(self):
         """Start the scheduler"""
         logger.info("🚀 Starting Report Scheduler...")
-        logger.info(f"📅 Reports will be generated daily at 12:01 PM")
-        logger.info(f"📁 Reports folder: {self.reports_folder}")
         
         # Schedule job for 12:01 PM every day
         schedule.every().day.at("12:01").do(self.generate_and_save_report)

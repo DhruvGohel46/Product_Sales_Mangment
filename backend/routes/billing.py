@@ -1,11 +1,11 @@
 from flask import Blueprint, request, jsonify
-from services.sqlite_db_service import SQLiteDatabaseService
+from services.db_service import DatabaseService
 from services.printer_service import PrinterService
 from config import config
 
 
 billing_bp = Blueprint('billing', __name__, url_prefix='/api/bill')
-db = SQLiteDatabaseService()
+db = DatabaseService()
 printer_service = PrinterService()
 
 
@@ -329,7 +329,7 @@ def update_bill(bill_no):
 def print_bill(bill_no):
     """Print an existing bill"""
     try:
-        db = SQLiteDatabaseService()
+        db = DatabaseService()
         bill = db.get_bill(bill_no)
         
         if not bill:
@@ -381,7 +381,7 @@ def clear_all_bills():
                 'message': 'Invalid password'
             }), 401
         
-        db = SQLiteDatabaseService()
+        db = DatabaseService()
         success = db.clear_all_bills()
         
         if success:

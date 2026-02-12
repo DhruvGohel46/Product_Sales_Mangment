@@ -7,3 +7,5 @@ schedule==1.2.2
 pandas>=2.0.0
 rembg==2.0.57
 onnxruntime>=1.16.0
+psycopg2-binary==2.9.9
+Flask-SQLAlchemy==3.1.1

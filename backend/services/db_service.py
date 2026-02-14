@@ -2,7 +2,7 @@ import json
 from datetime import datetime, date
 from typing import List, Dict, Optional, Any
 from sqlalchemy import func, or_
-from models import db, Product, Bill, Category, Settings
+from models import db, Product, Bill, Category, Settings, Inventory
 from config import config
 
 class DatabaseService:
@@ -44,6 +44,47 @@ class DatabaseService:
             result.append(p_dict)
             
         return result
+
+    def get_all_products_with_stock(self, include_inactive: bool = False) -> List[Dict[str, Any]]:
+        """Get all products with current stock info"""
+        # Join Product with Inventory
+        query = db.session.query(Product, Inventory).outerjoin(Inventory, Product.product_id == Inventory.product_id)
+        
+        if not include_inactive:
+            query = query.filter(Product.active == True)
+            
+        results = query.order_by(Product.name).all()
+        
+        products = []
+        for p, inv in results:
+            p_dict = {
+                'product_id': p.product_id,
+                'name': p.name,
+                'price': p.price,
+                'category_id': p.category_id,
+                'category': p.category,
+                'category_name': p.category_rel.name if p.category_rel else None,
+                'image_filename': p.image_filename,
+                'active': p.active,
+                'stock': inv.stock if inv else 0, # Default 0 if not linked
+                'stock_status': 'In Stock' # Default
+            }
+            
+            if inv:
+                if inv.stock <= 0:
+                    p_dict['stock_status'] = 'Out of Stock'
+                elif inv.stock <= inv.alert_threshold:
+                    p_dict['stock_status'] = 'Low Stock'
+            else:
+                 # If no inventory record, maybe assume infinite or 0? 
+                 # Let's say "N/A" or handled by Frontend
+                 p_dict['stock_status'] = 'N/A'
+
+            if not p_dict.get('category') and p_dict.get('category_name'):
+                p_dict['category'] = p_dict['category_name']
+                
+            products.append(p_dict)
+        return products
 
     def get_product(self, product_id: str) -> Optional[Dict[str, Any]]:
         """Get a specific product by ID"""
@@ -119,7 +160,22 @@ class DatabaseService:
             return False
 
     def delete_product(self, product_id: str) -> bool:
-        """Delete a product"""
+        """Soft-delete a product by deactivating it"""
+        try:
+            p = Product.query.get(product_id)
+            if p:
+                p.active = False
+                p.updated_at = datetime.now()
+                db.session.commit()
+                return True
+            return False
+        except Exception as e:
+             print(f"Error deleting product: {e}")
+             db.session.rollback()
+             return False
+             
+    def permanently_delete_product(self, product_id: str) -> bool:
+        """Permanently delete a product (Hard Delete)"""
         try:
             p = Product.query.get(product_id)
             if p:
@@ -128,9 +184,9 @@ class DatabaseService:
                 return True
             return False
         except Exception as e:
-             print(f"Error deleting product: {e}")
-             db.session.rollback()
-             return False
+            print(f"Error permanently deleting product: {e}")
+            db.session.rollback()
+            return False
              
     def clear_all_products(self):
         """Clear all products"""
@@ -184,6 +240,14 @@ class DatabaseService:
                 }
                 enriched_items.append(enriched_item)
 
+                # Inventory Deduction Integration
+                # Find linked inventory item and deduct stock
+                inv_item = Inventory.query.filter_by(product_id=item['product_id']).first()
+                if inv_item:
+                    # Deduct stock
+                    inv_item.stock -= item['quantity']
+                    # inv_item.updated_at = func.now() # SqlAlchemy handles onupdate usually, but explicit is fine if func imported
+                
             new_bill = Bill(
                 bill_no=next_bill_no,
                 customer_name=bill_data.get('customer_name', ''),
@@ -485,6 +549,211 @@ class DatabaseService:
             c = Category.query.get(category_id)
             if c:
                 db.session.delete(c)
+                db.session.commit()
+                return True
+            return False
+        except Exception:
+            db.session.rollback()
+            return False
+
+            db.session.rollback()
+            return False
+
+    # ---------------------------------------------------------
+    # INVENTORY MANAGEMENT
+    # ---------------------------------------------------------
+
+    def get_all_inventory(self) -> List[Dict[str, Any]]:
+        """Get all inventory items with status"""
+        items = Inventory.query.order_by(Inventory.name).all()
+        result = []
+        for i in items:
+            status = 'In Stock'
+            if i.stock <= 0:
+                status = 'Out of Stock'
+            elif i.stock <= i.alert_threshold:
+                status = 'Low Stock'
+
+            # Ensure max_stock_history is at least 10 or current stock
+            max_hist = i.max_stock_history if i.max_stock_history else 10.0
+            if i.stock > max_hist:
+                max_hist = i.stock
+            
+            product_active = True
+            if i.product:
+                product_active = bool(i.product.active)
+
+            is_locked = bool(i.type == 'DIRECT_SALE' and i.product_id and not product_active)
+
+            result.append({
+                'id': i.id,
+                'name': i.name,
+                'type': i.type,
+                'unit': i.unit,
+                'stock': i.stock,
+                'unit_price': i.unit_price,
+                'alert_threshold': i.alert_threshold,
+                'max_stock_history': max_hist,
+                'product_id': i.product_id,
+                'product_name': i.product.name if i.product else None,
+                'status': status,
+                'product_status': 'inactive' if not product_active else 'active',
+                'product_active': product_active,
+                'is_locked': is_locked,
+                'updated_at': str(i.updated_at)
+            })
+        return result
+
+    def get_low_stock_products(self) -> List[Dict[str, Any]]:
+        """Get only low stock or out of stock items"""
+        # Filter where stock <= alert_threshold
+        items = Inventory.query.filter(Inventory.stock <= Inventory.alert_threshold).all()
+        result = []
+        for i in items:
+            # Skip inactive products
+            if i.type == 'DIRECT_SALE' and i.product and not i.product.active:
+                continue
+                
+            status = 'Low Stock'
+            if i.stock <= 0:
+                status = 'Out of Stock'
+            
+            result.append({
+                'id': i.id,
+                'name': i.name,
+                'type': i.type,
+                'stock': i.stock,
+                'alert_threshold': i.alert_threshold,
+                'unit': i.unit,
+                'status': status,
+                'product_id': i.product_id
+            })
+        return result
+
+    def get_inventory_item(self, item_id: int) -> Optional[Dict[str, Any]]:
+        i = Inventory.query.get(item_id)
+        if i:
+            max_hist = i.max_stock_history if i.max_stock_history else 10.0
+            if i.stock > max_hist:
+                max_hist = i.stock
+
+            product_active = True
+            if i.product:
+                product_active = bool(i.product.active)
+
+            is_locked = bool(i.type == 'DIRECT_SALE' and i.product_id and not product_active)
+                
+            return {
+                'id': i.id,
+                'name': i.name,
+                'type': i.type,
+                'unit': i.unit,
+                'stock': i.stock,
+                'unit_price': i.unit_price,
+                'alert_threshold': i.alert_threshold,
+                'max_stock_history': max_hist,
+                'product_id': i.product_id,
+                'product_status': 'inactive' if not product_active else 'active',
+                'product_active': product_active,
+                'is_locked': is_locked,
+                'updated_at': str(i.updated_at)
+            }
+        return None
+
+    def create_inventory_item(self, data: Dict[str, Any]) -> Optional[int]:
+        try:
+             # Check if product is already linked?
+            if data.get('product_id'):
+                existing = Inventory.query.filter_by(product_id=data['product_id']).first()
+                if existing:
+                    return None # Product already linked
+
+            item_name = data['name']
+            if data.get('product_id'):
+                product = Product.query.get(data['product_id'])
+                if product:
+                    if not product.active:
+                        return None
+                    item_name = product.name
+
+            initial_stock = float(data.get('stock', 0))
+            
+            new_item = Inventory(
+                name=item_name,
+                type=data['type'],
+                unit=data['unit'],
+                stock=initial_stock,
+                unit_price=float(data.get('unit_price', 0.0)),
+                alert_threshold=float(data.get('alert_threshold', 0)),
+                product_id=data.get('product_id'),
+                max_stock_history=max(initial_stock, 10.0)
+            )
+            db.session.add(new_item)
+            db.session.commit()
+            return new_item.id
+        except Exception as e:
+            print(f"Error creating inventory: {e}")
+            db.session.rollback()
+            return None
+
+    def update_inventory(self, item_id: int, data: Dict[str, Any]) -> bool:
+        try:
+            i = Inventory.query.get(item_id)
+            if not i: return False
+            if i.type == 'DIRECT_SALE' and i.product_id and i.product and not i.product.active:
+                return False
+
+            if 'name' in data: i.name = data['name']
+            if 'type' in data: i.type = data['type'] 
+            if 'unit' in data: i.unit = data['unit']
+            
+            if 'stock' in data: 
+                new_stock = float(data['stock'])
+                i.stock = new_stock
+                # Update history
+                if new_stock > i.max_stock_history:
+                    i.max_stock_history = new_stock
+            
+            if 'unit_price' in data: i.unit_price = float(data['unit_price'])
+                    
+            if 'alert_threshold' in data: i.alert_threshold = float(data['alert_threshold'])
+            if 'product_id' in data: i.product_id = data['product_id']
+
+            i.updated_at = datetime.now()
+            db.session.commit()
+            return True
+        except Exception as e:
+            print(f"Error updating inventory: {e}")
+            db.session.rollback()
+            return False
+
+    def adjust_inventory_stock(self, item_id: int, adjustment: float) -> bool:
+        try:
+            i = Inventory.query.get(item_id)
+            if not i: return False
+            if i.type == 'DIRECT_SALE' and i.product_id and i.product and not i.product.active:
+                return False
+
+            i.stock += adjustment
+            
+            # Update history
+            cur_max = i.max_stock_history if i.max_stock_history else 10.0
+            if i.stock > cur_max:
+                i.max_stock_history = i.stock
+            
+            i.updated_at = datetime.now()
+            db.session.commit()
+            return True
+        except Exception as e:
+            print(f"Error adjusting stock: {e}")
+            db.session.rollback()
+            return False
+
+    def delete_inventory_item(self, item_id: int) -> bool:
+        try:
+            i = Inventory.query.get(item_id)
+            if i:
+                db.session.delete(i)
                 db.session.commit()
                 return True
             return False

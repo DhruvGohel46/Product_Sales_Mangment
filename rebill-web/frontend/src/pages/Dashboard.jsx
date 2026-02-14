@@ -6,10 +6,10 @@ import {
     Package, Activity
 } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Button } from '../components/ui/Button';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '../components/ui/Card';
+import { Button } from '../components/Button';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '../components/Card';
 import { api } from '../services/api';
-import { cn } from '../lib/utils';
+import { cn } from '../utils';
 
 const Sidebar = () => {
     const navigate = useNavigate();

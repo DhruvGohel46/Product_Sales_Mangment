@@ -4,6 +4,8 @@ import { useSettings } from '../../context/SettingsContext';
 import { useToast } from '../../context/ToastContext';
 import { useTheme } from '../../context/ThemeContext';
 import '../../styles/Settings.css';
+import Dropdown from '../ui/Dropdown';
+import GlobalTimePicker from '../ui/GlobalTimePicker';
 
 const Settings = () => {
     const { showSuccess, showError } = useToast();
@@ -19,7 +21,10 @@ const Settings = () => {
         shop_address: '',
         shop_contact: '',
         gst_no: '',
+        gst_no: '',
         currency_symbol: '₹',
+        shop_open_time: '',
+        shop_close_time: '',
 
         // Billing
         bill_reset_daily: 'true',
@@ -176,12 +181,45 @@ const Settings = () => {
                                     <span className="stLabelTitle">Currency Symbol</span>
                                     <span className="stLabelDesc">Default currency for prices</span>
                                 </div>
-                                <input
-                                    className="stInput"
-                                    style={{ width: '80px' }}
-                                    value={formSettings.currency_symbol || ''}
-                                    onChange={(e) => handleChange('currency_symbol', e.target.value)}
+                                <Dropdown
+                                    options={[
+                                        { label: 'India (INR) - ₹', value: '₹' },
+                                        { label: 'USA (USD) - $', value: '$' },
+                                        { label: 'Europe (EUR) - €', value: '€' },
+                                        { label: 'UK (GBP) - £', value: '£' },
+                                        { label: 'Japan (JPY) - ¥', value: '¥' }
+                                    ]}
+                                    value={formSettings.currency_symbol || '₹'}
+                                    onChange={(val) => handleChange('currency_symbol', val)}
+                                    placeholder="Select Currency"
+                                    className="stDropdown"
+                                    zIndex={60}
                                 />
+                            </div>
+
+                            <div className="stFormGroup">
+                                <div className="stLabel">
+                                    <span className="stLabelTitle">Shop Timings</span>
+                                    <span className="stLabelDesc">For automated stock alerts</span>
+                                </div>
+                                <div style={{ display: 'flex', gap: '10px' }}>
+                                    <div style={{ flex: 1 }}>
+                                        <label style={{ fontSize: '12px', color: '#888', display: 'block', marginBottom: '4px' }}>Open Time</label>
+                                        <GlobalTimePicker
+                                            value={formSettings.shop_open_time || ''}
+                                            onChange={(val) => handleChange('shop_open_time', val)}
+                                            placeholder="Open Time"
+                                        />
+                                    </div>
+                                    <div style={{ flex: 1 }}>
+                                        <label style={{ fontSize: '12px', color: '#888', display: 'block', marginBottom: '4px' }}>Close Time</label>
+                                        <GlobalTimePicker
+                                            value={formSettings.shop_close_time || ''}
+                                            onChange={(val) => handleChange('shop_close_time', val)}
+                                            placeholder="Close Time"
+                                        />
+                                    </div>
+                                </div>
                             </div>
                         </>
                     )}
@@ -277,15 +315,17 @@ const Settings = () => {
                                     <span className="stLabelTitle">Page Width</span>
                                     <span className="stLabelDesc">Paper roll width</span>
                                 </div>
-                                <select
-                                    className="stInput"
-                                    style={{ width: '120px' }}
+                                <Dropdown
+                                    options={[
+                                        { label: '58mm', value: '58mm' },
+                                        { label: '80mm', value: '80mm' }
+                                    ]}
                                     value={formSettings.printer_width || '58mm'}
-                                    onChange={(e) => handleChange('printer_width', e.target.value)}
-                                >
-                                    <option value="58mm">58mm</option>
-                                    <option value="80mm">80mm</option>
-                                </select>
+                                    onChange={(val) => handleChange('printer_width', val)}
+                                    placeholder="Select Width"
+                                    className="stDropdown"
+                                    zIndex={50}
+                                />
                             </div>
                         </>
                     )}

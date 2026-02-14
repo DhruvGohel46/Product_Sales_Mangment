@@ -1,76 +1,99 @@
-/* Analytics Page Styles - Matching Management Design */
+/* Analytics Dashboard Styles */
 
-/* Main container */
-.analytics-container {
-  padding: 2rem;
-  max-width: 1200px;
-  margin: 0 auto;
-  background: var(--bg-primary);
-  min-height: 100vh;
+.analytics-page {
+  height: 100%;
+  overflow-y: auto;
+  background-color: var(--bg-primary);
+  padding: 32px 32px 48px 32px;
 }
 
-/* Header section */
-.analytics-header {
-  margin-bottom: 2rem;
+/* Header */
+.analytics-header-container {
+  margin-bottom: 32px;
 }
 
-.analytics-title {
-  font-size: 2rem;
-  font-weight: 700;
-  color: var(--text-primary);
-  margin-bottom: 0.5rem;
-}
-
-.analytics-subtitle {
-  font-size: 1rem;
-  color: var(--text-secondary);
-  margin-bottom: 2rem;
-}
-
-/* KPI Cards Grid */
-.kpi-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-  gap: 1.5rem;
-  margin-bottom: 2rem;
-}
-
-.kpi-card {
-  background: var(--surface-primary);
-  border: 1px solid var(--border-primary);
-  border-radius: 0.75rem;
-  padding: 1.5rem;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-  transition: all 0.2s ease;
-}
-
-.kpi-card:hover {
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-  transform: translateY(-2px);
-}
-
-.kpi-header {
+.analytics-header-card {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: 1rem;
+  gap: 12px;
+  padding: 30px;
+  border: 1px solid var(--border-primary);
+  border-radius: 20px;
+  background-color: var(--surface-primary);
+  margin: 0;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  transition: all 0.2s ease;
 }
 
-.kpi-icon {
-  width: 48px;
-  height: 48px;
-  border-radius: 0.5rem;
+.analytics-header-card:hover {
+  border-color: var(--primary-300);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.12);
+}
+
+.dark .analytics-header-card:hover {
+  border-color: #334155;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+}
+
+.analytics-title-wrapper {
   display: flex;
   align-items: center;
-  justify-content: center;
-  background: var(--primary-100);
-  color: var(--primary-600);
+  gap: 10px;
+  min-width: 0;
 }
 
-.kpi-title {
+.analytics-title {
+  font-size: 30px;
+  line-height: 1.2;
+  letter-spacing: -0.01em;
+  font-weight: 650;
+  color: var(--text-primary);
+}
+
+/* Buttons */
+.analytics-btn-group {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.analytics-action-btn {
+  border: none;
+  color: #ffffff;
+  border-radius: 12px;
+  padding: 12px 24px;
+  font-weight: 600;
   font-size: 0.875rem;
-  font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  transition: all 0.2s ease;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+/* KPI Grid */
+.analytics-kpi-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 24px;
+  margin-bottom: 32px;
+}
+
+/* KPI Card Internals */
+.kpi-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 16px;
+}
+
+.kpi-label {
+  font-size: 0.875rem;
+  font-weight: 600;
   color: var(--text-secondary);
+  margin-bottom: 4px;
   text-transform: uppercase;
   letter-spacing: 0.05em;
 }
@@ -79,501 +102,686 @@
   font-size: 2rem;
   font-weight: 700;
   color: var(--text-primary);
-  margin-bottom: 0.5rem;
-}
-
-.kpi-change {
-  font-size: 0.875rem;
-  font-weight: 500;
-  display: flex;
-  align-items: center;
-  gap: 0.25rem;
-}
-
-.kpi-change.positive {
-  color: var(--success-600);
-}
-
-.kpi-change.negative {
-  color: var(--error-600);
-}
-
-/* Product Sales Section */
-.product-sales-section {
-  background: var(--surface-primary);
-  border: 1px solid var(--border-primary);
-  border-radius: 0.75rem;
-  padding: 1.5rem;
-  margin-bottom: 2rem;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-}
-
-
-.section-header {
-  margin-bottom: 1.5rem;
-}
-
-.section-title {
-  font-size: 1.25rem;
-  font-weight: 600;
-  color: var(--text-primary);
-  margin-bottom: 0.5rem;
-}
-
-.section-description {
-  font-size: 0.875rem;
-  color: var(--text-secondary);
-}
-
-/* Pie Chart Container */
-.pie-chart-container {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 2rem;
-  align-items: start;
-}
-
-.chart-wrapper {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-}
-
-.pie-chart {
-  position: relative;
-  width: 280px;
-  height: 280px;
-  margin-bottom: 1rem;
-}
-
-.chart-center-text {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  text-align: center;
-}
-
-.chart-center-value {
-  font-size: 1.5rem;
-  font-weight: 700;
-  color: var(--text-primary);
-  margin-bottom: 0.25rem;
-}
-
-.chart-center-label {
-  font-size: 0.875rem;
-  color: var(--text-secondary);
-}
-
-.chart-legend {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.75rem;
-  justify-content: center;
-  max-height: 120px;
-  overflow-y: auto;
-}
-
-.legend-item {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-}
-
-.legend-dot {
-  width: 12px;
-  height: 12px;
-  border-radius: 50%;
-  flex-shrink: 0;
-}
-
-.legend-text {
-  font-size: 0.75rem;
-  color: var(--text-secondary);
-  white-space: nowrap;
-}
-
-/* Product List */
-.product-list {
-  display: grid;
-  grid-template-columns: 1fr;
-  gap: 1rem;
-  padding-right: 0.5rem;
-}
-
-/* Product List Scrollbar Styling */
-.product-list::-webkit-scrollbar {
-  width: 8px;
-}
-
-.product-list::-webkit-scrollbar-track {
-  background: var(--surface-secondary);
-  border-radius: 4px;
-}
-
-.product-list::-webkit-scrollbar-thumb {
-  background: var(--border-primary);
-  border-radius: 4px;
-  border: 1px solid var(--surface-secondary);
-}
-
-.product-list::-webkit-scrollbar-thumb:hover {
-  background: var(--text-secondary);
-}
-
-.product-card {
-  background: var(--surface-primary);
-  border: 1px solid var(--border-primary);
-  border-radius: 0.5rem;
-  padding: 1rem;
-  transition: all 0.2s ease;
-}
-
-.product-card:hover {
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-  transform: translateY(-1px);
-}
-
-.product-header {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-}
-
-.product-rank {
-  width: 28px;
-  height: 28px;
-  border-radius: 0.375rem;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: white;
-  font-size: 0.75rem;
-  font-weight: 600;
-  flex-shrink: 0;
-}
-
-.product-info {
-  flex: 1;
-  min-width: 0;
-}
-
-.product-name {
-  font-size: 0.875rem;
-  font-weight: 600;
-  color: var(--text-primary);
-  margin-bottom: 0.25rem;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.product-units {
-  font-size: 0.75rem;
-  color: var(--text-secondary);
   margin: 0;
+  margin-bottom: 8px;
+  letter-spacing: -0.02em;
 }
 
-.product-revenue {
-  text-align: right;
-  flex-shrink: 0;
-}
-
-.product-amount {
-  font-size: 0.875rem;
-  font-weight: 700;
-  color: var(--text-primary);
-  margin-bottom: 0.25rem;
-}
-
-.product-percentage {
-  font-size: 0.75rem;
-  color: var(--text-secondary);
-}
-
-/* Reports Section */
-.reports-section {
-  background: var(--surface-primary);
-  border: 1px solid var(--border-primary);
-  border-radius: 0.75rem;
-  padding: 1.5rem;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-}
-
-.reports-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  gap: 1rem;
-}
-
-.report-button {
-  background: var(--surface-primary);
-  border: 1px solid var(--border-primary);
-  border-radius: 0.5rem;
-  padding: 1rem;
-  text-align: center;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  text-decoration: none;
-  color: var(--text-primary);
-}
-
-.report-button:hover {
-  background: var(--primary-50);
-  border-color: var(--primary-300);
-  transform: translateY(-1px);
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-}
-
-.report-button-icon {
-  width: 32px;
-  height: 32px;
-  margin: 0 auto 0.5rem;
-  color: var(--primary-600);
-}
-
-.report-button-title {
-  font-size: 0.875rem;
-  font-weight: 600;
-  color: var(--text-primary);
-  margin-bottom: 0.25rem;
-}
-
-.report-button-description {
-  font-size: 0.75rem;
-  color: var(--text-secondary);
-}
-
-/* Loading State */
-.loading-state {
-  text-align: center;
-  padding: 3rem;
-  color: var(--text-secondary);
-}
-
-.loading-spinner {
-  width: 40px;
-  height: 40px;
-  border: 3px solid var(--border-primary);
-  border-top: 3px solid var(--primary-600);
-  border-radius: 50%;
-  animation: spin 1s linear infinite;
-  margin: 0 auto 1rem;
-}
-
-/* Error State */
-.error-state {
-  text-align: center;
-  padding: 3rem;
-  color: var(--error-600);
-}
-
-.error-icon {
+.kpi-icon-wrapper {
   width: 48px;
   height: 48px;
-  margin: 0 auto 1rem;
-  color: var(--error-600);
-}
-
-.error-message {
-  font-size: 1rem;
-  font-weight: 500;
-  margin-bottom: 1rem;
-}
-
-.retry-button {
-  background: var(--error-600);
-  color: white;
-  border: none;
-  border-radius: 0.375rem;
-  padding: 0.5rem 1rem;
-  font-size: 0.875rem;
-  font-weight: 500;
-  cursor: pointer;
-  transition: all 0.2s ease;
-}
-
-.retry-button:hover {
-  background: var(--error-700);
-  transform: translateY(-1px);
-}
-
-/* Clear Data Modal */
-.modal-overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: rgba(0, 0, 0, 0.5);
+  border-radius: 12px;
   display: flex;
   align-items: center;
   justify-content: center;
-  z-index: 1000;
 }
 
-.modal-content {
-  background: var(--surface-primary);
-  border: 1px solid var(--border-primary);
-  border-radius: 0.75rem;
-  padding: 1.5rem;
-  max-width: 400px;
-  width: 90%;
-  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+.kpi-subtext {
+  display: flex;
+  align-items: center;
+  gap: 8px;
 }
 
-.modal-header {
-  margin-bottom: 1rem;
-}
-
-.modal-title {
-  font-size: 1.25rem;
-  font-weight: 600;
-  color: var(--text-primary);
-  margin-bottom: 0.5rem;
-}
-
-.modal-description {
+.kpi-subtext span {
   font-size: 0.875rem;
   color: var(--text-secondary);
-  margin-bottom: 1.5rem;
 }
 
-.modal-actions {
+/* Chart Grid */
+.analytics-chart-grid {
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  gap: 24px;
+  margin-bottom: 32px;
+}
+
+@media (max-width: 1024px) {
+  .analytics-chart-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.chart-card {
+  height: 420px;
+  padding: 24px;
   display: flex;
-  gap: 1rem;
-  justify-content: flex-end;
+  flex-direction: column;
 }
 
-.modal-button {
-  padding: 0.5rem 1rem;
-  border-radius: 0.375rem;
+.chart-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+}
+
+.chart-title {
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.chart-select {
+  padding: 6px 12px;
+  border-radius: 8px;
+  border: 1px solid var(--border-primary);
+  background: var(--bg-secondary);
+  color: var(--text-primary);
+  font-size: 0.875rem;
+  outline: none;
+}
+
+/* Product Ranking List */
+.ranking-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  overflow-y: auto;
+  max-height: 320px;
+  padding-right: 4px;
+}
+
+.ranking-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px;
+  border-radius: 8px;
+  background: var(--bg-secondary);
+  border: 1px solid transparent;
+  transition: all 0.2s;
+}
+
+.ranking-item:hover {
+  border-color: var(--primary-300);
+  background: var(--bg-tertiary);
+}
+
+.ranking-info {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.ranking-badge {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: var(--surface-primary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--text-secondary);
+  border: 1px solid var(--border-primary);
+}
+
+.ranking-name {
+  font-size: 0.9375rem;
+  font-weight: 500;
+  color: var(--text-primary);
+}
+
+.ranking-meta {
+  text-align: right;
+}
+
+.ranking-amount {
+  font-weight: 600;
+  color: var(--text-primary);
+  font-size: 0.9375rem;
+}
+
+.ranking-qty {
+  font-size: 0.75rem;
+  color: var(--text-tertiary);
+}
+
+/* Report Section */
+.analytics-report-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 24px;
+}
+
+.reports-section {
+  /* Deprecated or generic container */
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  margin-bottom: 48px;
+}
+
+.report-card-content {
+  padding: 24px;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  background: var(--surface-primary);
+  border: 1px solid var(--border-primary);
+  border-radius: 16px;
+  transition: all 0.2s ease;
+  overflow: visible !important;
+}
+
+.report-card-content:hover {
+  border-color: var(--primary-300);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+}
+
+.report-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.report-icon-box {
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  background: var(--bg-secondary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--primary-500);
+}
+
+.report-title-group {
+  flex: 1;
+}
+
+.report-title {
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.report-desc {
+  font-size: 0.8125rem;
+  color: var(--text-secondary);
+}
+
+.report-actions {
+  margin-top: auto;
+  display: flex;
+  gap: 10px;
+}
+
+.report-btn {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 10px;
+  border-radius: 8px;
   font-size: 0.875rem;
   font-weight: 500;
   cursor: pointer;
-  transition: all 0.2s ease;
-  border: none;
+  transition: all 0.2s;
 }
 
-.modal-button-cancel {
-  background: var(--surface-secondary);
+.report-btn-primary {
+  background: var(--primary-500);
+  color: white;
+  border: 1px solid var(--primary-600);
+}
+
+.report-btn-primary:hover {
+  background: var(--primary-600);
+}
+
+
+
+.report-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* Weekly/Monthly Selectors */
+.report-controls {
+  margin-bottom: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.report-select {
+  flex: 1;
+  padding: 8px 12px;
+  border-radius: 8px;
+  border: 1px solid var(--border-primary);
+  background: var(--bg-secondary);
+  color: var(--text-primary);
+  font-size: 0.875rem;
+}
+
+/* Bill Management Header */
+.bill-management-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 20px 24px;
+  background: var(--surface-primary);
+  border: 1px solid var(--border-primary);
+  border-radius: 16px;
+  margin-bottom: 24px;
+  flex-wrap: wrap;
+  /* responsive */
+  gap: 16px;
+}
+
+.bill-header-left {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.bill-header-accent {
+  width: 4px;
+  height: 24px;
+  background: linear-gradient(to bottom, var(--primary-500), var(--primary-600));
+  border-radius: 2px;
+}
+
+.bill-header-title {
+  font-size: 1.125rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.bill-header-badge {
+  font-size: 0.75rem;
+  padding: 4px 10px;
+  border-radius: 6px;
+  background: var(--bg-secondary);
+  color: var(--text-secondary);
+  font-weight: 600;
+  border: 1px solid var(--border-primary);
+  text-transform: none;
+  letter-spacing: normal;
+}
+
+.bill-header-controls {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.bill-control-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 16px;
+  border-radius: 8px;
+  font-weight: 600;
+  font-size: 0.875rem;
+  cursor: pointer;
+  transition: all 0.2s;
+  border: 1px solid transparent;
+}
+
+.bill-control-btn.ghost {
+  background: transparent;
+  color: var(--text-secondary);
+}
+
+.bill-control-btn.ghost:hover {
+  background: var(--bg-secondary);
+  color: var(--text-primary);
+}
+
+.bill-control-btn.ghost.active {
+  background: var(--primary-50);
+  color: var(--primary-600);
+  border-color: var(--primary-200);
+}
+
+.bill-control-btn.secondary {
+  background: var(--bg-secondary);
   color: var(--text-primary);
   border: 1px solid var(--border-primary);
 }
 
-.modal-button-cancel:hover {
-  background: var(--surface-tertiary);
+.bill-control-btn.secondary:hover {
+  background: var(--bg-tertiary);
+  border-color: var(--primary-300);
 }
 
-.modal-button-confirm {
-  background: var(--error-600);
-  color: white;
+.bill-date-input {
+  padding: 8px 12px;
+  border-radius: 8px;
+  border: 1px solid var(--border-primary);
+  background: var(--bg-secondary);
+  color: var(--text-primary);
+  font-size: 0.875rem;
+  outline: none;
+  cursor: pointer;
+  transition: all 0.2s;
 }
 
-.modal-button-confirm:hover {
-  background: var(--error-700);
+.bill-date-input:hover,
+.bill-date-input:focus {
+  border-color: var(--primary-500);
+}
+
+/* Bill Item Actions */
+.bill-action-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  border-radius: 8px;
+  border: 1px solid var(--border-primary);
+  background: transparent;
+  color: var(--text-secondary);
+  font-size: 0.75rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.bill-action-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.bill-action-btn.edit:hover:not(:disabled) {
+  background: var(--primary-50);
+  color: var(--primary-600);
+  border-color: var(--primary-200);
+}
+
+.bill-action-btn.delete:hover:not(:disabled) {
+  background: var(--error-50);
+  color: var(--error-600);
+  border-color: var(--error-200);
+}
+
+
+
+/* Bill Management List Section */
+.bills-section {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.bills-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+.bills-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.bill-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px;
+  background: var(--surface-primary);
+  border: 1px solid var(--border-primary);
+  border-radius: 12px;
+  transition: all 0.2s;
+}
+
+.bill-item:hover {
+  border-color: var(--primary-300);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+}
+
+.bill-info-left {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.bill-id {
+  font-weight: 600;
+  color: var(--text-primary);
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.bill-meta {
+  font-size: 0.8125rem;
+  color: var(--text-secondary);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding-left: 16px;
+  border-left: 1px solid var(--border-primary);
+  height: 20px;
+  /* layout fix */
+}
+
+/* Mobile responsive adjust */
+@media (max-width: 768px) {
+  .bill-info-left {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 4px;
+  }
+
+  .bill-meta {
+    padding-left: 0;
+    border-left: none;
+    height: auto;
+  }
+}
+
+.bill-status-badge {
+  font-size: 0.7rem;
+  padding: 2px 8px;
+  border-radius: 6px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.status-paid {
+  background: rgba(16, 185, 129, 0.1);
+  color: #10B981;
+  border: 1px solid rgba(16, 185, 129, 0.2);
+}
+
+.status-cancelled {
+  background: rgba(239, 68, 68, 0.1);
+  color: #EF4444;
+  border: 1px solid rgba(239, 68, 68, 0.2);
+}
+
+.bill-info-right {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.bill-total {
+  font-weight: 700;
+  font-size: 1.125rem;
+  color: var(--text-primary);
+}
+
+.bill-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.icon-btn {
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 8px;
+  border: 1px solid var(--border-primary);
+  background: var(--bg-secondary);
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.icon-btn:hover:not(:disabled) {
+  background: var(--primary-50);
+  color: var(--primary-600);
+  border-color: var(--primary-200);
+}
+
+.icon-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.icon-btn.danger:hover:not(:disabled) {
+  background: var(--error-50);
+  color: var(--error-600);
+  border-color: var(--error-200);
+}
+
+.empty-bills {
+  text-align: center;
+  padding: 40px;
+  color: var(--text-secondary);
+  background: var(--bg-secondary);
+  border-radius: 12px;
+  border: 1px dashed var(--border-primary);
+}
+
+/* Report Label */
+.report-label {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: 8px;
+  display: block;
+}
+
+/* Modal / Dialog Styles (copied from Management.css for consistency) */
+.pmOverlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.4);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  z-index: 9999;
+}
+
+.pmDialog {
+  width: min(400px, 92%);
+  border-radius: 16px;
+  border: 1px solid var(--border-primary);
+  background: var(--surface-primary);
+  box-shadow:
+    0 20px 25px -5px rgba(0, 0, 0, 0.1),
+    0 10px 10px -5px rgba(0, 0, 0, 0.04);
+  padding: 24px;
+  transition: all 0.2s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.pmDialogTitle {
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-bottom: 12px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.pmDialogBody {
+  margin: 0 0 24px 0;
+  color: var(--text-secondary);
+  font-size: 14px;
+  line-height: 1.6;
+  padding: 0;
+  background: transparent;
+  border: none;
+  font-weight: 400;
+}
+
+.pmDialogActions {
+  margin-top: 24px;
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+}
+
+.pmDialogBtn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 10px 16px;
+  min-height: 36px;
+  border-radius: 8px;
+  border: 1px solid var(--border-primary);
+  background: var(--surface-primary);
+  color: var(--text-primary);
+  font-weight: 500;
+  font-size: 14px;
+  transition: all 0.2s ease;
+  cursor: pointer;
+}
+
+.pmDialogBtn:hover {
+  background: var(--bg-secondary);
   transform: translateY(-1px);
 }
 
-/* Animations */
-@keyframes spin {
-  0% {
-    transform: rotate(0deg);
-  }
-
-  100% {
-    transform: rotate(360deg);
-  }
+.pmDialogBtnPrimary {
+  border-color: transparent;
+  background: #EF4444;
+  color: white;
+  font-weight: 600;
+  box-shadow: 0 4px 6px -1px rgba(239, 68, 68, 0.2);
 }
 
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-    transform: translateY(10px);
-  }
-
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
+.pmDialogBtnPrimary:hover {
+  background: #DC2626;
+  color: white;
+  box-shadow: 0 6px 8px -2px rgba(239, 68, 68, 0.3);
 }
 
-@keyframes slideIn {
-  from {
-    opacity: 0;
-    transform: translateX(-20px);
-  }
-
-  to {
-    opacity: 1;
-    transform: translateX(0);
-  }
+.pmInput {
+  width: 100%;
+  padding: 10px 12px;
+  border-radius: 10px;
+  border: 1px solid var(--border-primary);
+  background: var(--bg-secondary);
+  color: var(--text-primary);
+  font-size: 14px;
+  transition: all 0.2s ease;
+  outline: none;
 }
 
-/* Responsive Design */
-@media (max-width: 768px) {
-  .analytics-container {
-    padding: 1rem;
-  }
-
-  .kpi-grid {
-    grid-template-columns: 1fr;
-  }
-
-  .pie-chart-container {
-    grid-template-columns: 1fr;
-    gap: 1.5rem;
-  }
-
-  .reports-grid {
-    grid-template-columns: 1fr;
-  }
-
-  .modal-content {
-    margin: 1rem;
-  }
-}
-
-@media (max-width: 480px) {
-  .analytics-title {
-    font-size: 1.5rem;
-  }
-
-  .kpi-value {
-    font-size: 1.5rem;
-  }
-
-  .pie-chart {
-    width: 240px;
-    height: 240px;
-  }
-}
-
-/* Dark Mode Specific */
-[data-theme="dark"] {
-
-  .kpi-card,
-  .product-sales-section,
-  .reports-section,
-  .product-card,
-  .report-button {
-    background: var(--surface-primary);
-    border-color: var(--border-primary);
-  }
-
-  .modal-content {
-    background: var(--surface-primary);
-    border-color: var(--border-primary);
-  }
-
-  .modal-button-cancel {
-    background: var(--surface-secondary);
-    border-color: var(--border-primary);
-  }
-
-  .modal-button-cancel:hover {
-    background: var(--surface-tertiary);
-  }
+.pmInput:focus {
+  border-color: var(--primary-500);
+  box-shadow: 0 0 0 3px rgba(var(--primary-500-rgb), 0.2);
 }

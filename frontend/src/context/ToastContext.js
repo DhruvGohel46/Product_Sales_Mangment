@@ -15,19 +15,19 @@ export const useToast = () => {
 export const ToastProvider = ({ children }) => {
   const [toasts, setToasts] = useState([]);
 
-  const addToast = (message, type = NOTIFICATION_TYPES.INFO, duration = 4000) => {
+  const addToast = (message, type = NOTIFICATION_TYPES.INFO, duration = 4000, position = 'top-right') => {
     const id = Date.now();
-    const newToast = { id, message, type, duration };
-    
+    const newToast = { id, message, type, duration, position };
+
     setToasts(prev => [...prev, newToast]);
-    
+
     // Auto remove after duration
     if (duration > 0) {
       setTimeout(() => {
         removeToast(id);
       }, duration);
     }
-    
+
     return id;
   };
 
@@ -35,10 +35,10 @@ export const ToastProvider = ({ children }) => {
     setToasts(prev => prev.filter(toast => toast.id !== id));
   };
 
-  const showSuccess = (message, duration) => addToast(message, NOTIFICATION_TYPES.SUCCESS, duration);
-  const showError = (message, duration) => addToast(message, NOTIFICATION_TYPES.ERROR, duration);
-  const showWarning = (message, duration) => addToast(message, NOTIFICATION_TYPES.WARNING, duration);
-  const showInfo = (message, duration) => addToast(message, NOTIFICATION_TYPES.INFO, duration);
+  const showSuccess = (message, duration, position) => addToast(message, NOTIFICATION_TYPES.SUCCESS, duration, position);
+  const showError = (message, duration, position) => addToast(message, NOTIFICATION_TYPES.ERROR, duration, position);
+  const showWarning = (message, duration, position) => addToast(message, NOTIFICATION_TYPES.WARNING, duration, position);
+  const showInfo = (message, duration, position) => addToast(message, NOTIFICATION_TYPES.INFO, duration, position);
 
   const value = {
     addToast,
@@ -52,7 +52,7 @@ export const ToastProvider = ({ children }) => {
   return (
     <ToastContext.Provider value={value}>
       {children}
-      
+
       {/* Render all active toasts */}
       {toasts.map((toast) => (
         <Toast

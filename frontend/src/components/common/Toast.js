@@ -4,12 +4,13 @@ import { useTheme } from '../../context/ThemeContext';
 import { useAnimation } from '../../hooks/useAnimation';
 import { NOTIFICATION_TYPES } from '../../utils/constants';
 
-const Toast = ({ 
-  type = NOTIFICATION_TYPES.INFO, 
-  message, 
-  isVisible, 
+const Toast = ({
+  type = NOTIFICATION_TYPES.INFO,
+  message,
+  isVisible,
   onClose,
-  duration = 4000 
+  duration = 4000,
+  position = 'top-right'
 }) => {
   const { currentTheme } = useTheme();
   const { successVariants } = useAnimation();
@@ -20,6 +21,29 @@ const Toast = ({
       return () => clearTimeout(timer);
     }
   }, [isVisible, duration, onClose]);
+
+  const getPositionStyles = () => {
+    const base = {
+      position: 'fixed',
+      zIndex: 1000,
+    };
+
+    if (position === 'top-center') {
+      return {
+        ...base,
+        top: currentTheme.spacing[6],
+        left: '50%',
+        transform: 'translateX(-50%)',
+      };
+    }
+
+    // Default top-right
+    return {
+      ...base,
+      top: currentTheme.spacing[6],
+      right: currentTheme.spacing[6],
+    };
+  };
 
   const getToastStyles = () => {
     const baseStyles = {
@@ -73,12 +97,7 @@ const Toast = ({
           initial="initial"
           animate="animate"
           exit="exit"
-          style={{
-            position: 'fixed',
-            top: currentTheme.spacing[6],
-            right: currentTheme.spacing[6],
-            zIndex: 1000,
-          }}
+          style={getPositionStyles()}
         >
           <div style={getToastStyles()}>
             <span style={{
@@ -88,7 +107,7 @@ const Toast = ({
             }}>
               {getIcon()}
             </span>
-            
+
             <span style={{
               fontSize: currentTheme.typography.fontSize.sm,
               lineHeight: 1.4,
@@ -96,7 +115,7 @@ const Toast = ({
             }}>
               {message}
             </span>
-            
+
             <button
               onClick={onClose}
               style={{

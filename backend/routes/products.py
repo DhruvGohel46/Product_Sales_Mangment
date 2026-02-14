@@ -88,8 +88,12 @@ def get_all_products():
     try:
         include_inactive = request.args.get('include_inactive', 'false').lower() == 'true'
         include_deleted = request.args.get('include_deleted', 'false').lower() == 'true'
+        include_stock = request.args.get('include_stock', 'false').lower() == 'true'
         
-        products = db.get_all_products(include_inactive=include_inactive)
+        if include_stock:
+            products = db.get_all_products_with_stock(include_inactive=include_inactive)
+        else:
+            products = db.get_all_products(include_inactive=include_inactive)
         
         return jsonify({
             'success': True,
@@ -389,7 +393,7 @@ def delete_product_image(product_id):
 
 @products_bp.route('/<product_id>', methods=['DELETE'])
 def delete_product(product_id):
-    """Delete a product and its associated image"""
+    """Soft-delete (deactivate) a product"""
     try:
         product = db.get_product(product_id)
         if not product:
@@ -397,30 +401,56 @@ def delete_product(product_id):
                 'success': False,
                 'message': f'Product with ID {product_id} not found'
             }), 404
-            
-        # Delete image file if exists
-        filename = product.get('image_filename')
-        if filename:
-            images_dir = os.path.join(config['default'].DATA_DIR, 'images')
-            file_path = os.path.join(images_dir, filename)
-            if os.path.exists(file_path):
-                try:
-                    os.remove(file_path)
-                except Exception as e:
-                    print(f"Error removing image file during product delete: {e}")
 
-        # Delete from DB
+        # Check for permanent delete flag
+        is_permanent = request.args.get('permanent', 'false').lower() == 'true'
+
+        if is_permanent:
+            # Verify Password
+            provided_password = request.headers.get('x-admin-password')
+            RESET_PASSWORD = config['default'].RESET_PASSWORD
+            
+            if not provided_password or provided_password != RESET_PASSWORD:
+                return jsonify({
+                    'success': False,
+                    'message': 'Invalid admin password. Permanent deletion requires authorization.'
+                }), 401
+
+            success = db.permanently_delete_product(product_id)
+            if success:
+                # Also try to remove image
+                filename = product.get('image_filename')
+                if filename:
+                    try:
+                        images_dir = os.path.join(config['default'].DATA_DIR, 'images')
+                        file_path = os.path.join(images_dir, filename)
+                        if os.path.exists(file_path):
+                            os.remove(file_path)
+                    except Exception:
+                        pass
+                        
+                return jsonify({
+                    'success': True,
+                    'message': 'Product permanently deleted'
+                }), 200
+            else:
+                 return jsonify({
+                    'success': False,
+                    'message': 'Failed to permanently delete product'
+                }), 500
+
+        # Default: Deactivate (Soft Delete)
         success = db.delete_product(product_id)
         
         if success:
             return jsonify({
                 'success': True,
-                'message': 'Product deleted successfully'
+                'message': 'Product deactivated successfully'
             }), 200
         else:
             return jsonify({
                 'success': False,
-                'message': 'Failed to delete product'
+                'message': 'Failed to deactivate product'
             }), 500
             
     except Exception as e:

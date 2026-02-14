@@ -36,6 +36,7 @@ def create_app(config_name='default'):
     from routes.reports import reports_bp
     from routes.categories import categories_bp
     from routes.settings import settings_bp
+    from routes.inventory import inventory_bp
     
     # Load configuration
     app.config.from_object(config[config_name])
@@ -60,6 +61,7 @@ def create_app(config_name='default'):
     app.register_blueprint(reports_bp)
     app.register_blueprint(categories_bp)
     app.register_blueprint(settings_bp)
+    app.register_blueprint(inventory_bp)
 
     # Serve product images
     @app.route('/api/images/<path:filename>')
@@ -142,6 +144,17 @@ if __name__ == '__main__':
     # If frozen (PyInstaller), use 'production' config by default
     config_name = 'production' if getattr(sys, 'frozen', False) else 'development'
     app = create_app(config_name)
+    from models import db
+
+    # Create tables if they don't exist
+    try:
+        with app.app_context():
+            db.create_all()
+            print("Database tables created/verified")
+    except Exception as e:
+        print(f"Error creating database tables: {e}")
+        import traceback
+        traceback.print_exc()
     
     # Ensure data directory exists
     try:

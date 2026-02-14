@@ -57,9 +57,11 @@ import './styles/global.css';
 import WorkingPOSInterface from './components/screens/Bill';
 import Reports from './components/screens/Analytics';
 import ProductManagement from './components/screens/Management';
+import Inventory from './components/screens/Inventory';
 import Settings from './components/screens/Settings';
 import { settingsAPI } from './api/settings';
 import { setCurrencySymbol } from './utils/api';
+import NotificationSystem from './components/system/NotificationSystem';
 
 // Import UI components
 import Button from './components/ui/Button';
@@ -78,13 +80,27 @@ function AppContent() {
 
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
   const [posKey, setPosKey] = useState(0);
+  const notificationRef = React.useRef(null);
+
+  // Initial Stock Check
+  useEffect(() => {
+    // Small delay to ensure backend is ready and settings loaded
+    const timer = setTimeout(() => {
+      if (notificationRef.current) {
+        notificationRef.current.checkStock();
+      }
+    }, 2000);
+    return () => clearTimeout(timer);
+  }, []);
 
   // Settings are now loaded globally by SettingsProvider
 
   const getActiveTab = (pathname) => {
     if (pathname === '/') return 'pos';
     if (pathname.startsWith('/analytics')) return 'summary';
+    if (pathname.startsWith('/analytics')) return 'summary';
     if (pathname.startsWith('/management')) return 'management';
+    if (pathname.startsWith('/inventory')) return 'inventory';
     if (pathname.startsWith('/settings')) return 'settings';
     return 'pos';
   };
@@ -115,6 +131,19 @@ function AppContent() {
           <path d="M18 20V10" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
           <path d="M12 20V4" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
           <path d="M6 20V14" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+        </svg>
+      )
+    },
+    {
+      id: 'inventory',
+      label: 'Inventory',
+      path: '/inventory',
+      icon: (
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+          <rect x="8" y="2" width="8" height="4" rx="1" ry="1" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+          <path d="M9 12h6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+          <path d="M9 16h6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
         </svg>
       )
     },
@@ -181,6 +210,7 @@ function AppContent() {
         onTabChange={(id) => {
           if (id === 'pos') navigate('/');
           else if (id === 'summary') navigate('/analytics');
+          else if (id === 'inventory') navigate('/inventory');
           else if (id === 'management') navigate('/management');
           else if (id === 'settings') navigate('/settings');
         }}
@@ -324,6 +354,7 @@ function AppContent() {
           <Routes>
             <Route path="/" element={<WorkingPOSInterface key={posKey} onBillCreated={handleBillCreated} />} />
             <Route path="/analytics" element={<Reports />} />
+            <Route path="/inventory" element={<Inventory />} />
             <Route path="/management" element={<ProductManagement />} />
             <Route path="/settings" element={<Settings />} />
             <Route path="*" element={<WorkingPOSInterface key={posKey} onBillCreated={handleBillCreated} />} />
@@ -466,6 +497,9 @@ function AppContent() {
           )}
         </AnimatePresence>
       </div> {/* End Main Content Area */}
+
+      {/* Global Notification System */}
+      <NotificationSystem ref={notificationRef} />
     </div>
   );
 }

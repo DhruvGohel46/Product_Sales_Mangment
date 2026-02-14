@@ -1,8 +1,8 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Download, Monitor, CheckCircle2, AlertCircle, FileText, Smartphone } from 'lucide-react';
-import { Button } from '../components/ui/Button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../components/ui/Card';
+import { Button } from '../components/Button';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../components/Card';
 
 const DownloadPage = () => {
     const [downloading, setDownloading] = useState(false);

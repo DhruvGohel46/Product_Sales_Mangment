@@ -69,8 +69,13 @@ import { CATEGORY_COLORS, CATEGORY_NAMES, ANIMATION_DURATIONS, EASINGS } from '.
 import Button from '../ui/Button';
 import Card from '../ui/Card';
 import Skeleton from '../ui/Skeleton';
-import '../../styles/Management.css';
 import AnimatedList from '../ui/AnimatedList';
+import GlobalDatePicker from '../ui/GlobalDatePicker';
+import '../../styles/Analytics.css';
+
+// ... other imports ...
+
+
 
 // Icon components
 const TrendingUpIcon = ({ color }) => (
@@ -149,7 +154,10 @@ const Reports = () => {
   const [productSales, setProductSales] = useState([]);
 
   // Monthly Export state
-  const [exportMonth, setExportMonth] = useState(new Date().getMonth() + 1);
+  const [exportMonth, setExportMonth] = useState(() => {
+    const now = new Date();
+    return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+  });
   const [exportYear, setExportYear] = useState(new Date().getFullYear());
 
   // Weekly Export state
@@ -416,7 +424,7 @@ const Reports = () => {
   const formatTime = (timestamp) => {
     if (!timestamp) return 'N/A';
     try {
-      // SQLite TIMESTAMP is stored in UTC. 
+      // SQLite TIMESTAMP is stored in UTC.
       // We append 'Z' or use Date.UTC to ensure JavaScript parses it as UTC.
       // Format: YYYY-MM-DD HH:MM:SS
       const utcDate = new Date(timestamp.replace(' ', 'T') + 'Z');
@@ -593,94 +601,36 @@ const Reports = () => {
   ];
 
   return (
-    <div style={{
-      height: '100%',
-      overflowY: 'auto',
-      background: currentTheme.colors.background,
-      paddingTop: currentTheme.spacing[8],
-      paddingLeft: currentTheme.spacing[8],
-      paddingRight: currentTheme.spacing[8],
-      paddingBottom: currentTheme.spacing[12],
-    }}>
+    <div className="analytics-page">
       {/* Header Section */}
       <motion.div
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
-        style={{
-          marginBottom: currentTheme.spacing[8],
-        }}
+        className="analytics-header-container"
       >
         {/* Management-style Header */}
         <motion.div
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            gap: '12px',
-            padding: '30px',
-            border: `1px solid ${currentTheme.colors.border}`,
-            borderRadius: '20px',
-            backgroundColor: currentTheme.colors.surface,
-            margin: '0px',
-            boxShadow: '0 4px 12px rgba(0,0,0,0.08)',
-            transition: 'all 0.2s ease',
-          }}
-          onMouseEnter={(e) => {
-            e.currentTarget.style.borderColor = 'var(--primary-300)';
-            e.currentTarget.style.boxShadow = '0 6px 16px rgba(0,0,0,0.12)';
-          }}
-          onMouseLeave={(e) => {
-            e.currentTarget.style.borderColor = isDark ? '#334155' : '#e2e8f0';
-            e.currentTarget.style.boxShadow = '0 4px 12px rgba(0,0,0,0.08)';
-          }}
+          className="analytics-header-card"
         >
-          <div style={{ minWidth: 0 }}>
-            <div style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: '10px',
-              minWidth: 0,
-            }}>
-              <div style={{
-                fontSize: '30px',
-                lineHeight: 1.2,
-                letterSpacing: '-0.01em',
-                fontWeight: 650,
-                color: currentTheme.colors.text.primary,
-              }}>
-                Analytics
-              </div>
+          <div className="analytics-title-wrapper">
+            <div className="analytics-title">
+              Analytics
             </div>
           </div>
 
-          <div style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: '12px',
-          }}>
+
+          <div className="analytics-btn-group">
             {/* Clear Data Button */}
             <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
               <Button onClick={() => setShowClearConfirm(true)} variant="secondary" size="lg"
+                className="analytics-action-btn"
                 style={{
                   background: `linear-gradient(135deg, ${isDark ? (currentTheme.colors.error?.[600] || '#DC2626') : (currentTheme.colors.error?.[500] || '#EF4444')}, ${isDark ? (currentTheme.colors.error?.[700] || '#B91C1C') : (currentTheme.colors.error?.[600] || '#DC2626')})`,
-                  border: 'none', color: '#ffffff', borderRadius: '12px',
-                  padding: `${currentTheme.spacing[3]} ${currentTheme.spacing[6]}`,
-                  fontWeight: 600, fontSize: '0.875rem',
-                  display: 'flex', alignItems: 'center', gap: currentTheme.spacing[2],
                   boxShadow: isDark ? '0 4px 12px rgba(220, 38, 38, 0.2)' : '0 4px 12px rgba(239, 68, 68, 0.15)',
-                  transition: 'all 0.2s ease', textTransform: 'uppercase', letterSpacing: '0.05em',
-                }}
-                onMouseEnter={(e) => {
-                  e.target.style.transform = 'translateY(-1px)';
-                  e.target.style.boxShadow = isDark ? '0 6px 16px rgba(220, 38, 38, 0.3)' : '0 6px 16px rgba(239, 68, 68, 0.25)';
-                }}
-                onMouseLeave={(e) => {
-                  e.target.style.transform = 'translateY(0)';
-                  e.target.style.boxShadow = isDark ? '0 4px 12px rgba(220, 38, 38, 0.2)' : '0 4px 12px rgba(239, 68, 68, 0.15)';
                 }}
               >
                 <div style={{ width: '20px', height: '20px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
@@ -693,30 +643,14 @@ const Reports = () => {
             {/* Refresh Data Button */}
             <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
               <Button onClick={() => { loadSummary(); loadAvailableReports(); }} variant="secondary" size="lg"
+                className="analytics-action-btn"
                 style={{
                   background: `linear-gradient(135deg, ${isDark ? currentTheme.colors.primary[600] : currentTheme.colors.primary[500]}, ${isDark ? currentTheme.colors.primary[700] : currentTheme.colors.primary[600]})`,
-                  border: 'none', color: '#ffffff', borderRadius: '12px',
-                  padding: `${currentTheme.spacing[3]} ${currentTheme.spacing[6]}`,
-                  fontWeight: 600, fontSize: '0.875rem',
-                  display: 'flex', alignItems: 'center', gap: currentTheme.spacing[2],
                   boxShadow: isDark ? '0 4px 12px rgba(14, 165, 233, 0.2)' : '0 4px 12px rgba(59, 130, 246, 0.15)',
-                  transition: 'all 0.2s ease', textTransform: 'uppercase', letterSpacing: '0.05em',
-                }}
-                onMouseEnter={(e) => {
-                  e.target.style.transform = 'translateY(-1px)';
-                  e.target.style.boxShadow = isDark ? '0 6px 16px rgba(14, 165, 233, 0.3)' : '0 6px 16px rgba(59, 130, 246, 0.25)';
-                }}
-                onMouseLeave={(e) => {
-                  e.target.style.transform = 'translateY(0)';
-                  e.target.style.boxShadow = isDark ? '0 4px 12px rgba(14, 165, 233, 0.2)' : '0 4px 12px rgba(59, 130, 246, 0.15)';
                 }}
               >
                 <div style={{ width: '20px', height: '20px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M1 4V10H7" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                    <path d="M23 20V14H17" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                    <path d="M20.49 9A9 9 0 0 0 5.64 5.64L1 10M23 14L18.36 18.36A9 9 0 0 1 3.51 15" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                  </svg>
+                  <RefreshIcon color="#ffffff" />
                 </div>
                 Refresh Data
               </Button>
@@ -730,48 +664,27 @@ const Reports = () => {
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.6, delay: 0.1, ease: [0.16, 1, 0.3, 1] }}
-        style={{
-          display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))',
-          gap: currentTheme.spacing[6],
-          marginBottom: currentTheme.spacing[8],
-        }}
+        className="analytics-kpi-grid"
       >
         {/* Total Sales Card */}
         <Card>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: currentTheme.spacing[4] }}>
+          <div className="kpi-card-header">
             <div>
-              <p style={{
-                fontSize: '0.875rem',
-                fontWeight: 600,
-                color: currentTheme.colors.text.secondary,
-                marginBottom: currentTheme.spacing[1],
-                textTransform: 'uppercase',
-                letterSpacing: '0.05em',
-              }}>
+              <p className="kpi-label">
                 Net Sales
               </p>
-              <h3 style={{
-                fontSize: '2rem',
-                fontWeight: 700,
-                color: currentTheme.colors.text.primary,
-                margin: 0,
-                marginBottom: currentTheme.spacing[2],
-                letterSpacing: '-0.02em',
-              }}>
+              <h3 className="kpi-value">
                 {formatCurrency(safeSummary.total_sales || 0)}
               </h3>
             </div>
-            <div style={{
-              width: '48px', height: '48px', borderRadius: '12px',
+            <div className="kpi-icon-wrapper" style={{
               background: isDark ? 'rgba(16, 185, 129, 0.1)' : '#ecfdf5',
-              display: 'flex', alignItems: 'center', justifyContent: 'center',
             }}>
               <TrendingUpIcon color={isDark ? '#34d399' : '#059669'} />
             </div>
           </div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: currentTheme.spacing[2] }}>
-            <span style={{ fontSize: '0.875rem', color: currentTheme.colors.text.secondary }}>
+          <div className="kpi-subtext">
+            <span>
               Total revenue for today
             </span>
           </div>
@@ -779,33 +692,23 @@ const Reports = () => {
 
         {/* Total Orders Card */}
         <Card>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: currentTheme.spacing[4] }}>
+          <div className="kpi-card-header">
             <div>
-              <p style={{
-                fontSize: '0.875rem', fontWeight: 600,
-                color: currentTheme.colors.text.secondary,
-                marginBottom: currentTheme.spacing[1], textTransform: 'uppercase', letterSpacing: '0.05em',
-              }}>
+              <p className="kpi-label">
                 Total Orders
               </p>
-              <h3 style={{
-                fontSize: '2rem', fontWeight: 700,
-                color: currentTheme.colors.text.primary,
-                margin: 0, marginBottom: currentTheme.spacing[2], letterSpacing: '-0.02em',
-              }}>
+              <h3 className="kpi-value">
                 {safeSummary.total_bills || 0}
               </h3>
             </div>
-            <div style={{
-              width: '48px', height: '48px', borderRadius: '12px',
+            <div className="kpi-icon-wrapper" style={{
               background: isDark ? 'rgba(59, 130, 246, 0.1)' : '#eff6ff',
-              display: 'flex', alignItems: 'center', justifyContent: 'center',
             }}>
               <ReceiptIcon color={isDark ? '#60a5fa' : '#2563eb'} />
             </div>
           </div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: currentTheme.spacing[2] }}>
-            <span style={{ fontSize: '0.875rem', color: currentTheme.colors.text.secondary }}>
+          <div className="kpi-subtext">
+            <span>
               Bills generated today
             </span>
           </div>
@@ -813,33 +716,23 @@ const Reports = () => {
 
         {/* Average Order Value Card */}
         <Card>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: currentTheme.spacing[4] }}>
+          <div className="kpi-card-header">
             <div>
-              <p style={{
-                fontSize: '0.875rem', fontWeight: 600,
-                color: currentTheme.colors.text.secondary,
-                marginBottom: currentTheme.spacing[1], textTransform: 'uppercase', letterSpacing: '0.05em',
-              }}>
+              <p className="kpi-label">
                 Avg. Order Value
               </p>
-              <h3 style={{
-                fontSize: '2rem', fontWeight: 700,
-                color: currentTheme.colors.text.primary,
-                margin: 0, marginBottom: currentTheme.spacing[2], letterSpacing: '-0.02em',
-              }}>
+              <h3 className="kpi-value">
                 {formatCurrency(safeSummary.average_bill_value || 0)}
               </h3>
             </div>
-            <div style={{
-              width: '48px', height: '48px', borderRadius: '12px',
+            <div className="kpi-icon-wrapper" style={{
               background: isDark ? 'rgba(245, 158, 11, 0.1)' : '#fffbeb',
-              display: 'flex', alignItems: 'center', justifyContent: 'center',
             }}>
               <DollarSignIcon color={isDark ? '#fbbf24' : '#d97706'} />
             </div>
           </div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: currentTheme.spacing[2] }}>
-            <span style={{ fontSize: '0.875rem', color: currentTheme.colors.text.secondary }}>
+          <div className="kpi-subtext">
+            <span>
               Per transaction average
             </span>
           </div>
@@ -857,11 +750,7 @@ const Reports = () => {
       >
         <Card>
           {/* ... (Header remains same) ... */}
-          <div style={{
-            display: 'flex',
-            alignItems: 'center',
-            marginBottom: currentTheme.spacing[6],
-          }}>
+          <div className="analytics-header-container" style={{ marginBottom: currentTheme.spacing[6] }}>
             <div style={{
               position: 'relative',
               paddingLeft: currentTheme.spacing[4],
@@ -893,19 +782,9 @@ const Reports = () => {
 
           {/* Pie Chart and Products Grid */}
           {productSales.length > 0 ? (
-            <div style={{
-              display: 'grid',
-              gridTemplateColumns: '1fr 1fr',
-              gap: currentTheme.spacing[8],
-              alignItems: 'start',
-            }}>
+            <div className="analytics-chart-grid">
               {/* Pie Chart */}
-              <div style={{
-                display: 'flex',
-                flexDirection: 'column',
-                alignItems: 'center',
-                justifyContent: 'center',
-              }}>
+              <div className="chart-card" style={{ height: 'auto', alignItems: 'center', justifyContent: 'center' }}>
                 <div style={{
                   position: 'relative',
                   width: '320px',
@@ -1124,81 +1003,28 @@ const Reports = () => {
                 itemClassName="product-item"
               >
                 {(product, index) => (
-                  <div style={{
-                    background: isDark ? currentTheme.colors.neutral[900] : '#ffffff',
-                    borderRadius: '12px',
-                    border: '1px solid ' + (isDark ? currentTheme.colors.neutral[800] : '#e2e8f0'),
-                    padding: currentTheme.spacing[3],
-                    position: 'relative',
-                    overflow: 'hidden',
-                  }}>
-                    <div style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: currentTheme.spacing[3],
-                    }}>
-                      {/* Color indicator */}
-                      <div style={{
-                        width: '28px',
-                        height: '28px',
-                        borderRadius: '6px',
-                        background: COLORS[index % COLORS.length],
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        color: '#ffffff',
-                        fontSize: '0.75rem',
-                        fontWeight: 600,
-                        flexShrink: 0,
-                      }}>
+                  <div className="ranking-item">
+                    <div className="ranking-info" style={{ flex: 1, minWidth: 0 }}>
+                      <div className="ranking-badge" style={{ background: COLORS[index % COLORS.length], border: 'none', color: '#ffffff' }}>
                         {index + 1}
                       </div>
 
-                      {/* Product info */}
-                      <div style={{
-                        flex: 1,
-                        minWidth: 0,
-                      }}>
-                        <h3 style={{
-                          fontSize: '0.8rem',
-                          fontWeight: 600,
-                          color: isDark ? '#f1f5f9' : '#1e293b',
-                          margin: 0,
-                          marginBottom: currentTheme.spacing[1],
-                          whiteSpace: 'nowrap',
-                          overflow: 'hidden',
-                          textOverflow: 'ellipsis',
-                        }}>
+                      <div style={{ minWidth: 0 }}>
+                        <h3 className="ranking-name">
                           {product.name}
                         </h3>
-                        <div style={{
-                          fontSize: '0.7rem',
-                          color: isDark ? '#94a3b8' : '#64748b',
-                          margin: 0,
-                        }}>
+                        <div className="ranking-qty">
                           {product.quantity} units
                         </div>
                       </div>
+                    </div>
 
-                      {/* Revenue */}
-                      <div style={{
-                        textAlign: 'right',
-                        flexShrink: 0,
-                      }}>
-                        <div style={{
-                          fontSize: '0.875rem',
-                          fontWeight: 700,
-                          color: isDark ? '#f1f5f9' : '#1e293b',
-                          marginBottom: currentTheme.spacing[1],
-                        }}>
-                          {formatCurrency(product.total_amount)}
-                        </div>
-                        <div style={{
-                          fontSize: '0.7rem',
-                          color: isDark ? '#94a3b8' : '#64748b',
-                        }}>
-                          {((product.total_amount / productSales.reduce((sum, p) => sum + p.total_amount, 0)) * 100).toFixed(1)}%
-                        </div>
+                    <div className="ranking-meta">
+                      <div className="ranking-amount">
+                        {formatCurrency(product.total_amount)}
+                      </div>
+                      <div className="ranking-qty">
+                        {((product.total_amount / productSales.reduce((sum, p) => sum + p.total_amount, 0)) * 100).toFixed(1)}%
                       </div>
                     </div>
                   </div>
@@ -1253,110 +1079,50 @@ const Reports = () => {
         }}
       >
         <Card>
-          <div style={{
-            display: 'flex',
-            alignItems: 'center',
-            marginBottom: currentTheme.spacing[6],
-          }}>
-            <div style={{
-              position: 'relative',
-              paddingLeft: currentTheme.spacing[4],
-            }}>
-              <div style={{
-                position: 'absolute',
-                left: 0,
-                top: '50%',
-                transform: 'translateY(-50%)',
-                width: '4px',
-                height: '24px',
-                background: `linear-gradient(to bottom, ${currentTheme.colors.primary[500]}, ${currentTheme.colors.primary[600]})`,
-                borderRadius: '2px',
-              }} />
-              <h2 style={{
-                fontSize: '1.25rem',
-                fontWeight: 600,
-                color: isDark ? '#f1f5f9' : '#1e293b',
-                margin: 0,
-                textTransform: 'uppercase',
-                letterSpacing: '0.1em',
-              }}>
+          <div className="bill-management-header">
+            <div className="bill-header-left">
+              <div className="bill-header-accent" />
+              <h2 className="bill-header-title">
                 Bill Management
-                <span style={{
-                  fontSize: '0.8rem',
-                  backgroundColor: isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.05)',
-                  padding: '2px 8px',
-                  borderRadius: '4px',
-                  marginLeft: '10px',
-                  fontWeight: 'normal',
-                  verticalAlign: 'middle',
-                  color: currentTheme.colors.text.secondary
-                }}>
+                <span className="bill-header-badge">
                   Showing: {selectedBillDate === new Date().toISOString().split('T')[0] ? 'Today' : selectedBillDate}
                 </span>
               </h2>
             </div>
-            <div style={{ marginLeft: 'auto', display: 'flex', gap: '12px', alignItems: 'center' }}>
+
+            <div className="bill-header-controls">
               {/* Today Button */}
-              <Button
+              <button
                 onClick={() => setSelectedBillDate(new Date().toISOString().split('T')[0])}
-                variant="ghost"
-                size="sm"
-                style={{
-                  fontSize: '0.875rem',
-                  fontWeight: 600,
-                  color: selectedBillDate === new Date().toISOString().split('T')[0] ? currentTheme.colors.primary[600] : currentTheme.colors.text.secondary,
-                  background: selectedBillDate === new Date().toISOString().split('T')[0] ? (isDark ? 'rgba(7, 89, 133, 0.2)' : '#e0f2fe') : 'transparent',
-                }}
+                className={`bill-control-btn ghost ${selectedBillDate === new Date().toISOString().split('T')[0] ? 'active' : ''}`}
               >
                 Today
-              </Button>
+              </button>
 
               {/* Date Picker */}
-              <div style={{ position: 'relative' }}>
-                <input
-                  type="date"
-                  value={selectedBillDate}
-                  onChange={(e) => setSelectedBillDate(e.target.value)}
-                  style={{
-                    padding: '6px 12px',
-                    borderRadius: '8px',
-                    border: `1px solid ${currentTheme.colors.border}`,
-                    background: currentTheme.colors.background,
-                    color: currentTheme.colors.text.primary,
-                    fontSize: '0.875rem',
-                    outline: 'none',
-                    cursor: 'pointer',
-                  }}
-                />
-              </div>
+              <input
+                type="date"
+                value={selectedBillDate}
+                onChange={(e) => setSelectedBillDate(e.target.value)}
+                className="bill-date-input"
+              />
 
-              <Button
+              {/* Refresh Button */}
+              <button
                 onClick={() => loadBills(selectedBillDate)}
-                variant="secondary"
-                size="sm"
+                className="bill-control-btn secondary"
                 disabled={loadingBills}
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '8px',
-                  background: isDark ? `rgba(${parseInt(currentTheme.colors.primary[500].slice(1, 3), 16)}, ${parseInt(currentTheme.colors.primary[500].slice(3, 5), 16)}, ${parseInt(currentTheme.colors.primary[500].slice(5, 7), 16)}, 0.1)` : currentTheme.colors.primary[50],
-                  border: `1px solid ${isDark ? `rgba(${parseInt(currentTheme.colors.primary[500].slice(1, 3), 16)}, ${parseInt(currentTheme.colors.primary[500].slice(3, 5), 16)}, ${parseInt(currentTheme.colors.primary[500].slice(5, 7), 16)}, 0.2)` : currentTheme.colors.primary[100]}`,
-                  color: currentTheme.colors.primary[600],
-                  borderRadius: '8px',
-                  padding: '6px 16px',
-                  fontWeight: 600,
-                  transition: 'all 0.2s ease',
-                }}
               >
                 <div style={{
                   display: 'flex',
-                  alignItems: 'center',
                   animation: loadingBills ? 'spin 1s linear infinite' : 'none'
                 }}>
-                  <RefreshIcon color={currentTheme.colors.primary[600]} />
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M4 12a8 8 0 018-8c4.418 0 8 3.582 8 8s-3.582 8-8 8V12" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                  </svg>
                 </div>
                 Refresh
-              </Button>
+              </button>
             </div>
           </div>
 
@@ -1380,162 +1146,77 @@ const Reports = () => {
                     <div
                       key={bill.bill_no}
                       onClick={() => !isCancelled && handleEditBill(bill)}
+                      className={`bill-item ${isCancelled ? 'cancelled' : ''}`}
                       style={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        padding: `${currentTheme.spacing[4]} ${currentTheme.spacing[6]}`,
-                        background: currentTheme.colors.surface,
-                        borderRadius: '12px',
-                        border: `1px solid ${currentTheme.colors.border}`,
-                        marginBottom: currentTheme.spacing[2],
-                        gap: currentTheme.spacing[4],
-                        cursor: isCancelled ? 'default' : 'pointer',
-                        transition: 'all 0.2s cubic-bezier(0.4, 0, 0.4, 1)',
-                        opacity: isCancelled ? 0.6 : 1,
                         position: 'relative',
                         overflow: 'hidden',
-                      }}
-                      onMouseEnter={(e) => {
-                        if (!isCancelled) {
-                          e.currentTarget.style.borderColor = currentTheme.colors.primary[500];
-                          e.currentTarget.style.transform = 'translateY(-2px)';
-                          e.currentTarget.style.boxShadow = isDark ? `0 10px 15px -3px rgba(0, 0, 0, 0.3)` : `0 10px 15px -3px rgba(${parseInt(currentTheme.colors.primary[500].slice(1, 3), 16)}, ${parseInt(currentTheme.colors.primary[500].slice(3, 5), 16)}, ${parseInt(currentTheme.colors.primary[500].slice(5, 7), 16)}, 0.1)`;
-                        }
-                      }}
-                      onMouseLeave={(e) => {
-                        e.currentTarget.style.borderColor = currentTheme.colors.border;
-                        e.currentTarget.style.transform = 'translateY(0)';
-                        e.currentTarget.style.boxShadow = 'none';
+                        opacity: isCancelled ? 0.6 : 1,
+                        cursor: isCancelled ? 'default' : 'pointer'
                       }}
                     >
-                      {/* Bill ID Highlight */}
-                      <div style={{
-                        position: 'absolute',
-                        left: 0,
-                        top: 0,
-                        bottom: 0,
-                        width: '4px',
-                        background: isCancelled ? (isDark ? '#ef4444' : '#fee2e2') : (isDark ? currentTheme.colors.primary[500] : currentTheme.colors.primary[50]),
-                      }} />
+
 
                       {/* Bill Info */}
-                      <div style={{ flex: '0 0 60px' }}>
-                        <span style={{
-                          fontSize: '1rem',
-                          fontWeight: 700,
-                          color: isDark ? '#f1f5f9' : '#1e293b',
-                          display: 'block'
-                        }}>
-                          {bill.bill_no}
-                        </span>
-                      </div>
+                      <div className="bill-info-left" style={{ flex: '1', minWidth: '150px' }}>
+                        <div className="bill-id">
+                          <span style={{ fontSize: '1rem', fontWeight: 700 }}>{bill.bill_no}</span>
+                          <div className="bill-status-badge" style={{
+                            backgroundColor: isCancelled ? (isDark ? 'rgba(239, 68, 68, 0.15)' : '#fee2e2') : (isDark ? 'rgba(34, 197, 94, 0.15)' : '#dcfce7'),
+                            color: isCancelled ? (isDark ? '#fca5a5' : '#ef4444') : (isDark ? '#86efac' : '#16a34a'),
+                            border: `1px solid ${isCancelled ? (isDark ? 'rgba(239, 68, 68, 0.2)' : '#fca5a5') : (isDark ? 'rgba(34, 197, 94, 0.2)' : '#86efac')}`
+                          }}>
+                            {statusText}
+                          </div>
+                        </div>
 
-                      <div style={{ flex: '1', minWidth: '150px' }}>
-                        <div style={{
-                          fontSize: '0.9rem',
-                          fontWeight: 600,
-                          color: isDark ? '#f1f5f9' : '#1e293b',
-                          marginBottom: '4px',
-                          display: 'flex',
-                          alignItems: 'center',
-                          gap: '8px'
-                        }}>
-                          <ClockIcon color={isDark ? currentTheme.colors.primary[500] : currentTheme.colors.primary[600]} />
+                        <div className="bill-meta">
+                          <ClockIcon color={isDark ? currentTheme.colors.primary[500] : currentTheme.colors.primary[600]} size={14} />
                           {formatDate(bill.created_at)} • {formatTime(bill.created_at)} • <span>{bill.items?.length || 0} items</span>
                         </div>
-                        <div style={{
-                          fontSize: '0.75rem',
-                          color: isDark ? '#94a3b8' : '#64748b'
-                        }}>
-
-                        </div>
                       </div>
 
-                      <div style={{
-                        flex: '0 0 120px',
-                        textAlign: 'right',
-                        paddingRight: currentTheme.spacing[4]
-                      }}>
-                        <div style={{
-                          fontSize: '1.125rem',
-                          fontWeight: 700,
-                          color: isDark ? currentTheme.colors.primary[500] : currentTheme.colors.primary[600]
-                        }}>
+                      <div className="bill-info-right">
+                        <div className="bill-total">
                           {formatCurrency(bill.total_amount)}
                         </div>
-                      </div>
 
-                      <div style={{ flex: '0 0 110px', textAlign: 'center' }}>
-                        <span style={{
-                          padding: '6px 10px',
-                          borderRadius: '8px',
-                          fontSize: '0.7rem',
-                          fontWeight: 700,
-                          letterSpacing: '0.025em',
-                          display: 'inline-block',
-                          backgroundColor: isCancelled ? (isDark ? 'rgba(239, 68, 68, 0.15)' : '#fee2e2') : (isDark ? 'rgba(34, 197, 94, 0.15)' : '#dcfce7'),
-                          color: isCancelled ? (isDark ? '#fca5a5' : '#ef4444') : (isDark ? '#86efac' : '#16a34a'),
-                          border: `1px solid ${isCancelled ? (isDark ? 'rgba(239, 68, 68, 0.2)' : '#fca5a5') : (isDark ? 'rgba(34, 197, 94, 0.2)' : '#86efac')}`
-                        }}>
-                          {statusText}
-                        </span>
-                      </div>
-
-                      <div style={{
-                        flex: '0 0 150px',
-                        display: 'flex',
-                        gap: currentTheme.spacing[2],
-                        justifyContent: 'flex-end'
-                      }}>
-                        <Button
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleEditBill(bill);
-                          }}
-                          variant="ghost"
-                          size="sm"
-                          disabled={isCancelled}
-                          style={{
-                            height: '32px',
-                            minWidth: '60px',
-                            fontSize: '0.75rem'
-                          }}
-                        >
-                          Edit
-                        </Button>
-                        <Button
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            setSelectedBill(bill);
-                            setShowCancelConfirm(true);
-                          }}
-                          variant="ghost"
-                          size="sm"
-                          disabled={isCancelled}
-                          style={{
-                            height: '32px',
-                            minWidth: '70px',
-                            fontSize: '0.75rem',
-                            color: isCancelled ? (isDark ? '#475569' : '#94a3b8') : (isDark ? '#fca5a5' : '#ef4444'),
-                            background: isCancelled ? 'transparent' : (isDark ? 'rgba(239, 68, 68, 0.05)' : '#fef2f2')
-                          }}
-                        >
-                          Cancel
-                        </Button>
+                        <div className="bill-actions">
+                          <button
+                            className="bill-action-btn edit"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleEditBill(bill);
+                            }}
+                            disabled={isCancelled}
+                            title="Edit Bill"
+                          >
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                              <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+                              <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+                            </svg>
+                            Edit
+                          </button>
+                          <button
+                            className="bill-action-btn delete"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setSelectedBill(bill);
+                              setShowCancelConfirm(true);
+                            }}
+                            disabled={isCancelled}
+                            title="Cancel Bill"
+                          >
+                            <TrashIcon color="currentColor" size={14} />
+                            Delete
+                          </button>
+                        </div>
                       </div>
                     </div>
                   );
                 }}
               </AnimatedList>
             ) : (
-              <div style={{
-                padding: currentTheme.spacing[12],
-                textAlign: 'center',
-                color: isDark ? '#64748b' : '#94a3b8',
-                background: isDark ? 'rgba(255, 255, 255, 0.03)' : currentTheme.colors.background,
-                borderRadius: '16px',
-                border: `2px dashed ${currentTheme.colors.border}`
-              }}>
+              <div className="empty-bills">
                 <div style={{ marginBottom: currentTheme.spacing[4], opacity: 0.5 }}>
                   <ReceiptIcon color="currentColor" />
                 </div>
@@ -1548,8 +1229,8 @@ const Reports = () => {
               </div>
             )}
           </div>
-        </Card>
-      </motion.div>
+        </Card >
+      </motion.div >
       {/* Reports Section */}
       < motion.div
         initial={{ opacity: 0, y: 20 }}
@@ -1557,11 +1238,7 @@ const Reports = () => {
         transition={{ duration: 0.6, delay: 0.4, ease: [0.16, 1, 0.3, 1] }}
       >
         <Card>
-          <div style={{
-            display: 'flex',
-            alignItems: 'center',
-            marginBottom: currentTheme.spacing[6],
-          }}>
+          <div className="analytics-header-container" style={{ marginBottom: currentTheme.spacing[6] }}>
             <div style={{
               position: 'relative',
               paddingLeft: currentTheme.spacing[4],
@@ -1573,6 +1250,7 @@ const Reports = () => {
                 transform: 'translateY(-50%)',
                 width: '4px',
                 height: '24px',
+                background: `linear-gradient(to bottom, ${currentTheme.colors.primary[500]}, ${currentTheme.colors.primary[600]})`,
                 borderRadius: '2px',
               }} />
               <h2 style={{
@@ -1590,389 +1268,127 @@ const Reports = () => {
             </div>
           </div>
 
-          <div style={{
-            display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))',
-            gap: currentTheme.spacing[4],
-          }}>
+          <div className="analytics-report-grid">
             {/* Daily Report Section */}
-            <div style={{
-              display: 'flex',
-              flexDirection: 'column',
-              gap: currentTheme.spacing[4],
-              padding: currentTheme.spacing[5],
-              background: currentTheme.colors.surface,
-              borderRadius: '16px',
-              border: `1px solid ${currentTheme.colors.border}`,
-              boxShadow: currentTheme.shadows.sm,
-              transition: 'transform 0.2s ease, box-shadow 0.2s ease',
-              height: '100%',
-            }}>
-
-
-              <div style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: currentTheme.spacing[3],
-                paddingBottom: currentTheme.spacing[3],
-                borderBottom: `1px solid ${currentTheme.colors.border}`,
-              }}>
-                <div style={{
-                  width: '44px',
-                  height: '44px',
-                  borderRadius: '12px',
-                  background: isDark ? `linear-gradient(135deg, ${currentTheme.colors.primary[900]}, ${currentTheme.colors.primary[800]})` : `linear-gradient(135deg, ${currentTheme.colors.primary[50]}, ${currentTheme.colors.primary[100]})`,
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  flexShrink: 0,
-                }}>
+            <div className="report-card-content">
+              <div className="report-header">
+                <div className="report-icon-box">
                   <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M8 2v3M16 2v3M3.5 9.09h17M21 8.5V17c0 3-1.5 5-5 5H8c-3.5 0-5-2-5-5V8.5c0-3 1.5-5 5-5h8c3.5 0 5 2 5 5z" stroke={isDark ? currentTheme.colors.primary[300] : currentTheme.colors.primary[600]} strokeWidth="1.5" strokeMiterlimit="10" strokeLinecap="round" strokeLinejoin="round" />
-                    <path d="M15.695 13.7h.009M15.695 16.7h.009M11.995 13.7h.01M11.995 16.7h.01M8.294 13.7h.01M8.294 16.7h.01" stroke={isDark ? currentTheme.colors.primary[300] : currentTheme.colors.primary[600]} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                    <path d="M8 2v3M16 2v3M3.5 9.09h17M21 8.5V17c0 3-1.5 5-5 5H8c-3.5 0-5-2-5-5V8.5c0-3 1.5-5 5-5h8c3.5 0 5 2 5 5z" stroke="currentColor" strokeWidth="1.5" strokeMiterlimit="10" strokeLinecap="round" strokeLinejoin="round" />
+                    <path d="M15.695 13.7h.009M15.695 16.7h.009M11.995 13.7h.01M11.995 16.7h.01M8.294 13.7h.01M8.294 16.7h.01" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
                   </svg>
                 </div>
-                <div>
-                  <h3 style={{
-                    fontSize: '1rem',
-                    fontWeight: 600,
-                    color: currentTheme.colors.text.primary,
-                    margin: 0,
-                    marginBottom: '2px',
-                  }}>Daily Report</h3>
-                  <p style={{
-                    fontSize: '0.8125rem',
-                    color: isDark ? '#94a3b8' : '#64748b',
-                    margin: 0,
-                  }}>Sales summary for selected date</p>
+                <div className="report-title-group">
+                  <h3 className="report-title">Daily Report</h3>
+                  <p className="report-desc">Sales summary for selected date</p>
                 </div>
               </div>
 
               {/* Date Selection */}
-              <div style={{
-                display: 'flex',
-                flexDirection: 'column',
-                gap: '8px',
-                flex: 1,
-              }}>
-                <label style={{
-                  fontSize: '0.75rem',
-                  fontWeight: 600,
-                  color: isDark ? currentTheme.colors.text.secondary : currentTheme.colors.text.secondary,
-                  textTransform: 'uppercase',
-                  letterSpacing: '0.05em',
-                }}>
-                  Select Date
-                </label>
-                <input
-                  type="date"
+              <div className="report-controls">
+                <label className="report-label">Select Date</label>
+                <GlobalDatePicker
                   value={dailyReportDate}
-                  onChange={(e) => setDailyReportDate(e.target.value)}
-                  style={{
-                    width: '100%',
-                    padding: '10px 12px',
-                    borderRadius: '8px',
-                    border: `1px solid ${isDark ? currentTheme.colors.neutral[800] : '#cbd5e1'}`,
-                    backgroundColor: isDark ? currentTheme.colors.neutral[900] : '#ffffff',
-                    color: isDark ? currentTheme.colors.text.primary : currentTheme.colors.text.primary,
-                    fontSize: '0.875rem',
-                    outline: 'none',
-                    transition: 'border-color 0.2s',
-                    fontFamily: 'inherit',
-                  }}
-                  onFocus={(e) => e.target.style.borderColor = currentTheme.colors.primary[500]}
-                  onBlur={(e) => e.target.style.borderColor = currentTheme.colors.border}
+                  onChange={(val) => setDailyReportDate(val)}
+                  placeholder="Select Date"
+                  className="report-select-override"
                 />
               </div>
 
-              <Button
-                onClick={() => handleDownload('excel', 'detailed', `sales_report_${dailyReportDate}.xlsx`, dailyReportDate)}
-                disabled={downloading.excel}
-                variant="secondary"
-                style={{
-                  backgroundColor: currentTheme.colors.surface,
-                  boxShadow: currentTheme.shadows.sm,
-                  border: `1px solid ${currentTheme.colors.border}`,
-                  color: currentTheme.colors.text.primary,
-                  borderRadius: '10px',
-                  padding: `${currentTheme.spacing[3]} ${currentTheme.spacing[4]}`,
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  gap: currentTheme.spacing[2],
-                  fontWeight: 500,
-                  fontSize: '0.875rem',
-                  width: '100%',
-                  transition: 'all 0.2s ease',
-                  marginTop: 'auto',
-                }}
-              >
-                <DownloadIcon color={currentTheme.colors.text.secondary} />
-                {downloading.excel ? 'Downloading...' : 'Download Report'}
-              </Button>
+              <div className="report-actions">
+                <button
+                  className="report-btn report-btn-primary"
+                  onClick={() => handleDownload('excel', 'detailed', `sales_report_${dailyReportDate}.xlsx`, dailyReportDate)}
+                  disabled={downloading.excel}
+                >
+                  <DownloadIcon color="#ffffff" />
+                  {downloading.excel ? 'Downloading...' : 'Download Report'}
+                </button>
+              </div>
             </div>
 
             {/* Monthly Report Section */}
-            <div style={{
-              display: 'flex',
-              flexDirection: 'column',
-              gap: currentTheme.spacing[4],
-              padding: currentTheme.spacing[5],
-              background: currentTheme.colors.surface,
-              borderRadius: '16px',
-              border: `1px solid ${currentTheme.colors.border}`,
-              boxShadow: currentTheme.shadows.sm,
-              transition: 'transform 0.2s ease, box-shadow 0.2s ease',
-              height: '100%',
-            }}>
-
-
-              <div style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: currentTheme.spacing[3],
-                paddingBottom: currentTheme.spacing[3],
-                borderBottom: `1px solid ${currentTheme.colors.border}`,
-              }}>
-                <div style={{
-                  width: '44px',
-                  height: '44px',
-                  borderRadius: '12px',
-                  background: isDark ? `linear-gradient(135deg, ${currentTheme.colors.primary[900]}, ${currentTheme.colors.primary[800]})` : `linear-gradient(135deg, ${currentTheme.colors.primary[50]}, ${currentTheme.colors.primary[100]})`,
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  flexShrink: 0,
-                }}>
+            <div className="report-card-content">
+              <div className="report-header">
+                <div className="report-icon-box">
                   <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M8 2v3M16 2v3M3.5 9.09h17M21 8.5V17c0 3-1.5 5-5 5H8c-3.5 0-5-2-5-5V8.5c0-3 1.5-5 5-5h8c3.5 0 5 2 5 5z" stroke={isDark ? currentTheme.colors.primary[300] : currentTheme.colors.primary[600]} strokeWidth="1.5" strokeMiterlimit="10" strokeLinecap="round" strokeLinejoin="round" />
-                    <path d="M11.995 13.7h.01M8.294 13.7h.01M8.294 16.7h.01" stroke={isDark ? currentTheme.colors.primary[300] : currentTheme.colors.primary[600]} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                    <path d="M8 2v3M16 2v3M3.5 9.09h17M21 8.5V17c0 3-1.5 5-5 5H8c-3.5 0-5-2-5-5V8.5c0-3 1.5-5 5-5h8c3.5 0 5 2 5 5z" stroke="currentColor" strokeWidth="1.5" strokeMiterlimit="10" strokeLinecap="round" strokeLinejoin="round" />
+                    <path d="M15.695 13.7h.009M15.695 16.7h.009M11.995 13.7h.01" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
                   </svg>
                 </div>
-                <div>
-                  <h3 style={{
-                    fontSize: '1.125rem',
-                    fontWeight: 600,
-                    color: currentTheme.colors.text.primary,
-                    margin: 0,
-                    marginBottom: '2px',
-                  }}>Monthly Report</h3>
-                  <p style={{
-                    fontSize: '0.8125rem',
-                    color: isDark ? '#94a3b8' : '#64748b',
-                    margin: 0,
-                  }}>Select month and year</p>
+                <div className="report-title-group">
+                  <h3 className="report-title">Monthly Report</h3>
+                  <p className="report-desc">Full month sales analysis</p>
                 </div>
               </div>
 
-              <div style={{
-                display: 'flex',
-                flexDirection: 'column',
-                gap: '8px',
-                flex: 1,
-              }}>
-                <label style={{
-                  fontSize: '0.75rem',
-                  fontWeight: 600,
-                  color: isDark ? currentTheme.colors.text.secondary : currentTheme.colors.text.secondary,
-                  textTransform: 'uppercase',
-                  letterSpacing: '0.05em',
-                }}>
-                  Select Period
-                </label>
-                <div style={{ display: 'flex', gap: currentTheme.spacing[2] }}>
-                  <select
-                    value={exportMonth}
-                    onChange={(e) => setExportMonth(parseInt(e.target.value))}
-                    style={{
-                      flex: 1,
-                      padding: '10px 12px',
-                      borderRadius: '8px',
-                      border: `1px solid ${isDark ? currentTheme.colors.neutral[800] : '#cbd5e1'}`,
-                      backgroundColor: isDark ? currentTheme.colors.neutral[900] : '#ffffff',
-                      color: isDark ? currentTheme.colors.text.primary : currentTheme.colors.text.primary,
-                      fontSize: '0.875rem',
-                      fontWeight: 500,
-                      cursor: 'pointer',
-                      transition: 'all 0.2s ease',
-                      outline: 'none',
-                    }}
-                  >
-                    {Array.from({ length: 12 }, (_, i) => i + 1).map(m => (
-                      <option key={m} value={m}>{new Date(0, m - 1).toLocaleString('default', { month: 'long' })}</option>
-                    ))}
-                  </select>
-                  <select
-                    value={exportYear}
-                    onChange={(e) => setExportYear(parseInt(e.target.value))}
-                    style={{
-                      flex: 1,
-                      padding: '10px 12px',
-                      borderRadius: '8px',
-                      border: `1px solid ${isDark ? currentTheme.colors.neutral[800] : '#cbd5e1'}`,
-                      backgroundColor: isDark ? currentTheme.colors.neutral[900] : '#ffffff',
-                      color: isDark ? currentTheme.colors.text.primary : currentTheme.colors.text.primary,
-                      fontSize: '0.875rem',
-                      fontWeight: 500,
-                      cursor: 'pointer',
-                      transition: 'all 0.2s ease',
-                      outline: 'none',
-                    }}
-                  >
-                    {[2023, 2024, 2025, 2026].map(y => (
-                      <option key={y} value={y}>{y}</option>
-                    ))}
-                  </select>
-                </div>
-              </div>
-
-              <Button
-                onClick={handleMonthlyExport}
-                disabled={downloading.monthly}
-                variant="secondary"
-                style={{
-                  backgroundColor: currentTheme.colors.surface,
-                  boxShadow: currentTheme.shadows.sm,
-                  border: `1px solid ${currentTheme.colors.border}`,
-                  color: currentTheme.colors.text.primary,
-                  borderRadius: '10px',
-                  padding: `${currentTheme.spacing[3]} ${currentTheme.spacing[4]}`,
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  gap: currentTheme.spacing[2],
-                  fontWeight: 500,
-                  fontSize: '0.9375rem',
-                  width: '100%',
-                  transition: 'all 0.2s ease',
-                  marginTop: 'auto',
-                }}
-              >
-                <DownloadIcon color={currentTheme.colors.text.secondary} />
-                {downloading.monthly ? 'Downloading...' : 'Download Monthly Report'}
-              </Button>
-            </div>
-
-            {/* Weekly Report Section */}
-            <div style={{
-              display: 'flex',
-              flexDirection: 'column',
-              gap: currentTheme.spacing[4],
-              padding: currentTheme.spacing[5],
-              background: currentTheme.colors.surface,
-              borderRadius: '12px',
-              border: `1px solid ${currentTheme.colors.border}`,
-              boxShadow: currentTheme.shadows.sm,
-              height: '100%',
-            }}>
-
-
-              <div style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: currentTheme.spacing[3],
-                paddingBottom: currentTheme.spacing[3],
-                borderBottom: `1px solid ${currentTheme.colors.border}`,
-              }}>
-                <div style={{
-                  width: '44px',
-                  height: '44px',
-                  borderRadius: '12px',
-                  background: isDark ? `linear-gradient(135deg, ${currentTheme.colors.primary[900]}, ${currentTheme.colors.primary[800]})` : `linear-gradient(135deg, ${currentTheme.colors.primary[50]}, ${currentTheme.colors.primary[100]})`,
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  flexShrink: 0,
-                }}>
-                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M8 2v3M16 2v3M3.5 9.09h17M21 8.5V17c0 3-1.5 5-5 5H8c-3.5 0-5-2-5-5V8.5c0-3 1.5-5 5-5h8c3.5 0 5 2 5 5z" stroke={isDark ? currentTheme.colors.primary[300] : currentTheme.colors.primary[600]} strokeWidth="1.5" strokeMiterlimit="10" strokeLinecap="round" strokeLinejoin="round" />
-                    <path d="M15.695 13.7h.009M15.695 16.7h.009M11.995 13.7h.01" stroke={isDark ? currentTheme.colors.primary[300] : currentTheme.colors.primary[600]} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                  </svg>
-                </div>
-                <div>
-                  <h3 style={{
-                    fontSize: '1rem',
-                    fontWeight: 600,
-                    color: currentTheme.colors.text.primary,
-                    margin: 0,
-                    marginBottom: '2px',
-                  }}>Weekly Report</h3>
-                  <p style={{
-                    fontSize: '0.8125rem',
-                    color: isDark ? '#94a3b8' : '#64748b',
-                    margin: 0,
-                  }}>Select reference date</p>
-                </div>
-              </div>
-
-              <div style={{
-                display: 'flex',
-                flexDirection: 'column',
-                gap: '8px',
-                flex: 1,
-              }}>
-                <label style={{
-                  fontSize: '0.75rem',
-                  fontWeight: 600,
-                  color: isDark ? currentTheme.colors.text.secondary : currentTheme.colors.text.secondary,
-                  textTransform: 'uppercase',
-                  letterSpacing: '0.05em',
-                }}>
-                  Select Reference Date
-                </label>
-                <input
-                  type="date"
-                  value={exportWeekDate}
-                  onChange={(e) => setExportWeekDate(e.target.value)}
-                  style={{
-                    width: '100%',
-                    padding: '10px 12px',
-                    borderRadius: '8px',
-                    border: `1px solid ${isDark ? currentTheme.colors.neutral[800] : '#cbd5e1'}`,
-                    backgroundColor: isDark ? currentTheme.colors.neutral[900] : '#ffffff',
-                    color: isDark ? currentTheme.colors.text.primary : currentTheme.colors.text.primary,
-                    fontSize: '0.875rem',
-                    fontWeight: 500,
-                    cursor: 'pointer',
-                    outline: 'none',
-                  }}
+              <div className="report-controls">
+                <label className="report-label">Select Month</label>
+                <GlobalDatePicker
+                  type="month"
+                  value={exportMonth}
+                  onChange={(val) => setExportMonth(val)}
+                  placeholder="Select Month"
+                  className="report-select-override"
                 />
               </div>
 
-              <Button
-                onClick={handleWeeklyExport}
-                disabled={downloading.weekly}
-                variant="secondary"
-                style={{
-                  backgroundColor: currentTheme.colors.surface,
-                  boxShadow: currentTheme.shadows.sm,
-                  border: `1px solid ${currentTheme.colors.border}`,
-                  color: currentTheme.colors.text.primary,
-                  borderRadius: '10px',
-                  padding: `${currentTheme.spacing[3]} ${currentTheme.spacing[4]}`,
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  gap: currentTheme.spacing[2],
-                  fontWeight: 500,
-                  fontSize: '0.875rem',
-                  width: '100%',
-                  fontSize: '0.875rem',
-                  width: '100%',
-                  transition: 'all 0.2s ease',
-                  marginTop: 'auto',
-                }}
-              >
-                <DownloadIcon color={currentTheme.colors.text.secondary} />
-                {downloading.weekly ? 'Downloading...' : 'Download Weekly Report'}
-              </Button>
+              <div className="report-actions">
+                <button
+                  className="report-btn report-btn-primary"
+                  onClick={() => handleDownload('excel', 'monthly', `monthly_sales_${exportMonth}.xlsx`, exportMonth)}
+                  disabled={downloading.monthly}
+                >
+                  <DownloadIcon color="#ffffff" />
+                  {downloading.monthly ? 'Downloading...' : 'Download Monthly Report'}
+                </button>
+              </div>
+            </div>
+
+            {/* Weekly Report Section */}
+            <div className="report-card-content">
+              <div className="report-header">
+                <div className="report-icon-box">
+                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M8 2v3M16 2v3M3.5 9.09h17M21 8.5V17c0 3-1.5 5-5 5H8c-3.5 0-5-2-5-5V8.5c0-3 1.5-5 5-5h8c3.5 0 5 2 5 5z" stroke="currentColor" strokeWidth="1.5" strokeMiterlimit="10" strokeLinecap="round" strokeLinejoin="round" />
+                    <path d="M15.695 13.7h.009M15.695 16.7h.009M11.995 13.7h.01" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                  </svg>
+                </div>
+                <div className="report-title-group">
+                  <h3 className="report-title">Weekly Report</h3>
+                  <p className="report-desc">Select reference date</p>
+                </div>
+              </div>
+
+              <div className="report-controls">
+                <label className="report-label">
+                  Select Reference Date
+                </label>
+                <GlobalDatePicker
+                  value={exportWeekDate}
+                  onChange={(val) => setExportWeekDate(val)}
+                  placeholder="Select Date"
+                  className="report-select-override"
+                />
+              </div>
+
+              <div className="report-actions">
+                <button
+                  className="report-btn report-btn-primary"
+                  onClick={handleWeeklyExport}
+                  disabled={downloading.weekly}
+                >
+                  <DownloadIcon color="#ffffff" />
+                  {downloading.weekly ? 'Downloading...' : 'Download Weekly Report'}
+                </button>
+              </div>
             </div>
           </div>
         </Card>
 
-      </motion.div>
+      </motion.div >
       {/* Clear Data Confirmation Modal */}
-      <AnimatePresence>
+      < AnimatePresence >
         {showClearConfirm && (
           <motion.div
             className="pmOverlay"
@@ -2057,10 +1473,10 @@ const Reports = () => {
             </motion.div>
           </motion.div>
         )}
-      </AnimatePresence>
+      </AnimatePresence >
 
       {/* Cancel Bill Confirmation Modal */}
-      <AnimatePresence>
+      < AnimatePresence >
         {showCancelConfirm && (
           <motion.div
             initial={{ opacity: 0 }}
@@ -2196,7 +1612,7 @@ const Reports = () => {
             </motion.div>
           </motion.div>
         )}
-      </AnimatePresence>
+      </AnimatePresence >
     </div >
   );
 };

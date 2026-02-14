@@ -117,7 +117,8 @@ const WorkingPOSInterface = ({ onBillCreated }) => {
     try {
       setLoading(true);
       setError('');
-      const response = await productsAPI.getAllProducts();
+      // Request stock data for alerts
+      const response = await productsAPI.getAllProducts({ include_stock: true });
       setProducts(response.data.products || []);
     } catch (err) {
       const apiError = handleAPIError(err);
@@ -154,6 +155,8 @@ const WorkingPOSInterface = ({ onBillCreated }) => {
       event.stopPropagation();
       event.preventDefault();
     }
+
+    if (product.stock_status === 'Out of Stock') return;
 
     const now = Date.now();
 
@@ -226,6 +229,8 @@ const WorkingPOSInterface = ({ onBillCreated }) => {
             total: calculateTotal()
           });
         }
+        // Refresh stock levels
+        loadProducts();
       }
 
     } catch (err) {
@@ -272,6 +277,8 @@ const WorkingPOSInterface = ({ onBillCreated }) => {
             total: calculateTotal()
           });
         }
+        // Refresh stock levels
+        loadProducts();
       }
 
     } catch (err) {
@@ -480,12 +487,50 @@ const WorkingPOSInterface = ({ onBillCreated }) => {
                     display: 'flex',
                     flexDirection: 'column',
                     justifyContent: 'space-between',
-                    cursor: 'pointer',
+                    cursor: product.stock_status === 'Out of Stock' ? 'not-allowed' : 'pointer',
                     overflow: 'visible', // For hover effects
+                    opacity: product.stock_status === 'Out of Stock' ? 0.6 : 1,
+                    filter: product.stock_status === 'Out of Stock' ? 'grayscale(1)' : 'none',
                   }}
                 >
                   <div style={{ position: 'relative', padding: '12px' }}>
                     {/* Interaction Area */}
+                    {/* Stock Status Badges */}
+                    {product.stock_status === 'Out of Stock' && (
+                      <div style={{
+                        position: 'absolute',
+                        top: '12px',
+                        left: '12px',
+                        backgroundColor: '#EF4444',
+                        color: 'white',
+                        fontSize: '0.7rem',
+                        fontWeight: 'bold',
+                        padding: '4px 8px',
+                        borderRadius: '4px',
+                        zIndex: 10,
+                        boxShadow: '0 2px 4px rgba(0,0,0,0.2)'
+                      }}>
+                        OUT OF STOCK
+                      </div>
+                    )}
+                    {product.stock_status === 'Low Stock' && (
+                      <div style={{
+                        position: 'absolute',
+                        top: '12px',
+                        left: '12px',
+                        backgroundColor: '#F59E0B',
+                        color: 'white',
+                        fontSize: '0.7rem',
+                        fontWeight: 'bold',
+                        padding: '4px 8px',
+                        borderRadius: '4px',
+                        zIndex: 10,
+                        boxShadow: '0 2px 4px rgba(0,0,0,0.2)'
+                      }}>
+                        LOW STOCK
+                      </div>
+                    )}
+
                     {showImages && (
                       <div style={{
                         height: '140px',

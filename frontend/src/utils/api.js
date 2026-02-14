@@ -37,7 +37,7 @@ api.interceptors.response.use(
 // Product Management APIs
 export const productsAPI = {
   // Get all active products (for POS)
-  getAllProducts: () => api.get('/api/products'),
+  getAllProducts: (params = {}) => api.get('/api/products', { params }),
 
   // Get all products including inactive ones (for management)
   getAllProductsWithInactive: () => api.get('/api/products?include_inactive=true&include_deleted=true'),
@@ -48,28 +48,29 @@ export const productsAPI = {
   // Update existing product
   updateProduct: (productId, productData) => api.put(`/api/products/${productId}`, productData),
 
-  // Get specific product by ID
-  getProduct: (productId) => api.get(`/api/products/${productId}`),
-
-  // Permanently delete product
+  // Soft delete product (Deactivate)
   deleteProduct: (productId) => {
     console.log('API deleteProduct called with ID:', productId);
-    console.log('Full URL:', `/api/products/${productId}`);
     return api.delete(`/api/products/${productId}`);
   },
 
-  // Set product as out of stock (deactivate)
+  // Alias for backward compatibility
   setOutOfStock: (productId) => {
-    console.log('API setOutOfStock called with ID:', productId);
-    console.log('Full URL:', `/api/products/${productId}`);
-    return api.put(`/api/products/${productId}`, { active: false });
+    return api.delete(`/api/products/${productId}`);
   },
 
-  // Set product as active (reactivate)
+  // Set product as active (Reactivate)
   setActive: (productId) => {
-    console.log('API setActive called with ID:', productId);
-    console.log('Full URL:', `/api/products/${productId}`);
     return api.put(`/api/products/${productId}`, { active: true });
+  },
+
+  // Permanently delete product (Hard Delete)
+  deleteProductPermanently: (productId, password) => {
+    return api.delete(`/api/products/${productId}?permanent=true`, {
+      headers: {
+        'x-admin-password': password
+      }
+    });
   },
 
   // Image Management
@@ -244,6 +245,27 @@ export const setCurrencySymbol = (symbol) => {
 export const formatCurrency = (amount) => {
   // Use custom formatting to support arbitrary symbols
   return `${currentCurrencySymbol}${Number(amount).toFixed(2)}`;
+};
+
+// Inventory APIs
+export const inventoryAPI = {
+  // Get all inventory
+  getAllInventory: () => api.get('/api/inventory'),
+
+  // Create item
+  createInventoryItem: (data) => api.post('/api/inventory/create', data),
+
+  // Update item
+  updateInventoryItem: (id, data) => api.put(`/api/inventory/${id}`, data),
+
+  // Adjust stock
+  adjustStock: (data) => api.post('/api/inventory/adjust', data),
+
+  // Delete item
+  deleteInventoryItem: (id) => api.delete(`/api/inventory/${id}`),
+
+  // Get Low Stock Items
+  getLowStock: () => api.get('/api/inventory/low-stock'),
 };
 
 export default api;

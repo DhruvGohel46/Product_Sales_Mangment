@@ -5,8 +5,8 @@ import { productsAPI, categoriesAPI, handleAPIError, formatCurrency } from '../.
 import { useToast } from '../../context/ToastContext';
 import CategoryManagement from './CategoryManagement';
 import '../../styles/Management.css';
-import { useTheme } from '../../context/ThemeContext';
 import { useSettings } from '../../context/SettingsContext';
+import GlobalSelect from '../ui/GlobalSelect';
 
 const IconPlus = (props) => (
   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" {...props}>
@@ -38,7 +38,8 @@ const IconImage = (props) => (
 
 const IconTrash = (props) => (
   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" {...props}>
-    <path d="M3 6h18M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2M10 11v6M14 11v6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+    <path d="M3 6H5H21" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+    <path d="M8 6V4C8 2.89543 8.89543 2 10 2H14C15.1046 2 16 2.89543 16 4V6M19 6V20C19 21.1046 19.1046 22 18 22H6C4.89543 22 4 21.1046 4 20V6H19Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
   </svg>
 );
 
@@ -56,12 +57,9 @@ const ProductManagement = () => {
   const [showAddForm, setShowAddForm] = useState(false);
   const [editingProduct, setEditingProduct] = useState(null);
   const [pendingDeactivate, setPendingDeactivate] = useState(null);
-  const [pendingDelete, setPendingDelete] = useState(null);
-  const [deletePassword, setDeletePassword] = useState('');
-  const [showDeletePassword, setShowDeletePassword] = useState(false);
   const [query, setQuery] = useState('');
   const [categoryFilter, setCategoryFilter] = useState('all');
-  const [statusFilter, setStatusFilter] = useState('all'); // all | active | inactive
+  const [productViewTab, setProductViewTab] = useState('active'); // active | inactive
   const [imageUploading, setImageUploading] = useState(false);
   const [formData, setFormData] = useState({
     name: '',
@@ -75,6 +73,11 @@ const ProductManagement = () => {
   const [previewImage, setPreviewImage] = useState(null);
   const [imageToDelete, setImageToDelete] = useState(false);
 
+  // Password Modal State
+  const [showPasswordModal, setShowPasswordModal] = useState(false);
+  const [deletePassword, setDeletePassword] = useState('');
+  const [itemToDelete, setItemToDelete] = useState(null);
+
   // Load data on mount
   useEffect(() => {
     loadProducts();
@@ -85,7 +88,8 @@ const ProductManagement = () => {
     try {
       setError('');
       setLoading(true);
-      const response = await productsAPI.getAllProductsWithInactive();
+      // Fetch with stock data
+      const response = await productsAPI.getAllProducts({ include_inactive: true, include_stock: true });
       setProducts(response.data.products || []);
     } catch (err) {
       const apiError = handleAPIError(err);
@@ -214,38 +218,43 @@ const ProductManagement = () => {
       const apiError = handleAPIError(err);
       setError(apiError.message);
     }
-  };
+  }
 
-  const handleDeleteRequest = (product) => {
-    setPendingDelete(product);
+
+  const handlePermanentDelete = (product) => {
+    setItemToDelete(product);
     setDeletePassword('');
+    setShowPasswordModal(true);
   };
 
-  const handleConfirmDelete = async () => {
-    if (!pendingDelete) return;
-
-    if (deletePassword !== 'Karam2@15') {
-      setError('Incorrect password');
-      return;
-    }
+  const confirmPermanentDelete = async (e) => {
+    e.preventDefault();
+    if (!itemToDelete) return;
 
     try {
-      await productsAPI.deleteProduct(pendingDelete.product_id);
-      showSuccess('Product deleted successfully');
-      setPendingDelete(null);
+      await productsAPI.deleteProductPermanently(itemToDelete.product_id, deletePassword);
+      showSuccess('Product permanently deleted');
+      setShowPasswordModal(false);
+      setItemToDelete(null);
       setDeletePassword('');
       loadProducts();
     } catch (err) {
-      const apiError = handleAPIError(err);
-      setError(apiError.message);
+      // If 401, it's invalid password
+      if (err.response && err.response.status === 401) {
+        setError("Invalid Password. Authorization failed.");
+      } else {
+        const apiError = handleAPIError(err);
+        setError(apiError.message);
+      }
     }
   };
 
-  const handleCancelDelete = () => {
-    setPendingDelete(null);
+  const cancelPermanentDelete = () => {
+    setShowPasswordModal(false);
+    setItemToDelete(null);
     setDeletePassword('');
+    setError('');
   };
-
   const handleImageChange = (e) => {
     if (e.target.files && e.target.files[0]) {
       const file = e.target.files[0];
@@ -307,17 +316,16 @@ const ProductManagement = () => {
 
   const filteredProducts = products
     .filter((p) => {
+      if (productViewTab === 'active') return !!p.active;
+      return !p.active;
+    })
+    .filter((p) => {
       const searchMatch = !query ||
         p.name.toLowerCase().includes(query.toLowerCase()) ||
         p.product_id.toLowerCase().includes(query.toLowerCase());
       return searchMatch;
     })
-    .filter((p) => (categoryFilter === 'all' ? true : p.category_id === parseInt(categoryFilter)))
-    .filter((p) => {
-      if (statusFilter === 'active') return !!p.active;
-      if (statusFilter === 'inactive') return !p.active;
-      return true;
-    });
+    .filter((p) => (categoryFilter === 'all' ? true : p.category_id === parseInt(categoryFilter)));
 
   return (
     <div className="pmSectionContent" ref={topRef}>
@@ -337,29 +345,45 @@ const ProductManagement = () => {
 
           <div className="pmField">
             <div className="pmLabel">Category</div>
-            <select
-              className="pmSelect"
+            <GlobalSelect
+              options={[{ label: 'All categories', value: 'all' }, ...categories.map(cat => ({ label: cat.name, value: cat.id }))]}
               value={categoryFilter}
-              onChange={(e) => setCategoryFilter(e.target.value)}
-            >
-              <option value="all">All categories</option>
-              {categories.map(cat => (
-                <option key={cat.id} value={cat.id}>{cat.name}</option>
-              ))}
-            </select>
+              onChange={(val) => setCategoryFilter(val)}
+              placeholder="Filter Category"
+              className="pmDropdown"
+            />
           </div>
 
           <div className="pmField">
-            <div className="pmLabel">Status</div>
-            <select
-              className="pmSelect"
-              value={statusFilter}
-              onChange={(e) => setStatusFilter(e.target.value)}
-            >
-              <option value="all">All</option>
-              <option value="active">Active</option>
-              <option value="inactive">Inactive</option>
-            </select>
+            <div className="pmLabel">View</div>
+            <div style={{ display: 'flex', gap: '8px' }}>
+              <button
+                type="button"
+                className="pmControlButton"
+                onClick={() => setProductViewTab('active')}
+                style={{
+                  flex: 1,
+                  border: productViewTab === 'active' ? '1px solid var(--accent)' : undefined,
+                  background: productViewTab === 'active' ? 'var(--accent)' : undefined,
+                  color: productViewTab === 'active' ? 'white' : undefined
+                }}
+              >
+                Active
+              </button>
+              <button
+                type="button"
+                className="pmControlButton"
+                onClick={() => setProductViewTab('inactive')}
+                style={{
+                  flex: 1,
+                  border: productViewTab === 'inactive' ? '1px solid var(--accent)' : undefined,
+                  background: productViewTab === 'inactive' ? 'var(--accent)' : undefined,
+                  color: productViewTab === 'inactive' ? 'white' : undefined
+                }}
+              >
+                Inactive
+              </button>
+            </div>
           </div>
 
           <button type="button" className="pmControlButton" onClick={loadProducts}>
@@ -387,11 +411,13 @@ const ProductManagement = () => {
                 </div>
                 <div className="pmField">
                   <div className="pmLabel">Category</div>
-                  <select className="pmSelect" value={formData.category_id} onChange={(e) => handleInputChange('category_id', e.target.value)} required>
-                    {categories.map(cat => (
-                      <option key={cat.id} value={cat.id}>{cat.name}</option>
-                    ))}
-                  </select>
+                  <GlobalSelect
+                    options={categories.map(cat => ({ label: cat.name, value: cat.id }))}
+                    value={formData.category_id}
+                    onChange={(val) => handleInputChange('category_id', val)}
+                    placeholder="Select Category"
+                    className="pmDropdown"
+                  />
                 </div>
               </div>
 
@@ -485,6 +511,54 @@ const ProductManagement = () => {
             </form>
           </motion.div>
         )}
+
+      </AnimatePresence>
+
+      {/* Password Confirmation Modal */}
+      <AnimatePresence>
+        {showPasswordModal && (
+          <motion.div className="pmOverlay" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={cancelPermanentDelete}>
+            <motion.div
+              className="pmDialog"
+              initial={{ y: 20, scale: 0.95, opacity: 0 }}
+              animate={{ y: 0, scale: 1, opacity: 1 }}
+              exit={{ y: 20, scale: 0.95, opacity: 0 }}
+              onClick={(e) => e.stopPropagation()}
+              style={{ maxWidth: '400px' }}
+            >
+              <div className="pmDialogTitle" style={{ color: '#EF4444' }}>
+                <IconTrash style={{ width: '24px', height: '24px' }} />
+                Permanent Deletion
+              </div>
+              <div className="pmDialogContent">
+                <p>You are about to <strong>permanently delete</strong> "{itemToDelete?.name}".</p>
+                <div className="pmWarningBox" style={{ backgroundColor: 'rgba(239, 68, 68, 0.1)', border: '1px solid rgba(239, 68, 68, 0.2)', padding: '12px', borderRadius: '8px', marginTop: '12px', fontSize: '0.9rem', color: '#B91C1C' }}>
+                  <strong style={{ display: 'block', marginBottom: '4px' }}>⚠️ Irreversible Action</strong>
+                  This will remove the product, all sales history, and inventory records. This cannot be undone.
+                </div>
+
+                <div style={{ marginTop: '20px' }}>
+                  <label style={{ display: 'block', fontSize: '0.9rem', marginBottom: '8px', fontWeight: 600 }}>Enter Admin Password</label>
+                  <input
+                    type="password"
+                    className="pmInput"
+                    value={deletePassword}
+                    onChange={(e) => setDeletePassword(e.target.value)}
+                    placeholder="Type password..."
+                    autoFocus
+                    style={{ borderColor: error && error.includes('Password') ? '#EF4444' : undefined }}
+                  />
+                </div>
+              </div>
+              <div className="pmDialogActions">
+                <button className="pmSecondaryBtn" onClick={cancelPermanentDelete}>Cancel</button>
+                <button className="pmPrimaryCta" onClick={confirmPermanentDelete} style={{ backgroundColor: '#EF4444' }}>
+                  Delete Permanently
+                </button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
       </AnimatePresence>
 
       {/* Error */}
@@ -493,7 +567,7 @@ const ProductManagement = () => {
       {/* Products Grid */}
       <div className="pmPanel">
         <div className="pmGridHeader">
-          <div className="pmGridTitle" >Products</div>
+          <div className="pmGridTitle">{productViewTab === 'active' ? 'Active Products' : 'Inactive Products'}</div>
           <div className="pmGridHint">{loading ? 'Refreshing…' : `${filteredProducts.length} shown`}</div>
           <div className="pmHeaderActions">
             <button
@@ -570,21 +644,45 @@ const ProductManagement = () => {
                     gap: '6px',
                     width: '100%'
                   }}>
+                    {/* Stock Status Badge */}
+                    <div style={{
+                      gridColumn: '1 / -1',
+                      display: 'flex',
+                      justifyContent: 'space-between',
+                      alignItems: 'center',
+                      fontSize: '12px',
+                      marginBottom: '8px',
+                      background: 'var(--bg-tertiary)',
+                      padding: '4px 8px',
+                      borderRadius: '6px'
+                    }}>
+                      <span style={{ color: 'var(--text-secondary)' }}>Stock:</span>
+                      <span style={{
+                        fontWeight: '600',
+                        color: product.stock_status === 'Low Stock' ? '#F59E0B' :
+                          product.stock_status === 'Out of Stock' ? '#EF4444' : '#10B981'
+                      }}>
+                        {product.stock !== undefined ? product.stock : '-'} ({product.stock_status || 'N/A'})
+                      </span>
+                    </div>
+
                     <button className="pmActionBtn" onClick={() => handleEdit(product)}>
                       <IconEdit /> {showImages ? 'Edit' : ''}
                     </button>
                     {product.active ? (
-                      <button className="pmActionBtn pmActionDanger" onClick={() => onRequestDeactivate(product)}>
+                      <button className="pmActionBtn pmActionDanger" onClick={() => onRequestDeactivate(product)} title="Deactivate">
                         <IconPower /> {showImages ? 'Deactivate' : ''}
                       </button>
                     ) : (
-                      <button className="pmActionBtn pmActionReactivate" onClick={() => handleReactivate(product)}>
-                        <IconPower /> {showImages ? 'Reactivate' : ''}
-                      </button>
+                      <>
+                        <button className="pmActionBtn pmActionReactivate" onClick={() => handleReactivate(product)} title="Reactivate" style={{ color: '#10B981', borderColor: 'rgba(16, 185, 129, 0.3)', background: 'rgba(16, 185, 129, 0.1)' }}>
+                          <IconPower /> {showImages ? 'Reactivate' : ''}
+                        </button>
+                        <button className="pmActionBtn" onClick={() => handlePermanentDelete(product)} title="Delete Permanently" style={{ color: '#EF4444', borderColor: 'rgba(239, 68, 68, 0.3)', background: 'rgba(239, 68, 68, 0.1)' }}>
+                          <IconTrash />
+                        </button>
+                      </>
                     )}
-                    <button className="pmActionBtn pmActionDanger" onClick={() => handleDeleteRequest(product)} title="Delete permanently">
-                      <IconTrash />
-                    </button>
                   </div>
                 </div>
               </motion.div>
@@ -616,68 +714,6 @@ const ProductManagement = () => {
         )}
       </AnimatePresence>
 
-      {/* Delete Modal with Password */}
-      <AnimatePresence>
-        {pendingDelete && (
-          <motion.div className="pmOverlay" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={handleCancelDelete}>
-            <motion.div className="pmDialog" initial={{ y: 20, scale: 0.95, opacity: 0 }} animate={{ y: 0, scale: 1, opacity: 1 }} exit={{ y: 20, scale: 0.95, opacity: 0 }} onClick={(e) => e.stopPropagation()}>
-              <div className="pmDialogTitle">
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                  <path d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                </svg>
-                Delete product permanently?
-              </div>
-              <div className="pmDialogBody">
-                This will permanently delete "{pendingDelete.name}" and its image. This action cannot be undone.
-                <div style={{ marginTop: '16px', position: 'relative' }}>
-                  <input
-                    type={showDeletePassword ? "text" : "password"}
-                    className="pmInput"
-                    placeholder="Enter password to confirm"
-                    value={deletePassword}
-                    onChange={(e) => setDeletePassword(e.target.value)}
-                    onKeyPress={(e) => e.key === 'Enter' && handleConfirmDelete()}
-                    autoFocus
-                    style={{ width: '100%', textAlign: 'center', paddingRight: '40px' }}
-                  />
-                  <button
-                    type="button"
-                    onClick={() => setShowDeletePassword(!showDeletePassword)}
-                    style={{
-                      position: 'absolute',
-                      right: '8px',
-                      top: '50%',
-                      transform: 'translateY(-50%)',
-                      background: 'none',
-                      border: 'none',
-                      cursor: 'pointer',
-                      padding: '4px',
-                      display: 'flex',
-                      alignItems: 'center',
-                      opacity: 0.6
-                    }}
-                  >
-                    {showDeletePassword ? (
-                      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <path d="M3 3l18 18M10.584 10.587a2 2 0 002.828 2.826M9.363 5.365A9.466 9.466 0 0112 5c7 0 10 7 10 7a13.16 13.16 0 01-1.658 2.366M6.632 6.632A9.466 9.466 0 005 12s3 7 7 7a9.466 9.466 0 005.368-1.632" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                      </svg>
-                    ) : (
-                      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                        <circle cx="12" cy="12" r="3" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                      </svg>
-                    )}
-                  </button>
-                </div>
-              </div>
-              <div className="pmDialogActions">
-                <button className="pmDialogBtn" onClick={handleCancelDelete}>Cancel</button>
-                <button className="pmDialogBtn pmDialogBtnPrimary" onClick={handleConfirmDelete}>Delete</button>
-              </div>
-            </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
     </div >
   );
 };

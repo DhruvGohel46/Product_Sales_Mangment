@@ -8,7 +8,7 @@ from datetime import datetime, timedelta
 # Add parent directory to path for imports
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from app import create_app
+
 from models import db
 
 # Configure logging
@@ -25,6 +25,7 @@ logger = logging.getLogger(__name__)
 class DashboardRefresher:
     def __init__(self):
         # Initialize Flask app context
+        from app import create_app
         self.app = create_app('default')
         
     def refresh_dashboard_data(self):

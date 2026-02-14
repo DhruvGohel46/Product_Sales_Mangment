@@ -45,19 +45,19 @@ def create_bill():
                 }), 400
             
             # Get product details from database
-            all_products = db.get_all_products()
-            product_found = None
-            
-            for product in all_products:
-                if product['product_id'] == product_id:
-                    product_found = product
-                    break
+            product_found = db.get_product(product_id)
             
             if not product_found:
                 return jsonify({
                     'success': False,
                     'message': f'Product with ID {product_id} not found'
                 }), 404
+
+            if not product_found.get('active', False):
+                return jsonify({
+                    'success': False,
+                    'message': f'Product "{product_found.get("name", product_id)}" is inactive and cannot be billed'
+                }), 400
             
             # Add to validated products
             line_total = product_found['price'] * quantity
@@ -289,6 +289,12 @@ def update_bill(bill_no):
                         'success': False,
                         'message': f'Product with ID {product_id} not found'
                     }), 404
+
+                if not product_found.get('active', False):
+                    return jsonify({
+                        'success': False,
+                        'message': f'Product "{product_found.get("name", product_id)}" is inactive and cannot be billed'
+                    }), 400
                 
                 line_total = product_found['price'] * quantity
                 validated_products.append({

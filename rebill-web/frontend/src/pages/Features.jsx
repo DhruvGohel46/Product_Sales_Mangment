@@ -3,8 +3,8 @@ import {
     Zap, BarChart3, Shield, Smartphone, users,
     CheckCircle2, Box, FileText, Database, Globe
 } from 'lucide-react';
-import { Card, CardContent } from '../components/ui/Card';
-import { Button } from '../components/ui/Button';
+import { Card, CardContent } from '../components/Card';
+import { Button } from '../components/Button';
 import { Link } from 'react-router-dom';
 
 const features = [

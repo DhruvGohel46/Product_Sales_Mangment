@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 // Base URL for API calls
-const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000';
+const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:5050';
 
 // Create axios instance with default config
 const api = axios.create({
@@ -15,14 +15,20 @@ const api = axios.create({
 // Product Management APIs
 export const productsAPI = {
   // Get all products
-  getAllProducts: () => api.get('/api/products'),
-  
+  // Get all products (supports include_stock=true)
+  getAllProducts: (params = {}) => {
+    const query = new URLSearchParams(params).toString();
+    return api.get(`/api/products?${query}`);
+  },
+
+  getAllProductsWithInactive: () => api.get('/api/products?include_inactive=true'),
+
   // Create new product
   createProduct: (productData) => api.post('/api/products', productData),
-  
+
   // Update product
   updateProduct: (productId, productData) => api.put(`/api/products/${productId}`, productData),
-  
+
   // Get specific product
   getProduct: (productId) => api.get(`/api/products/${productId}`),
 };
@@ -31,16 +37,16 @@ export const productsAPI = {
 export const billingAPI = {
   // Create new bill
   createBill: (billData) => api.post('/api/bill/create', billData),
-  
+
   // Get specific bill
   getBill: (billNo) => api.get(`/api/bill/${billNo}`),
-  
+
   // Get today's bills
   getTodayBills: () => api.get('/api/bill/today'),
-  
+
   // Get next bill number
   getNextBillNumber: () => api.get('/api/bill/next-number'),
-  
+
   // Print bill
   printBill: (billNo) => api.post(`/api/bill/print/${billNo}`),
 };
@@ -49,13 +55,13 @@ export const billingAPI = {
 export const summaryAPI = {
   // Get today's summary
   getTodaySummary: () => api.get('/api/summary/today'),
-  
+
   // Get summary for specific date
   getSummaryForDate: (dateStr) => api.get(`/api/summary/date/${dateStr}`),
-  
+
   // Get top selling products
   getTopSellingProducts: (limit = 10) => api.get(`/api/summary/top-products?limit=${limit}`),
-  
+
   // Get quick stats
   getQuickStats: () => api.get('/api/summary/quick-stats'),
 };
@@ -63,32 +69,53 @@ export const summaryAPI = {
 // Reports APIs
 export const reportsAPI = {
   // Export today's Excel report
-  exportTodayExcel: (reportType = 'detailed') => 
+  exportTodayExcel: (reportType = 'detailed') =>
     api.get(`/api/reports/excel/today?type=${reportType}`, { responseType: 'blob' }),
-  
+
   // Export today's CSV report
-  exportTodayCSV: (reportType = 'simple') => 
+  exportTodayCSV: (reportType = 'simple') =>
     api.get(`/api/reports/excel/today?type=${reportType}`, { responseType: 'blob' }),
-  
+
   // Export today's XML report
-  exportTodayXML: () => 
+  exportTodayXML: () =>
     api.get('/api/reports/xml/today', { responseType: 'blob' }),
-  
+
   // Preview Excel data
   previewExcel: () => api.get('/api/reports/preview/excel'),
-  
+
   // Preview XML data
   previewXML: () => api.get('/api/reports/preview/xml'),
-  
+
   // Get available reports
   getAvailableReports: () => api.get('/api/reports/available-reports'),
+};
+
+// Inventory APIs
+export const inventoryAPI = {
+  // Get all inventory
+  getAllInventory: () => api.get('/api/inventory'),
+
+  // Get specific item
+  getInventoryItem: (id) => api.get(`/api/inventory/${id}`),
+
+  // Create item
+  createInventory: (data) => api.post('/api/inventory/create', data),
+
+  // Update item
+  updateInventory: (id, data) => api.put(`/api/inventory/${id}`, data),
+
+  // Adjust stock
+  adjustStock: (id, adjustment) => api.post('/api/inventory/adjust', { id, adjustment }),
+
+  // Delete item
+  deleteInventory: (id) => api.delete(`/api/inventory/${id}`),
 };
 
 // System APIs
 export const systemAPI = {
   // Health check
   healthCheck: () => api.get('/health'),
-  
+
   // Get server info
   getServerInfo: () => api.get('/'),
 };

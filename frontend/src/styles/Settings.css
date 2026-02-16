@@ -2,15 +2,18 @@
     width: 100%;
     height: 100%;
     overflow-y: auto;
+    /* Custom Scrollbar for the shell */
+    scrollbar-width: thin;
+    scrollbar-color: var(--border-primary) transparent;
 }
 
 .stPage {
     display: flex;
     flex-direction: column;
-    gap: 18px;
-    max-width: 1000px;
+    gap: 24px;
+    max-width: 100%;
     margin: 0 auto;
-    padding: 22px 22px 26px 22px;
+    padding: 32px 24px 48px 24px;
 }
 
 /* Header */
@@ -18,36 +21,35 @@
     display: flex;
     align-items: center;
     justify-content: space-between;
-    gap: 12px;
-    padding: 20px;
-    border: 1px solid var(--border-primary);
-    border-radius: 20px;
-    background-color: var(--surface);
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+    gap: 16px;
+    /* Card component handles background, border, shadow, radius */
 }
 
 .stTitle {
-    font-size: 30px;
+    font-size: 28px;
     line-height: 1.2;
-    letter-spacing: -0.01em;
-    font-weight: 650;
+    letter-spacing: -0.02em;
+    font-weight: 700;
     color: var(--text-primary);
 }
 
 /* Tabs */
 .stTabs {
     display: flex;
-    gap: 10px;
-    margin-bottom: 20px;
+    justify-content: center;
+    gap: 4px;
     padding: 4px;
     background: var(--bg-secondary);
     border-radius: 12px;
     border: 1px solid var(--border-primary);
     width: fit-content;
+    margin: 0 auto;
+    /* Center horizontally */
+    box-shadow: none;
 }
 
 .stTabButton {
-    padding: 10px 20px;
+    padding: 8px 16px;
     border-radius: 8px;
     border: none;
     background: transparent;
@@ -56,58 +58,64 @@
     font-size: 14px;
     cursor: pointer;
     transition: all 0.2s ease;
+    white-space: nowrap;
 }
 
 .stTabButton:hover {
     color: var(--text-primary);
-    background: rgba(0, 0, 0, 0.05);
+    background: rgba(0, 0, 0, 0.03);
 }
 
 .stTabActive {
-    background: var(--surface);
-    color: var(--primary);
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    background: var(--accent);
+    color: white !important;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.dark .stTabActive {
+    background: var(--accent);
+    color: white !important;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
 }
 
 /* Sections */
 .stSection {
-    border: 1px solid var(--border-primary);
-    border-radius: 16px;
-    background: var(--surface);
-    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.08);
-    padding: 24px;
+    /* Card component handles background, border, shadow, radius, padding */
     display: flex;
     flex-direction: column;
-    gap: 24px;
+    gap: 28px;
 }
 
 .stSectionTitle {
-    font-size: 18px;
-    font-weight: 700;
+    font-size: 20px;
+    font-weight: 600;
     color: var(--text-primary);
     margin-bottom: 8px;
-    padding-bottom: 12px;
+    padding-bottom: 16px;
     border-bottom: 1px solid var(--border-primary);
+    display: flex;
+    align-items: center;
+    gap: 12px;
 }
 
 /* Forms */
 .stFormGroup {
     display: grid;
     grid-template-columns: 1fr 1.5fr;
-    gap: 20px;
+    gap: 32px;
     align-items: center;
-    padding: 16px 0;
-    border-bottom: 1px solid var(--border-subtle);
+    padding: 8px 0;
 }
 
-.stFormGroup:last-child {
-    border-bottom: none;
+.stFormGroup:not(:last-child) {
+    padding-bottom: 24px;
+    border-bottom: 1px solid var(--border-secondary);
 }
 
 .stLabel {
     display: flex;
     flex-direction: column;
-    gap: 4px;
+    gap: 6px;
 }
 
 .stLabelTitle {
@@ -119,23 +127,26 @@
 .stLabelDesc {
     font-size: 13px;
     color: var(--text-secondary);
+    line-height: 1.4;
 }
 
 .stInput {
     width: 100%;
-    padding: 10px 12px;
-    border-radius: 10px;
+    padding: 12px 16px;
+    border-radius: var(--radius-lg);
     border: 1px solid var(--border-primary);
-    background: var(--bg-secondary);
+    background: var(--bg-primary);
     color: var(--text-primary);
     font-size: 14px;
     transition: all 0.2s ease;
+    height: 44px;
 }
 
 .stInput:focus {
     border-color: var(--primary);
     box-shadow: 0 0 0 3px color-mix(in srgb, var(--primary) 20%, transparent);
     outline: none;
+    background: var(--surface);
 }
 
 /* Toggles */
@@ -143,7 +154,7 @@
     position: relative;
     display: inline-block;
     width: 48px;
-    height: 26px;
+    height: 28px;
 }
 
 .stToggle input {
@@ -160,56 +171,69 @@
     right: 0;
     bottom: 0;
     background-color: var(--border-tertiary);
-    transition: .4s;
+    transition: .3s cubic-bezier(0.4, 0, 0.2, 1);
     border-radius: 34px;
 }
 
 .stSlider:before {
     position: absolute;
     content: "";
-    height: 18px;
-    width: 18px;
+    height: 20px;
+    width: 20px;
     left: 4px;
     bottom: 4px;
     background-color: white;
-    /* Keep white for visibility on dark track */
-    transition: .4s;
+    transition: .3s cubic-bezier(0.4, 0, 0.2, 1);
     border-radius: 50%;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
 }
 
 input:checked+.stSlider {
-    background-color: var(--primary);
+    background: var(--primary-gradient);
 }
 
 input:checked+.stSlider:before {
-    transform: translateX(22px);
+    transform: translateX(20px);
 }
 
 /* Actions */
 .stActions {
     display: flex;
     justify-content: flex-end;
-    gap: 12px;
-    margin-top: 20px;
+    gap: 16px;
+    margin-top: 24px;
+    padding-top: 24px;
+    border-top: 1px solid var(--border-primary);
 }
 
 .stButton {
     padding: 12px 24px;
-    border-radius: 10px;
+    border-radius: var(--radius-lg);
     font-weight: 600;
     cursor: pointer;
-    border: none;
+    border: 1px solid var(--border-primary);
+    background: var(--bg-primary);
+    color: var(--text-primary);
     font-size: 14px;
     transition: all 0.2s ease;
 }
 
+.stButton:hover {
+    background: var(--bg-secondary);
+    transform: translateY(-1px);
+}
+
 .stButtonPrimary {
-    background: var(--primary);
+    background: var(--primary-gradient);
     color: white;
+    border: none;
     box-shadow: 0 4px 12px color-mix(in srgb, var(--primary) 30%, transparent);
 }
 
 .stButtonPrimary:hover {
+    background: var(--primary-gradient);
+    /* Keep gradient on hover */
+    filter: brightness(1.1);
     transform: translateY(-1px);
     box-shadow: 0 6px 16px color-mix(in srgb, var(--primary) 40%, transparent);
 }
@@ -221,4 +245,5 @@ input:checked+.stSlider:before {
 .stButtonPrimary:disabled {
     opacity: 0.6;
     cursor: not-allowed;
+    filter: grayscale(0.5);
 }

@@ -85,6 +85,43 @@ export const ThemeProvider = ({ children }) => {
     // Focus and accent
     root.style.setProperty('--focus', themeObject.colors.focus);
     root.style.setProperty('--accent', themeObject.colors.primary[500]);
+
+    // Border Radius
+    root.style.setProperty('--radius-sm', themeObject.borderRadius.sm);
+    root.style.setProperty('--radius-base', themeObject.borderRadius.base);
+    root.style.setProperty('--radius-md', themeObject.borderRadius.md);
+    root.style.setProperty('--radius-lg', themeObject.borderRadius.lg);
+    root.style.setProperty('--radius-xl', themeObject.borderRadius.xl);
+    root.style.setProperty('--radius-2xl', themeObject.borderRadius['2xl']);
+    root.style.setProperty('--radius-3xl', themeObject.borderRadius['3xl']);
+    root.style.setProperty('--radius-full', themeObject.borderRadius.full);
+
+    // New Gradient & Design System Tokens
+    root.style.setProperty('--bg-gradient', themeObject.gradients?.background || themeObject.colors.background);
+    root.style.setProperty('--primary-gradient', themeObject.gradients?.primary || themeObject.colors.primary[500]);
+
+    // Shadow tokens
+    root.style.setProperty('--shadow-card', themeObject.shadows.card);
+    root.style.setProperty('--shadow-card-hover', themeObject.shadows.cardHover);
+
+    // Glow tokens
+    root.style.setProperty('--glow-primary', themeObject.shadows.glow?.primary || 'none');
+    root.style.setProperty('--glow-success', themeObject.shadows.glow?.success || 'none');
+
+    // Glassmorphism tokens
+    if (themeObject.glass) {
+      root.style.setProperty('--glass-sidebar', themeObject.glass.sidebar);
+      root.style.setProperty('--glass-card', themeObject.glass.card);
+      root.style.setProperty('--glass-modal', themeObject.glass.modal);
+      root.style.setProperty('--glass-input', themeObject.glass.input);
+      root.style.setProperty('--glass-dropdown', themeObject.glass.dropdown);
+      root.style.setProperty('--glass-header', themeObject.glass.header);
+      root.style.setProperty('--glass-border', themeObject.glass.border);
+      root.style.setProperty('--glass-blur', themeObject.glass.blur);
+    }
+
+    // Advanced Gradients
+    root.style.setProperty('--gradient-glow', themeObject.gradients?.glow || 'none');
   };
 
   useEffect(() => {

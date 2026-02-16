@@ -54,8 +54,10 @@ const Sidebar = ({
             onTouchEnd={handleDoubleTap}
             style={{
                 height: '100%',
-                backgroundColor: currentTheme.colors.sidebar,
-                borderLeft: `1px solid ${currentTheme.colors.border}`,
+                backgroundColor: currentTheme.glass?.sidebar || currentTheme.colors.sidebar,
+                backdropFilter: currentTheme.glass?.blur || 'blur(20px)',
+                WebkitBackdropFilter: currentTheme.glass?.blur || 'blur(20px)',
+                borderRight: `1px solid ${currentTheme.glass?.border || currentTheme.colors.border}`,
                 display: 'flex',
                 flexDirection: 'column',
                 zIndex: 50,

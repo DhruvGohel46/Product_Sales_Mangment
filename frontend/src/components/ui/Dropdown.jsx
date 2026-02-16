@@ -91,8 +91,10 @@ const Dropdown = ({
                 style={{
                     width: '100%',
                     padding: '12px 16px',
-                    background: 'var(--bg-secondary)',
-                    border: isOpen ? '1px solid var(--accent)' : '1px solid var(--border-primary)',
+                    background: 'var(--glass-dropdown)',
+                    backdropFilter: 'var(--glass-blur)',
+                    WebkitBackdropFilter: 'var(--glass-blur)',
+                    border: isOpen ? '1px solid var(--accent)' : '1px solid var(--glass-border)',
                     borderRadius: '8px',
                     color: selectedOption ? 'var(--text-primary)' : 'var(--text-tertiary)',
                     fontSize: '15px',
@@ -139,8 +141,10 @@ const Dropdown = ({
                             zIndex: zIndex,
                             maxHeight: '240px',
                             overflowY: 'auto',
-                            border: '1px solid var(--border-primary)', // Reinforce border
-                            background: 'var(--bg-secondary)' // Ensure solid/glass background
+                            border: '1px solid var(--glass-border)',
+                            background: 'var(--glass-dropdown)',
+                            backdropFilter: 'var(--glass-blur)',
+                            WebkitBackdropFilter: 'var(--glass-blur)'
                         }}
                     >
                         <div style={{ padding: '4px' }}>

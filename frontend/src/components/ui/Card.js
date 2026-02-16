@@ -11,86 +11,77 @@ const Card = React.forwardRef(({
   hover = false,
   className = '',
   onClick,
+  fullHeight = false, // Added new prop
+  style, // Allow external style overrides
   ...props
 }, ref) => {
   const { currentTheme } = useTheme();
   const { cardVariants, cardTransition } = useAnimation();
-
-  const baseStyles = {
-    backgroundColor: currentTheme.colors.card,
-    borderRadius: currentTheme.borderRadius.xl,
-    fontFamily: currentTheme.typography.fontFamily.primary,
-    position: 'relative',
-    overflow: 'hidden',
-    transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
-  };
+  const isDark = currentTheme.isDark;
 
   const paddingStyles = {
-    none: { padding: '0' },
-    sm: { padding: currentTheme.spacing[3] },
-    md: { padding: currentTheme.spacing[5] },
-    lg: { padding: currentTheme.spacing[6] },
-    xl: { padding: currentTheme.spacing[8] },
+    none: '0',
+    sm: currentTheme.spacing[3],
+    md: currentTheme.spacing[5],
+    lg: currentTheme.spacing[6],
+    xl: currentTheme.spacing[8],
   };
 
-  const variantStyles = {
-    default: {
-      border: currentTheme.isDark ? `1px solid ${currentTheme.colors.border.secondary}` : `1px solid ${currentTheme.colors.border}`,
-      boxShadow: currentTheme.isDark ? currentTheme.shadows.cardDark : currentTheme.shadows.card,
-      backgroundColor: currentTheme.isDark ? 'rgba(30, 41, 59, 0.7)' : currentTheme.colors.card,
-      backdropFilter: currentTheme.isDark ? 'blur(12px)' : 'none',
-    },
-    elevated: {
-      border: 'none',
-      boxShadow: currentTheme.isDark ? currentTheme.shadows.cardDark : currentTheme.shadows.card,
-    },
-    outlined: {
-      border: `2px solid ${currentTheme.colors.primary[200]}`,
-      backgroundColor: currentTheme.colors.primary[50],
-      boxShadow: currentTheme.shadows.sm,
-    },
-    success: {
-      border: `1px solid ${currentTheme.colors.success[200]}`,
-      backgroundColor: currentTheme.colors.success[50],
-      boxShadow: currentTheme.shadows.sm,
-    },
-    warning: {
-      border: `1px solid ${currentTheme.colors.warning[200]}`,
-      backgroundColor: currentTheme.colors.warning[50],
-      boxShadow: currentTheme.shadows.sm,
-    },
-    error: {
-      border: `1px solid ${currentTheme.colors.error[200]}`,
-      backgroundColor: currentTheme.colors.error[50],
-      boxShadow: currentTheme.shadows.sm,
-    },
-    glass: {
-      border: currentTheme.isDark ? `1px solid rgba(255, 255, 255, 0.08)` : `1px solid rgba(255, 255, 255, 0.4)`,
-      backgroundColor: currentTheme.isDark ? 'rgba(30, 41, 59, 0.6)' : 'rgba(255, 255, 255, 0.7)',
-      backdropFilter: 'blur(12px)',
-      boxShadow: currentTheme.shadows.md,
-    },
+  const shadowStyles = {
+    base: currentTheme.shadows.base,
+    sm: currentTheme.shadows.sm,
+    md: currentTheme.shadows.md,
+    lg: currentTheme.shadows.lg,
+    xl: currentTheme.shadows.xl,
+    '2xl': currentTheme.shadows['2xl'],
+    card: isDark ? currentTheme.shadows.cardDark : currentTheme.shadows.card,
+    none: 'none',
+  };
+
+  const finalShadow = shadowStyles[shadow] || shadowStyles.base;
+
+  const baseStyles = {
+    background: currentTheme.glass?.card || currentTheme.colors.surface,
+    backdropFilter: currentTheme.glass?.blur || 'blur(20px)',
+    WebkitBackdropFilter: currentTheme.glass?.blur || 'blur(20px)',
+    borderRadius: currentTheme.borderRadius.xl,
+    border: `1px solid ${currentTheme.glass?.border || currentTheme.colors.border}`,
+    boxShadow: finalShadow,
+    padding: paddingStyles[padding],
+    fontFamily: currentTheme.typography.fontFamily.primary,
+    height: fullHeight ? '100%' : 'auto',
+    overflow: 'hidden',
+    position: 'relative',
+    transition: 'all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1)',
+    ...style
   };
 
   const hoverStyles = hover ? {
     cursor: onClick ? 'pointer' : 'default',
     '&:hover': {
-      transform: 'translateY(-2px) translateZ(0)', // Hardware acceleration
-      boxShadow: currentTheme.isDark ? currentTheme.shadows.cardDarkHover : currentTheme.shadows.cardHover,
-    },
-    '&:active': {
-      transform: 'translateY(-1px) translateZ(0)',
-    },
+      transform: 'translateY(-3px)',
+      boxShadow: currentTheme.shadows.cardHover,
+      borderColor: isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)',
+    }
   } : {};
 
-  const styles = {
+  // Variant overrides (optional, but keeping for compatibility)
+  const variantStyles = {
+    elevated: {
+      border: 'none',
+    },
+    outlined: {
+      background: 'transparent',
+      border: `2px solid ${currentTheme.colors.primary[200]}`,
+    },
+    // Add other variants if needed, or rely on baseStyles for "default"
+  };
+
+  const combinedStyles = {
     ...baseStyles,
-    ...paddingStyles[padding],
-    ...variantStyles[variant],
+    ...(variantStyles[variant] || {}),
     ...hoverStyles,
-    // Ensure hardware acceleration for smoother animations
-    transform: 'translateZ(0)',
-    willChange: hover ? 'transform, box-shadow' : 'auto',
+    transform: 'translateZ(0)', // Hardware acceleration
   };
 
   const MotionComponent = onClick || hover ? motion.div : 'div';
@@ -100,8 +91,7 @@ const Card = React.forwardRef(({
     exit: cardVariants.exit,
     transition: cardTransition,
     whileHover: hover ? {
-      y: -2,
-      scale: 1.02, // Subtle scale effect requested
+      y: -3,
       boxShadow: currentTheme.isDark ? currentTheme.shadows.cardDarkHover : currentTheme.shadows.cardHover,
     } : undefined,
     whileTap: onClick ? { scale: 0.98 } : undefined,
@@ -110,7 +100,7 @@ const Card = React.forwardRef(({
   return (
     <MotionComponent
       ref={ref}
-      style={styles}
+      style={combinedStyles}
       className={className}
       onClick={onClick}
       {...motionProps}

@@ -40,9 +40,10 @@ const Input = React.forwardRef(({
   const inputBaseStyles = {
     fontSize: currentTheme.typography.fontSize.base,
     fontFamily: currentTheme.typography.fontFamily.primary,
-    border: `1px solid ${error ? currentTheme.colors.error[500] : currentTheme.colors.border}`,
+    border: `1px solid ${error ? currentTheme.colors.error[500] : (currentTheme.glass?.border || currentTheme.colors.border)}`,
     borderRadius: currentTheme.borderRadius.md,
-    backgroundColor: currentTheme.colors.card,
+    backgroundColor: currentTheme.glass?.input || currentTheme.colors.card,
+    backdropFilter: currentTheme.glass?.blur,
     color: currentTheme.colors.text.primary,
     transition: 'all 0.2s ease',
     outline: 'none',

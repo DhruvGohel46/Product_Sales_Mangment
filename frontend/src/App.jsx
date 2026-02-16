@@ -199,7 +199,7 @@ function AppContent() {
     <div style={{
       height: '100vh',
       display: 'flex',
-      backgroundColor: currentTheme.colors.background,
+      backgroundColor: 'transparent',
       color: currentTheme.colors.text.primary,
       fontFamily: currentTheme.typography.fontFamily.primary,
       overflow: 'hidden',
@@ -239,9 +239,10 @@ function AppContent() {
             alignItems: 'center',
             justifyContent: 'space-between',
             padding: `0 ${currentTheme.spacing[8]}`,
-            borderBottom: `1px solid ${currentTheme.colors.border}`,
-            backgroundColor: isDark ? 'rgba(0,0,0,0.4)' : 'rgba(255,255,255,0.8)',
-            backdropFilter: 'blur(12px)',
+            borderBottom: `1px solid ${currentTheme.glass?.border || 'rgba(0,0,0,0.05)'}`,
+            backgroundColor: currentTheme.glass?.header || 'rgba(255,255,255,0.7)',
+            backdropFilter: currentTheme.glass?.blur || 'blur(20px)',
+            WebkitBackdropFilter: currentTheme.glass?.blur || 'blur(20px)',
             zIndex: 40,
             flexShrink: 0,
           }}

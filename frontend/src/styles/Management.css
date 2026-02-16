@@ -14,24 +14,29 @@
 }
 
 /* Header */
+/* Header */
 .pmHeader {
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 12px;
   padding: 20px;
-  border: 1px solid var(--border-primary);
+  border: 1px solid var(--glass-border);
   border-radius: 20px;
-  background-color: var(--surface);
+  background: var(--glass-header);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
   margin: 0px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
   transition: all 0.2s ease;
 }
 
 .pmHeader:hover {
   border-color: var(--primary-300);
-  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.12);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.1);
 }
+
+/* ... existing styles ... */
 
 .pmHeaderLeft {
   min-width: 0;
@@ -92,10 +97,12 @@
 
 /* Section panels (unique POS layout treatment) */
 .pmPanel {
-  border: 1px solid var(--border-primary);
+  border: 1px solid var(--glass-border);
   border-radius: 16px;
-  background: color-mix(in srgb, var(--surface) 92%, var(--bg-secondary));
-  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.08);
+  background: var(--glass-card);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+  box-shadow: var(--shadow-card);
   padding: 20px;
   transition: all 0.2s ease;
   margin: 10px 0px;
@@ -103,7 +110,7 @@
 
 .pmPanel:hover {
   border-color: var(--primary-300);
-  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.12);
+  box-shadow: var(--shadow-card-hover);
 }
 
 .pmPanelTight {
@@ -138,8 +145,10 @@
   width: 100%;
   padding: 10px 12px;
   border-radius: 10px;
-  border: 1px solid var(--border-primary);
-  background: color-mix(in srgb, var(--surface) 96%, var(--bg-secondary));
+  border: 1px solid var(--glass-border);
+  background: var(--glass-input);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
   color: var(--text-primary);
   font-size: 14px;
   transition: all 0.2s ease;
@@ -169,8 +178,10 @@
   padding: 10px 12px;
   min-height: 38px;
   border-radius: 10px;
-  border: 1px solid var(--border-primary);
-  background: color-mix(in srgb, var(--surface) 92%, var(--bg-secondary));
+  border: 1px solid var(--glass-border);
+  background: var(--glass-input);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
   color: var(--text-primary);
   font-weight: 600;
   font-size: 14px;
@@ -178,7 +189,7 @@
 }
 
 .pmControlButton:hover {
-  background: color-mix(in srgb, var(--surface) 85%, var(--bg-secondary));
+  background: var(--glass-card);
   transform: translateY(-1px);
   border-color: var(--primary-300);
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
@@ -468,10 +479,43 @@
 }
 
 .pmActions {
+  margin-top: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  width: 100%;
+}
+
+.pmActionsWithBorder {
+  border-top: 1px solid var(--border-subtle);
+  padding-top: 12px;
+}
+
+.pmStockRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 13px;
+  background: var(--bg-tertiary);
+  padding: 6px 10px;
+  border-radius: 8px;
+  width: 100%;
+}
+
+.pmStockLabel {
+  color: var(--text-secondary);
+  font-weight: 500;
+}
+
+.pmStockValue {
+  font-weight: 700;
+}
+
+.pmButtonGrid {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 8px;
-  align-items: end;
+  width: 100%;
 }
 
 .pmActionBtn {
@@ -639,8 +683,10 @@
 .pmDialog {
   width: min(400px, 92%);
   border-radius: 16px;
-  border: 1px solid var(--border-primary);
-  background: var(--surface);
+  border: 1px solid var(--glass-border);
+  background: var(--glass-modal);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
   box-shadow:
     0 20px 25px -5px rgba(0, 0, 0, 0.1),
     0 10px 10px -5px rgba(0, 0, 0, 0.04);

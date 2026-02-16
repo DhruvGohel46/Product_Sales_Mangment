@@ -631,58 +631,48 @@ const ProductManagement = () => {
                   </div>
 
                   {showImages && (
-                    <div className="pmMetaRow" style={{ justifyContent: 'flex-start' }}>
+                    <div className="pmMetaRow" style={{ justifyContent: 'center', width: '100%' }}>
                       <div className="pmId">ID: {product.product_id}</div>
                     </div>
                   )}
 
-                  <div className="pmActions" style={{
-                    marginTop: 'auto',
-                    borderTop: showImages ? '1px solid var(--border-subtle)' : 'none',
-                    paddingTop: showImages ? '10px' : '0',
-                    gridTemplateColumns: '1fr 1fr 1fr',
-                    gap: '6px',
-                    width: '100%'
-                  }}>
+                  <div className={`pmActions ${showImages ? 'pmActionsWithBorder' : ''}`}>
                     {/* Stock Status Badge */}
-                    <div style={{
-                      gridColumn: '1 / -1',
-                      display: 'flex',
-                      justifyContent: 'space-between',
-                      alignItems: 'center',
-                      fontSize: '12px',
-                      marginBottom: '8px',
-                      background: 'var(--bg-tertiary)',
-                      padding: '4px 8px',
-                      borderRadius: '6px'
-                    }}>
-                      <span style={{ color: 'var(--text-secondary)' }}>Stock:</span>
-                      <span style={{
-                        fontWeight: '600',
-                        color: product.stock_status === 'Low Stock' ? '#F59E0B' :
-                          product.stock_status === 'Out of Stock' ? '#EF4444' : '#10B981'
+                    <div className="pmStockRow">
+                      <span className="pmStockLabel">Stock</span>
+                      <span className="pmStockValue" style={{
+                        color: (product.stock === 0 || product.stock_status === 'Out of Stock') ? '#EF4444' :
+                          product.stock_status === 'Low Stock' ? '#F59E0B' : '#10B981'
                       }}>
-                        {product.stock !== undefined ? product.stock : '-'} ({product.stock_status || 'N/A'})
+                        {product.stock !== undefined ? product.stock : '-'}
                       </span>
                     </div>
 
-                    <button className="pmActionBtn" onClick={() => handleEdit(product)}>
-                      <IconEdit /> {showImages ? 'Edit' : ''}
-                    </button>
-                    {product.active ? (
-                      <button className="pmActionBtn pmActionDanger" onClick={() => onRequestDeactivate(product)} title="Deactivate">
-                        <IconPower /> {showImages ? 'Deactivate' : ''}
+                    <div className="pmButtonGrid">
+                      <button className="pmActionBtn" onClick={() => handleEdit(product)} style={{ justifyContent: 'center' }}>
+                        <IconEdit /> {showImages ? 'Edit' : ''}
                       </button>
-                    ) : (
-                      <>
-                        <button className="pmActionBtn pmActionReactivate" onClick={() => handleReactivate(product)} title="Reactivate" style={{ color: '#10B981', borderColor: 'rgba(16, 185, 129, 0.3)', background: 'rgba(16, 185, 129, 0.1)' }}>
-                          <IconPower /> {showImages ? 'Reactivate' : ''}
+                      {product.active ? (
+                        <button className="pmActionBtn pmActionDanger" onClick={() => onRequestDeactivate(product)} title="Deactivate" style={{ justifyContent: 'center' }}>
+                          <IconPower /> {showImages ? 'Disable' : ''}
                         </button>
-                        <button className="pmActionBtn" onClick={() => handlePermanentDelete(product)} title="Delete Permanently" style={{ color: '#EF4444', borderColor: 'rgba(239, 68, 68, 0.3)', background: 'rgba(239, 68, 68, 0.1)' }}>
-                          <IconTrash />
-                        </button>
-                      </>
-                    )}
+                      ) : (
+                        <>
+                          <button className="pmActionBtn pmActionReactivate" onClick={() => handleReactivate(product)} title="Reactivate" style={{ color: '#10B981', borderColor: 'rgba(16, 185, 129, 0.3)', background: 'rgba(16, 185, 129, 0.1)', justifyContent: 'center' }}>
+                            <IconPower /> {showImages ? 'Enable' : ''}
+                          </button>
+                          <button className="pmActionBtn" onClick={() => handlePermanentDelete(product)} title="Delete Permanently" style={{
+                            color: '#EF4444',
+                            borderColor: 'rgba(239, 68, 68, 0.3)',
+                            background: 'rgba(239, 68, 68, 0.1)',
+                            justifyContent: 'center',
+                            gridColumn: '1 / -1'
+                          }}>
+                            <IconTrash /> {showImages ? 'Delete Permanently' : ''}
+                          </button>
+                        </>
+                      )}
+                    </div>
                   </div>
                 </div>
               </motion.div>

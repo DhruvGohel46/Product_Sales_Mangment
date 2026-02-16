@@ -227,12 +227,14 @@ const CategoryManagement = () => {
                                     </div>
                                 </div>
                                 <div className="pmActions" style={{ marginTop: '15px' }}>
-                                    <button className="pmActionBtn" onClick={() => handleEdit(cat)}>
-                                        <IconEdit /> Edit
-                                    </button>
-                                    <button className="pmActionBtn pmActionDanger" onClick={() => onRequestDelete(cat)}>
-                                        <IconTrash /> Remove
-                                    </button>
+                                    <div className="pmButtonGrid">
+                                        <button className="pmActionBtn" onClick={() => handleEdit(cat)}>
+                                            <IconEdit /> Edit
+                                        </button>
+                                        <button className="pmActionBtn pmActionDanger" onClick={() => onRequestDelete(cat)}>
+                                            <IconTrash /> Remove
+                                        </button>
+                                    </div>
                                 </div>
                             </motion.div>
                         ))}

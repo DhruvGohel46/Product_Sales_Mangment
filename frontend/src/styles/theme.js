@@ -66,19 +66,19 @@
 // Unified Design System Theme for POS Application
 // Professional enterprise color system with consistent usage across all screens
 
-// Primary brand color - Burger Bhau Burnt Orange
+// Primary brand color - Modern Vibrant Orange
 export const primary = {
-  50: '#fff7ed',  // Orange 50
-  100: '#ffedd5', // Orange 100
-  200: '#fed7aa', // Orange 200
-  300: '#fdba74', // Orange 300
-  400: '#fb923c', // Orange 400
-  500: '#f97316', // Orange 500 (Base)
-  600: '#ea580c', // Orange 600
-  700: '#c2410c', // Orange 700
-  800: '#9a3412', // Orange 800
-  900: '#7c2d12', // Orange 900
-  950: '#431407', // Orange 950
+  50: '#FFF1E9',  // Soft Orange Background
+  100: '#FFDBC2',
+  200: '#FFBFA0',
+  300: '#FF9E75',
+  400: '#FF8A3D', // Secondary Orange
+  500: '#FF6B2C', // Primary Orange (Base)
+  600: '#E85A1F', // Hover Orange
+  700: '#C44112',
+  800: '#99300B',
+  900: '#752307',
+  950: '#401002',
 };
 
 // Neutral color system - Professional Slate Scale (Blue-tinted grays)
@@ -272,13 +272,13 @@ export const spacing = {
 // Border radius
 export const borderRadius = {
   none: '0',
-  sm: '0.125rem',   // 2px
-  base: '0.25rem',  // 4px
-  md: '0.375rem',   // 6px
-  lg: '0.5rem',     // 8px
-  xl: '0.75rem',    // 12px
-  '2xl': '1rem',    // 16px
-  '3xl': '1.5rem',  // 24px
+  sm: '0.25rem',    // 4px
+  base: '0.375rem', // 6px
+  md: '0.5rem',     // 8px
+  lg: '0.75rem',    // 12px
+  xl: '1rem',       // 16px (Card Standard)
+  '2xl': '1.5rem',  // 24px
+  '3xl': '2rem',    // 32px
   full: '9999px',
 };
 
@@ -292,20 +292,20 @@ export const shadows = {
   xl: '0 12px 20px -4px rgba(0, 0, 0, 0.1), 0 6px 12px -2px rgba(0, 0, 0, 0.05)',
   '2xl': '0 20px 32px -8px rgba(0, 0, 0, 0.12), 0 10px 20px -4px rgba(0, 0, 0, 0.06)',
 
-  // Strong shadows for cards (matching Management.css)
-  card: '0 8px 32px rgba(0, 0, 0, 0.08)',
-  cardHover: '0 12px 40px rgba(0, 0, 0, 0.12)',
+  // Strong shadows for cards (Premium Scale)
+  card: '0 4px 20px rgba(0,0,0,0.06)',
+  cardHover: '0 10px 25px rgba(0,0,0,0.08)',
 
   // Dark theme card shadows
-  cardDark: '0 8px 32px rgba(0, 0, 0, 0.3)',
-  cardDarkHover: '0 12px 40px rgba(0, 0, 0, 0.4)',
+  cardDark: '0 4px 20px rgba(0,0,0,0.4)',
+  cardDarkHover: '0 10px 30px rgba(0,0,0,0.5)',
 
   inner: 'inset 0 1px 2px 0 rgba(0, 0, 0, 0.03)',
 
   // Colored shadows for accent elements
   primary: {
-    sm: '0 1px 2px 0 rgba(14, 165, 233, 0.1)',
-    md: '0 4px 6px -1px rgba(14, 165, 233, 0.15), 0 2px 4px -1px rgba(14, 165, 233, 0.1)',
+    sm: '0 1px 2px 0 rgba(255, 107, 44, 0.1)',
+    md: '0 4px 6px -1px rgba(255, 107, 44, 0.15), 0 2px 4px -1px rgba(255, 107, 44, 0.1)',
   },
 
   success: {
@@ -325,7 +325,7 @@ export const shadows = {
 
   // Glow effects for interactive states
   glow: {
-    primary: '0 0 0 1px rgba(14, 165, 233, 0.1), 0 0 8px rgba(14, 165, 233, 0.1)',
+    primary: '0 0 0 1px rgba(255, 107, 44, 0.1), 0 0 8px rgba(255, 107, 44, 0.1)',
     success: '0 0 0 1px rgba(34, 197, 94, 0.1), 0 0 8px rgba(34, 197, 94, 0.1)',
     error: '0 0 0 1px rgba(239, 68, 68, 0.1), 0 0 8px rgba(239, 68, 68, 0.1)',
   }
@@ -340,61 +340,98 @@ export const breakpoints = {
   '2xl': '1536px',
 };
 
+// Glassmorphism tokens
+const glass = {
+  light: {
+    sidebar: 'rgba(255, 255, 255, 0.7)',
+    card: 'rgba(255, 255, 255, 0.75)',
+    modal: 'rgba(255, 255, 255, 0.85)',
+    input: 'rgba(255, 255, 255, 0.9)',
+    dropdown: 'rgba(255, 255, 255, 0.95)',
+    header: 'rgba(255, 255, 255, 0.7)',
+    border: 'rgba(0, 0, 0, 0.06)',
+    blur: 'blur(20px)',
+  },
+  dark: {
+    sidebar: 'rgba(20, 20, 20, 0.7)',
+    card: 'rgba(25, 25, 25, 0.75)',
+    modal: 'rgba(25, 25, 25, 0.9)',
+    input: 'rgba(40, 40, 40, 0.9)',
+    dropdown: 'rgba(30, 30, 30, 0.95)',
+    header: 'rgba(20, 20, 20, 0.7)',
+    border: 'rgba(255, 255, 255, 0.06)',
+    blur: 'blur(20px)',
+  }
+};
+
 // Light theme configuration
 export const lightTheme = {
   colors: {
     ...colors,
-    background: '#ffffff',   // Pure White
-    surface: '#ffffff',      // White surface for cards
-    card: '#ffffff',
+    background: '#FFF7F3',   // Fallback
+    surface: 'rgba(255, 255, 255, 0.75)', // Glass surface
+    card: 'rgba(255, 255, 255, 0.75)',
     text: {
-      primary: neutral[900],   // Slate 900
-      secondary: neutral[500], // Slate 500
-      muted: neutral[400],     // Slate 400
+      primary: neutral[900],
+      secondary: neutral[600],
+      muted: neutral[400],
+      inverse: neutral[0],
     },
-    border: neutral[200],      // Slate 200
+    border: 'rgba(0, 0, 0, 0.06)', // Glass border
     focus: colors.primary[500],
   },
-  typography,
-  spacing,
-  borderRadius,
-  shadows,
-};
-
-// Dark theme configuration - Professional Neutral Gray (Low Contrast)
-export const darkTheme = {
-  colors: {
-    ...colors,
-    background: '#121212', // Level 0: Main app background (Deepest)
-    surface: '#1e1e1e',    // Level 1: Standard panels/cards (Dark Gray)
-    card: '#252525',       // Level 2: Cards/Content areas (Lighter Gray)
-    text: {
-      primary: '#e5e5e5',  // Neutral Gray 200 (Software standard)
-      secondary: '#a3a3a3', // Neutral Gray 400
-      muted: '#737373',    // Neutral Gray 500
-      inverse: '#121212',
-    },
-    border: '#404040',   // Neutral 700
-    focus: colors.primary[500],
-    // Distinct shades for specific components
-    sidebar: '#18181b',    // Zinc 900 - Distinct but subtle
-    modal: '#2d2d2d',      // Highest elevation
-  },
+  glass: glass.light,
   typography,
   spacing,
   borderRadius,
   shadows: {
     ...shadows,
-    card: '0 4px 6px -1px rgba(0, 0, 0, 0.5), 0 2px 4px -1px rgba(0, 0, 0, 0.3)',
-    cardHover: '0 10px 15px -3px rgba(0, 0, 0, 0.5), 0 4px 6px -2px rgba(0, 0, 0, 0.3)',
-    cardDark: '0 8px 32px rgba(0, 0, 0, 0.4)',
-    cardDarkHover: '0 12px 40px rgba(0, 0, 0, 0.5)',
-    // Professional subtle glow
+    card: '0 4px 20px rgba(0, 0, 0, 0.06)',
+    cardHover: '0 8px 30px rgba(0, 0, 0, 0.08)',
+  },
+  gradients: {
+    background: 'linear-gradient(180deg, #FFF7F3 0%, #FFFFFF 35%, #FFF4EE 100%)',
+    glow: 'radial-gradient(circle at 15% 20%, rgba(255,107,44,0.08), transparent 40%), radial-gradient(circle at 85% 80%, rgba(255,138,61,0.05), transparent 40%)',
+    primary: 'linear-gradient(135deg, #FF6B2C, #FF8A3D)',
+  }
+};
+
+// Dark theme configuration - Professional Modern Dark
+export const darkTheme = {
+  colors: {
+    ...colors,
+    background: '#0E0E0E', // Fallback
+    surface: 'rgba(25, 25, 25, 0.75)', // Glass surface
+    card: 'rgba(25, 25, 25, 0.75)',
+    text: {
+      primary: '#e5e5e5',
+      secondary: '#a3a3a3',
+      muted: '#737373',
+      inverse: '#121212',
+    },
+    border: 'rgba(255, 255, 255, 0.06)', // Glass border
+    focus: colors.primary[500],
+    sidebar: '#111111',
+    modal: '#1F1F1F',
+  },
+  glass: glass.dark,
+  typography,
+  spacing,
+  borderRadius,
+  shadows: {
+    ...shadows,
+    card: '0 4px 20px rgba(0, 0, 0, 0.4)',
+    cardHover: '0 8px 30px rgba(0, 0, 0, 0.6)',
     glow: {
-      primary: '0 0 20px rgba(249, 115, 22, 0.15)',
+      primary: '0 0 20px rgba(255, 107, 44, 0.15)',
       success: '0 0 20px rgba(34, 197, 94, 0.15)',
     }
   },
+  gradients: {
+    background: 'linear-gradient(180deg, #0E0E0E 0%, #141414 50%, #101010 100%)',
+    glow: 'radial-gradient(circle at 20% 25%, rgba(255,107,44,0.15), transparent 40%), radial-gradient(circle at 80% 75%, rgba(255,138,61,0.10), transparent 40%)',
+    primary: 'linear-gradient(135deg, #FF6B2C, #FF8A3D)',
+  }
 };
 
 // Default theme

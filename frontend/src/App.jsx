@@ -268,15 +268,6 @@ function AppContent() {
     }}>
       {/* Search Sidebar */}
       <Sidebar
-        activeTab={currentScreen}
-        onTabChange={(id) => {
-          if (id === 'pos') navigate('/');
-          else if (id === 'summary') navigate('/analytics');
-          else if (id === 'inventory') navigate('/inventory');
-          else if (id === 'management') navigate('/management');
-          else if (id === 'workers') navigate('/workers');
-          else if (id === 'settings') navigate('/settings');
-        }}
         isCollapsed={isSidebarCollapsed}
         toggleCollapse={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
         navItems={navItems}

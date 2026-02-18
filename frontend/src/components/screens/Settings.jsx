@@ -109,7 +109,7 @@ const Settings = () => {
                     <div className="stTabs" style={{ display: 'flex', gap: '8px', overflowX: 'auto', paddingBottom: '4px' }}>
                         {tabs.map(tab => (
                             <Button
-                                key={tab.id}
+                                key={`${tab.id}-${activeTab === tab.id}`}
                                 variant={activeTab === tab.id ? 'primary' : 'secondary'}
                                 onClick={() => setActiveTab(tab.id)}
                                 size="md"

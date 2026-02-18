@@ -25,6 +25,7 @@ const GlobalSelect = ({
     placeholder = 'Select option',
     disabled = false,
     className = '',
+    direction = 'bottom',
     icon = null
 }) => {
     const [isOpen, setIsOpen] = useState(false);
@@ -50,6 +51,20 @@ const GlobalSelect = ({
 
     const selectedOption = options.find((opt) => opt.value === value);
 
+    const dropdownStyles = direction === 'top'
+        ? {
+            bottom: '100%',
+            top: 'auto',
+            marginBottom: '4px',
+            marginTop: 0
+        }
+        : {
+            top: '100%',
+            bottom: 'auto',
+            marginTop: '4px',
+            marginBottom: 0
+        };
+
     return (
         <div
             className={`global-select-container ${className}`}
@@ -60,7 +75,8 @@ const GlobalSelect = ({
                 gap: '8px',
                 width: '100%',
                 opacity: disabled ? 0.6 : 1,
-                pointerEvents: disabled ? 'none' : 'auto'
+                pointerEvents: disabled ? 'none' : 'auto',
+                position: 'relative' // Ensure relative positioning for absolute child
             }}
         >
             {label && (
@@ -118,16 +134,15 @@ const GlobalSelect = ({
                 <AnimatePresence>
                     {isOpen && (
                         <motion.div
-                            initial={{ opacity: 0, y: 4, scale: 0.98 }}
+                            initial={{ opacity: 0, y: direction === 'top' ? 4 : -4, scale: 0.98 }}
                             animate={{ opacity: 1, y: 0, scale: 1 }}
-                            exit={{ opacity: 0, y: 4, scale: 0.98 }}
+                            exit={{ opacity: 0, y: direction === 'top' ? 4 : -4, scale: 0.98 }}
                             transition={{ duration: 0.15, ease: "easeOut" }}
                             style={{
                                 position: 'absolute',
-                                top: '100%',
                                 left: 0,
                                 right: 0,
-                                marginTop: '4px',
+                                ...dropdownStyles,
                                 background: 'var(--surface-primary)', // Using surface color
                                 border: '1px solid var(--border-primary)',
                                 borderRadius: '10px',

@@ -2,23 +2,16 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { inventoryAPI, productsAPI, handleAPIError } from '../../api/api';
 import { useToast } from '../../context/ToastContext';
-import '../../styles/Inventory.css';
-import GlobalSelect from '../ui/GlobalSelect';
-import PageContainer from '../layout/PageContainer';
-import Card from '../ui/Card';
-import Button from '../ui/Button';
 import { useTheme } from '../../context/ThemeContext';
+import GlobalSelect from '../ui/GlobalSelect';
+import SearchBar from '../ui/SearchBar';
+import '../../styles/Inventory.css';
 
 // --- Icons ---
-const SearchIcon = () => (
-    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-        <circle cx="11" cy="11" r="8"></circle>
-        <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
-    </svg>
-);
+// --- Icons ---
 
 const PlusIcon = () => (
-    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
         <line x1="12" y1="5" x2="12" y2="19"></line>
         <line x1="5" y1="12" x2="19" y2="12"></line>
     </svg>
@@ -31,6 +24,14 @@ const EditIcon = () => (
     </svg>
 );
 
+const ArchiveIcon = () => (
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <polyline points="21 8 21 21 3 21 3 8"></polyline>
+        <rect x="1" y="3" width="22" height="5"></rect>
+        <line x1="10" y1="12" x2="14" y2="12"></line>
+    </svg>
+);
+
 const TrashIcon = () => (
     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
         <polyline points="3 6 5 6 21 6"></polyline>
@@ -38,34 +39,20 @@ const TrashIcon = () => (
     </svg>
 );
 
-const AdjustIcon = () => (
-    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-        <polyline points="23 4 23 10 17 10"></polyline>
-        <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"></path>
-    </svg>
-);
-
-const LockIcon = () => (
-    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-        <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
-        <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
-    </svg>
-);
-
 const Inventory = () => {
     const { showSuccess, showError, showWarning } = useToast();
+    const { isDark } = useTheme();
+
     const [items, setItems] = useState([]);
     const [loading, setLoading] = useState(true);
     const [products, setProducts] = useState([]);
+
+    // Filters
     const [searchTerm, setSearchTerm] = useState('');
-    const [filterType, setFilterType] = useState('ALL'); // ALL, DIRECT_SALE, RAW_MATERIAL
-    const [filterStatus, setFilterStatus] = useState('ALL'); // ALL, LOW_STOCK, OUT_OF_STOCK
-    const [filterProductStatus, setFilterProductStatus] = useState('ALL'); // ALL, ACTIVE, INACTIVE
-    const [sortConfig, setSortConfig] = useState({ key: 'name', direction: 'asc' });
+    const [filterType, setFilterType] = useState('ALL');
 
     // Modals
     const [showAddModal, setShowAddModal] = useState(false);
-    const [showAdjustModal, setShowAdjustModal] = useState(false);
     const [selectedItem, setSelectedItem] = useState(null);
 
     // Form Data
@@ -77,11 +64,6 @@ const Inventory = () => {
         unit_price: 0,
         alert_threshold: 10,
         product_id: ''
-    });
-
-    const [adjustData, setAdjustData] = useState({
-        amount: 0,
-        type: 'add'
     });
 
     useEffect(() => {
@@ -112,184 +94,39 @@ const Inventory = () => {
 
     // Metrics
     const metrics = useMemo(() => {
-        const totalProducts = items.length;
+        const totalItems = items.length;
         const lowStock = items.filter(i => i.stock <= i.alert_threshold && i.stock > 0).length;
-        const outOfStock = items.filter(i => i.stock <= 0).length;
-        const totalStockValue = items.reduce((acc, curr) => acc + curr.stock, 0);
-
-        // Calculate monetary value safely if product price is available
-        const inventoryValue = items.reduce((acc, curr) => {
+        const totalValue = items.reduce((acc, curr) => {
+            // Basic estimate: for raw items use unit_price, for direct use product price
+            let price = curr.unit_price || 0;
             if (curr.type === 'DIRECT_SALE' && curr.product_id) {
-                const p = products.find(p => p.product_id === curr.product_id);
-                if (p) return acc + (curr.stock * p.price);
-            } else if (curr.type === 'RAW_MATERIAL') {
-                return acc + (curr.stock * (curr.unit_price || 0));
+                const p = products.find(x => x.product_id === curr.product_id);
+                if (p) price = p.price;
             }
-            return acc;
+            return acc + (curr.stock * price);
         }, 0);
-
-        const inactiveStockValue = items.reduce((acc, curr) => {
-            if (curr.product_status === 'inactive' && curr.type === 'DIRECT_SALE' && curr.product_id) {
-                const p = products.find(p => p.product_id === curr.product_id);
-                if (p) return acc + (curr.stock * p.price);
-            }
-            return acc;
-        }, 0);
-
-        return { totalProducts, lowStock, outOfStock, totalStockValue, inventoryValue, inactiveStockValue };
+        return { totalItems, lowStock, totalValue };
     }, [items, products]);
 
-    // Sorting & Filtering
-    const sortedItems = useMemo(() => {
-        let workableItems = [...items];
-
-        // 1. Filter
-        workableItems = workableItems.filter(item => {
-            const matchesSearch = item.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                item.type.toLowerCase().includes(searchTerm.toLowerCase());
-
+    // Filtering & Sorting
+    const filteredItems = useMemo(() => {
+        return items.filter(item => {
+            const matchesSearch = item.name.toLowerCase().includes(searchTerm.toLowerCase());
             const matchesType = filterType === 'ALL' || item.type === filterType;
-
-            let matchesStatus = true;
-            if (filterStatus === 'LOW_STOCK') matchesStatus = item.stock <= item.alert_threshold && item.stock > 0;
-            if (filterStatus === 'OUT_OF_STOCK') matchesStatus = item.stock <= 0;
-
-            let matchesProductStatus = true;
-            if (filterProductStatus === 'ACTIVE') matchesProductStatus = item.product_status !== 'inactive';
-            if (filterProductStatus === 'INACTIVE') matchesProductStatus = item.product_status === 'inactive';
-
-            return matchesSearch && matchesType && matchesStatus && matchesProductStatus;
+            return matchesSearch && matchesType;
         });
+    }, [items, searchTerm, filterType]);
 
-        // 2. Sort
-        if (sortConfig.key) {
-            workableItems.sort((a, b) => {
-                let aVal = a[sortConfig.key];
-                let bVal = b[sortConfig.key];
-
-                // Handle strings case-insensitive
-                if (typeof aVal === 'string') aVal = aVal.toLowerCase();
-                if (typeof bVal === 'string') bVal = bVal.toLowerCase();
-
-                if (aVal < bVal) return sortConfig.direction === 'asc' ? -1 : 1;
-                if (aVal > bVal) return sortConfig.direction === 'asc' ? 1 : -1;
-                return 0;
-            });
-        }
-
-        return workableItems;
-    }, [items, searchTerm, filterType, filterStatus, filterProductStatus, sortConfig]);
-
-    const handleSort = (key) => {
-        let direction = 'asc';
-        if (sortConfig.key === key && sortConfig.direction === 'asc') {
-            direction = 'desc';
-        }
-        setSortConfig({ key, direction });
-    };
-
-    // Quick Adjust Handler
-    const handleQuickAdjust = async (item, amount) => {
-        if (item.is_locked) {
-            showWarning('Product is inactive. Reactivate from Management to adjust stock.', 4000, 'top-center');
-            return;
-        }
-        try {
-            await inventoryAPI.adjustStock(item.id, amount);
-            // Optimistic update or reload
-            loadInventory();
-
-            const newStock = item.stock + amount;
-            if (amount < 0 && newStock <= item.alert_threshold && item.stock > item.alert_threshold) {
-                showWarning(`Low Stock Alert: ${item.name} is down to ${newStock} ${item.unit}s`, 5000, 'top-center');
-            } else {
-                showSuccess(`Stock ${amount > 0 ? 'increased' : 'decreased'}`);
-            }
-        } catch (err) {
-            showError('Failed to adjust stock');
-        }
-    };
-
-    // Handlers (Existing)
-    const handleFormChange = (field, value) => {
-        setFormData(prev => ({ ...prev, [field]: value }));
-    };
-
-    const handleSaveInventory = async (e) => {
-        e.preventDefault();
-        try {
-            let finalData = { ...formData };
-            if (formData.type === 'DIRECT_SALE' && formData.product_id) {
-                const p = products.find(p => p.product_id === formData.product_id);
-                if (p) finalData.name = p.name;
-            }
-
-            if (selectedItem) {
-                await inventoryAPI.updateInventory(selectedItem.id, finalData);
-                showSuccess('Inventory updated');
-            } else {
-                await inventoryAPI.createInventory(finalData);
-                showSuccess('Inventory created');
-            }
-            setShowAddModal(false);
-            resetForm();
-            loadInventory();
-        } catch (err) {
-            const error = handleAPIError(err);
-            showError(error.message);
-        }
-    };
-
-    const handleAdjustStock = async (e) => {
-        e.preventDefault();
-        if (!selectedItem) return;
-        try {
-            const adjustment = adjustData.type === 'add' ? parseFloat(adjustData.amount) : -parseFloat(adjustData.amount);
-            await inventoryAPI.adjustStock(selectedItem.id, adjustment);
-
-            const newStock = selectedItem.stock + adjustment;
-            if (adjustment < 0 && newStock <= selectedItem.alert_threshold && selectedItem.stock > selectedItem.alert_threshold) {
-                showWarning(`Low Stock Alert: ${selectedItem.name} is down to ${newStock} ${selectedItem.unit}s`, 5000, 'top-center');
-            } else {
-                showSuccess('Stock adjusted');
-            }
-
-            setShowAdjustModal(false);
-            setAdjustData({ amount: 0, type: 'add' });
-            loadInventory();
-        } catch (err) {
-            const error = handleAPIError(err);
-            showError(error.message);
-        }
-    };
-
-    const handleDelete = async (id) => {
-        const item = items.find(i => i.id === id);
-        if (item?.is_locked) {
-            showWarning('Inactive product inventory is locked and cannot be deleted.', 4000, 'top-center');
-            return;
-        }
-        if (window.confirm('Delete this inventory item?')) {
-            try {
-                await inventoryAPI.deleteInventory(id);
-                showSuccess('Item deleted');
-                loadInventory();
-            } catch (err) {
-                const error = handleAPIError(err);
-                showError(error.message);
-            }
-        }
-    };
-
-    const openAddModal = () => {
+    // Handlers
+    const handleAddClick = () => {
         setSelectedItem(null);
         resetForm();
         setShowAddModal(true);
     };
 
-    const openEditModal = (item) => {
+    const handleRowClick = (item) => {
         if (item.is_locked) {
-            showWarning('Product is inactive. Reactivate from Management to edit inventory.', 4000, 'top-center');
+            showWarning('Item is locked (inactive product).');
             return;
         }
         setSelectedItem(item);
@@ -305,14 +142,53 @@ const Inventory = () => {
         setShowAddModal(true);
     };
 
-    const openAdjustModal = (item) => {
-        if (item.is_locked) {
-            showWarning('Product is inactive. Reactivate from Management to adjust stock.', 4000, 'top-center');
-            return;
+    const handleQuickStock = async (e, item, amount) => {
+        e.stopPropagation(); // prevent row click
+        if (item.is_locked) return;
+
+        try {
+            await inventoryAPI.adjustStock(item.id, amount);
+            showSuccess('Stock updated');
+            loadInventory();
+        } catch (err) {
+            showError('Failed to update stock');
         }
-        setSelectedItem(item);
-        setAdjustData({ amount: 0, type: 'add' });
-        setShowAdjustModal(true);
+    };
+
+    const handleDelete = async (e, id) => {
+        e.stopPropagation();
+        if (!window.confirm("Delete this inventory item?")) return;
+        try {
+            await inventoryAPI.deleteInventory(id);
+            showSuccess('Item deleted');
+            loadInventory();
+        } catch (err) {
+            showError('Failed to delete');
+        }
+    };
+
+    const handleSave = async (e) => {
+        e.preventDefault();
+        try {
+            let payload = { ...formData };
+            // Name sync logic
+            if (payload.type === 'DIRECT_SALE' && payload.product_id) {
+                const p = products.find(x => x.product_id === payload.product_id);
+                if (p) payload.name = p.name;
+            }
+
+            if (selectedItem) {
+                await inventoryAPI.updateInventory(selectedItem.id, payload);
+                showSuccess('Inventory updated');
+            } else {
+                await inventoryAPI.createInventory(payload);
+                showSuccess('Inventory created');
+            }
+            setShowAddModal(false);
+            loadInventory();
+        } catch (err) {
+            showError('Failed to save');
+        }
     };
 
     const resetForm = () => {
@@ -325,389 +201,312 @@ const Inventory = () => {
             alert_threshold: 10,
             product_id: ''
         });
-        setSelectedItem(null);
     };
 
-    // Helper for progress bar color
-    const getProgressColor = (item) => {
-        if (item.stock <= 0) return '#EF4444';
-        if (item.stock <= item.alert_threshold) return '#F59E0B';
-        return '#10B981';
+    // Render Helpers
+    const getStockColor = (item) => {
+        if (item.stock <= 0) return '#ef4444'; // Red
+        if (item.stock <= item.alert_threshold) return '#f59e0b'; // Orange
+        return '#22c55e'; // Green
     };
-
-    const getProductStatusBadge = (item) => {
-        if (item.product_status === 'inactive') return <span className="invBadge inactive">Inactive</span>;
-        return <span className="invBadge active">Active</span>;
-    };
-
-    const activeProducts = products.filter(p => p.active);
-
-    const { currentTheme, isDark } = useTheme();
 
     return (
-        <PageContainer>
-            {/* --- Summary Dashboard --- */}
-            <div className="invSummaryGrid">
-                <Card
-                    hover={true}
-                    onClick={() => setFilterStatus('ALL')}
-                    style={{
-                        cursor: 'pointer',
-                        borderColor: filterStatus === 'ALL' ? currentTheme.colors.accent : 'transparent',
-                        background: filterStatus === 'ALL' && isDark ? 'rgba(var(--accent-rgb), 0.1)' : undefined
-                    }}
-                >
-                    <span className="invSummaryLabel">Total Products</span>
-                    <span className="invSummaryValue">{metrics.totalProducts}</span>
-                </Card>
+        <div className="invPage">
+            <div className="invPageInner">
 
-                <Card
-                    hover={true}
-                    onClick={() => setFilterStatus(filterStatus === 'LOW_STOCK' ? 'ALL' : 'LOW_STOCK')}
-                    style={{
-                        cursor: 'pointer',
-                        borderColor: filterStatus === 'LOW_STOCK' ? currentTheme.colors.warning.primary : 'transparent',
-                    }}
-                >
-                    <span className="invSummaryLabel">Low Stock</span>
-                    <span className="invSummaryValue" style={{ color: metrics.lowStock > 0 ? '#F59E0B' : 'inherit' }}>
-                        {metrics.lowStock}
-                    </span>
-                </Card>
+                {/* 1. Header Section */}
+                {/* Note: In standard layout, header might be global, but for this contained module feel we put title here */}
+                {/* If App.jsx has a header, we can hide this or integrate it. Assuming standalone feel for now. */}
 
-                <Card
-                    hover={true}
-                    onClick={() => setFilterStatus(filterStatus === 'OUT_OF_STOCK' ? 'ALL' : 'OUT_OF_STOCK')}
-                    style={{
-                        cursor: 'pointer',
-                        borderColor: filterStatus === 'OUT_OF_STOCK' ? currentTheme.colors.error.primary : 'transparent',
-                    }}
-                >
-                    <span className="invSummaryLabel">Out of Stock</span>
-                    <span className="invSummaryValue" style={{ color: metrics.outOfStock > 0 ? '#EF4444' : 'inherit' }}>
-                        {metrics.outOfStock}
-                    </span>
-                </Card>
+                {/* 2. Stats Grid */}
+                <div className="invSummaryGrid">
+                    <motion.div
+                        className="invSummaryCard"
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: 0.1 }}
+                    >
+                        <span className="invSummaryLabel">Total Products</span>
+                        <span className="invSummaryValue">{metrics.totalItems}</span>
+                    </motion.div>
 
-                <Card hover={true}>
-                    <span className="invSummaryLabel">Total Units</span>
-                    <span className="invSummaryValue">{metrics.totalStockValue.toLocaleString()}</span>
-                </Card>
+                    <motion.div
+                        className="invSummaryCard"
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: 0.2 }}
+                    >
+                        <span className="invSummaryLabel">Low Stock</span>
+                        <span className="invSummaryValue" style={{ color: metrics.lowStock > 0 ? '#f59e0b' : 'inherit' }}>
+                            {metrics.lowStock}
+                        </span>
+                    </motion.div>
 
-                <Card hover={true}>
-                    <span className="invSummaryLabel">Inventory Value</span>
-                    <span className="invSummaryValue" style={{ color: '#10B981' }}>
-                        ₹{metrics.inventoryValue.toLocaleString()}
-                    </span>
-                </Card>
-
-                <Card hover={true}>
-                    <span className="invSummaryLabel">Inactive Stock Value</span>
-                    <span className="invSummaryValue" style={{ color: '#6B7280' }}>
-                        Rs {metrics.inactiveStockValue.toLocaleString()}
-                    </span>
-                </Card>
-            </div>
-
-
-            {/* --- Main Content --- */}
-            <Card className="invMainContent" padding="0">
-                {/* Header */}
-                <div className="invHeader">
-                    <div className="invTitleGroup">
-                        <div className="invTitle">Inventory Management</div>
-                        <div className="invSubtitle">Manage and track your stock levels</div>
-                    </div>
-                    <div className="invControls">
-                        <GlobalSelect
-                            options={[
-                                { label: 'All Types', value: 'ALL' },
-                                { label: 'Direct Sale', value: 'DIRECT_SALE' },
-                                { label: 'Raw Material', value: 'RAW_MATERIAL' }
-                            ]}
-                            value={filterType}
-                            onChange={(val) => setFilterType(val)}
-                            placeholder="Filter Type"
-                            className="invDropdown"
-                        />
-                        <GlobalSelect
-                            options={[
-                                { label: 'All Status', value: 'ALL' },
-                                { label: 'Active', value: 'ACTIVE' },
-                                { label: 'Inactive', value: 'INACTIVE' }
-                            ]}
-                            value={filterProductStatus}
-                            onChange={(val) => setFilterProductStatus(val)}
-                            placeholder="Filter Status"
-                            className="invDropdown"
-                        />
-                        <div className="invSearchWrapper">
-                            <input
-                                type="text"
-                                className="invSearchInput"
-                                placeholder="Search products..."
-                                value={searchTerm}
-                                onChange={(e) => setSearchTerm(e.target.value)}
-                            />
-                            <div className="invSearchIcon">
-                                <SearchIcon />
-                            </div>
-                        </div>
-                        <Button variant="primary" onClick={openAddModal} icon={<PlusIcon />}>
-                            Add Inventory
-                        </Button>
-                    </div>
+                    <motion.div
+                        className="invSummaryCard"
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: 0.3 }}
+                    >
+                        <span className="invSummaryLabel">Inventory Value</span>
+                        <span className="invSummaryValue" style={{ color: '#10b981' }}>
+                            ₹{metrics.totalValue.toLocaleString()}
+                        </span>
+                    </motion.div>
                 </div>
 
-                {/* Table */}
-                <div className="invTableContainer">
-                    <table className="invTable">
-                        <thead>
-                            <tr>
-                                <th className="col-product" onClick={() => handleSort('name')}>Product Select</th>
-                                <th className="col-stock" onClick={() => handleSort('stock')}>Current Stock</th>
-                                <th className="col-alert" onClick={() => handleSort('alert_threshold')}>Stock Health</th>
-                                <th className="col-status">Product Status</th>
-                                <th className="col-actions">Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {sortedItems.length === 0 ? (
+                {/* 3. Main Container */}
+                <motion.div
+                    className="invMainContainer"
+                    initial={{ opacity: 0, scale: 0.98 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    transition={{ duration: 0.4 }}
+                >
+                    {/* Header Controls */}
+                    <div className="invHeaderSection">
+                        <div className="invTitleBlock">
+                            <div className="invPageTitle">Inventory Management</div>
+                            <div className="invPageDesc">Manage and track your stock levels</div>
+                        </div>
+
+                        <div className="invControlsRow">
+                            <div style={{ width: '300px' }}>
+                                <SearchBar
+                                    value={searchTerm}
+                                    onChange={setSearchTerm}
+                                    placeholder="Search inventory..."
+                                />
+                            </div>
+
+                            <button className="invAddButton" onClick={handleAddClick}>
+                                <PlusIcon /> Add Product
+                            </button>
+                        </div>
+                    </div>
+
+                    {/* Table */}
+                    <div className="invTableWrapper">
+                        <table className="invTable">
+                            <thead>
                                 <tr>
-                                    <td colSpan="5">
-                                        <div className="invEmptyState">
-                                            <div className="invEmptyIcon">📦</div>
-                                            <div className="invEmptyTitle">No inventory items found</div>
-                                            <div className="invEmptySub">
-                                                Add your first product to start tracking stock.
-                                            </div>
-                                        </div>
-                                    </td>
+                                    <th style={{ width: '35%' }}>Product Name</th>
+                                    <th style={{ width: '20%' }}>Stock Level</th>
+                                    <th style={{ width: '25%' }}>Health</th>
+                                    <th style={{ width: '10%' }}>Status</th>
+                                    <th style={{ width: '10%', textAlign: 'right' }}>Actions</th>
                                 </tr>
-                            ) : (
-                                sortedItems.map(item => (
-                                    <motion.tr
-                                        key={item.id}
-                                        className="invRow"
-                                        initial={{ opacity: 0 }}
-                                        animate={{ opacity: 1 }}
-                                        layout
-                                    >
-                                        <td>
-                                            <div className="invProductName">{item.name}</div>
-                                            <div className={`invProductTypeBadge ${item.type === 'DIRECT_SALE' ? 'badge-direct' : 'badge-raw'}`}>
-                                                {item.type === 'DIRECT_SALE' ? 'Direct Sale' : 'Raw Material'}
+                            </thead>
+                            <tbody>
+                                {filteredItems.length === 0 ? (
+                                    <tr>
+                                        <td colSpan="5">
+                                            <div className="invEmptyState">
+                                                <div className="invEmptyIcon">📦</div>
+                                                <h3>No inventory found</h3>
+                                                <p>Try adjusting your search or add a new item.</p>
                                             </div>
                                         </td>
-                                        <td>
-                                            <div className="invStockWrapper">
-                                                <span className="invStockValue">{item.stock}</span>
-                                                <span className="invStockUnit">{item.unit}s</span>
-                                            </div>
-                                        </td>
-                                        <td>
-                                            <div className="invAlertWrapper">
-                                                <div className="invProgressBarBG">
-                                                    <div
-                                                        className="invProgressBarFill"
-                                                        style={{
-                                                            width: `${Math.min((item.stock / (item.max_stock_history || 100)) * 100, 100)}%`,
-                                                            backgroundColor: getProgressColor(item)
-                                                        }}
-                                                        title={`Max recorded: ${item.max_stock_history || 'N/A'}`}
+                                    </tr>
+                                ) : (
+                                    filteredItems.map((item, index) => (
+                                        <motion.tr
+                                            key={item.id}
+                                            className="invTableRow"
+                                            onClick={() => handleRowClick(item)}
+                                            initial={{ opacity: 0, y: 10 }}
+                                            animate={{ opacity: 1, y: 0 }}
+                                            transition={{ delay: index * 0.05 }}
+                                        >
+                                            <td>
+                                                <div className="invProductName">{item.name}</div>
+                                                <div className="invProductTag">
+                                                    {item.type === 'DIRECT_SALE' ? 'DIRECT SALE' : 'MATERIAL'}
+                                                </div>
+                                            </td>
+                                            <td>
+                                                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                                    <span style={{ fontSize: '15px', fontWeight: 600 }}>{item.stock}</span>
+                                                    <span style={{ fontSize: '12px', color: '#9ca3af' }}>{item.unit}s</span>
+                                                </div>
+                                            </td>
+                                            <td>
+                                                <div className="invStockBarBG">
+                                                    <motion.div
+                                                        className="invStockBarFill"
+                                                        initial={{ width: 0 }}
+                                                        animate={{ width: `${Math.min((item.stock / (item.max_stock_history || 100)) * 100, 100)}%` }}
+                                                        transition={{ duration: 1, ease: "easeOut" }}
+                                                        style={{ backgroundColor: getStockColor(item) }}
                                                     />
                                                 </div>
-                                                <div className="invAlertText">
-                                                    {item.status} | Alert at {item.alert_threshold}
-                                                </div>
-                                            </div>
-                                        </td>
-                                        <td>
-                                            {getProductStatusBadge(item)}
-                                        </td>
-                                        <td>
-                                            <div className="invActionGroup">
-                                                {/* Quick Adjust */}
-                                                <div className="invQuickAdjust">
+                                                {item.stock <= item.alert_threshold && (
+                                                    <div style={{ fontSize: '11px', color: '#f59e0b', marginTop: '4px', fontWeight: 500 }}>
+                                                        Low Stock Alert
+                                                    </div>
+                                                )}
+                                            </td>
+                                            <td>
+                                                <span className={`invBadge ${item.product_status === 'inactive' ? 'inactive' : 'active'}`}>
+                                                    {item.product_status === 'inactive' ? 'Inactive' : 'Active'}
+                                                </span>
+                                            </td>
+                                            <td>
+                                                <div className="invActionGroup" style={{ justifyContent: 'flex-end', display: 'flex', gap: '4px' }}>
                                                     <button
-                                                        className="invQuickBtn"
-                                                        onClick={() => handleQuickAdjust(item, -1)}
-                                                        disabled={item.is_locked}
-                                                        title={item.is_locked ? 'Product is inactive. Reactivate from Management.' : 'Decrease stock'}
+                                                        className="invActionBtn"
+                                                        onClick={(e) => handleQuickStock(e, item, -1)}
+                                                        title="Quick Reduce -1"
                                                     >
                                                         -
                                                     </button>
                                                     <button
-                                                        className="invQuickBtn"
-                                                        onClick={() => handleQuickAdjust(item, 1)}
-                                                        disabled={item.is_locked}
-                                                        title={item.is_locked ? 'Product is inactive. Reactivate from Management.' : 'Increase stock'}
+                                                        className="invActionBtn"
+                                                        onClick={(e) => handleQuickStock(e, item, 1)}
+                                                        title="Quick Add +1"
                                                     >
                                                         +
                                                     </button>
+                                                    <button
+                                                        className="invActionBtn"
+                                                        onClick={(e) => handleDelete(e, item.id)}
+                                                        title="Delete"
+                                                    >
+                                                        <TrashIcon />
+                                                    </button>
                                                 </div>
+                                            </td>
+                                        </motion.tr>
+                                    ))
+                                )}
+                            </tbody>
+                        </table>
+                    </div>
 
-                                                <button
-                                                    className="invIconBtn"
-                                                    title={item.is_locked ? 'Product is inactive. Reactivate from Management.' : 'Adjust Stock'}
-                                                    onClick={() => openAdjustModal(item)}
-                                                    disabled={item.is_locked}
-                                                >
-                                                    <AdjustIcon />
-                                                </button>
-                                                <button
-                                                    className="invIconBtn"
-                                                    title={item.is_locked ? 'Product is inactive. Reactivate from Management.' : 'Edit'}
-                                                    onClick={() => openEditModal(item)}
-                                                    disabled={item.is_locked}
-                                                >
-                                                    <EditIcon />
-                                                </button>
-                                                <button
-                                                    className="invIconBtn delete"
-                                                    title={item.is_locked ? 'Inactive inventory is locked.' : 'Delete'}
-                                                    onClick={() => handleDelete(item.id)}
-                                                    disabled={item.is_locked}
-                                                >
-                                                    <TrashIcon />
-                                                </button>
-                                                {item.is_locked && (
-                                                    <span className="invLockedTag" title="Product is inactive. Reactivate from Management.">
-                                                        <LockIcon /> Locked
-                                                    </span>
-                                                )}
-                                            </div>
-                                        </td>
-                                    </motion.tr>
-                                ))
-                            )}
-                        </tbody>
-                    </table>
-                </div>
-                {/* Footer */}
-                <div className="invTableFooter">
-                    <div>Showing {sortedItems.length} of {items.length} products</div>
-                    <div>{filterStatus !== 'ALL' ? `Filtered by ${filterStatus.replace('_', ' ').toLowerCase()}` : 'All items'}</div>
-                </div>
-            </Card>
+                    {/* Footer */}
+                    <div className="invFooter">
+                        <span>Showing {filteredItems.length} products</span>
+                        <span>All systems normal</span>
+                    </div>
+                </motion.div>
+            </div>
 
-            {/* --- Modals (Unchanged logic, just ensure existing ones are present) --- */}
+            {/* Modal - Keeping simple structure for now, matching style would be ideal but functionally robust */}
             <AnimatePresence>
                 {showAddModal && (
                     <div className="invModalOverlay">
                         <motion.div
                             className="invModal"
-                            initial={{ scale: 0.95, opacity: 0 }}
+                            initial={{ scale: 0.9, opacity: 0 }}
                             animate={{ scale: 1, opacity: 1 }}
-                            exit={{ scale: 0.95, opacity: 0 }}
+                            exit={{ scale: 0.9, opacity: 0 }}
                         >
                             <div className="invModalHeader">
-                                <div className="invModalTitle">{selectedItem ? 'Edit Inventory' : 'Add New Inventory'}</div>
-                                <button className="invIconBtn" onClick={() => setShowAddModal(false)}>✕</button>
+                                <span className="invModalTitle">{selectedItem ? 'Edit Inventory' : 'Add Inventory'}</span>
+                                <button className="invActionBtn" onClick={() => setShowAddModal(false)}>✕</button>
                             </div>
-                            <form onSubmit={handleSaveInventory}>
-                                <div className="invModalBody">
+                            <form onSubmit={handleSave} className="invModalBody">
+                                {/* Basic Form Fields */}
+                                <div className="invFormGroup">
+                                    <GlobalSelect
+                                        label="Type"
+                                        value={formData.type}
+                                        onChange={(val) => setFormData({ ...formData, type: val })}
+                                        options={[
+                                            { label: 'Direct Sale Product', value: 'DIRECT_SALE' },
+                                            { label: 'Raw Material', value: 'RAW_MATERIAL' }
+                                        ]}
+                                    />
+                                </div>
+
+                                {formData.type === 'DIRECT_SALE' ? (
                                     <div className="invFormGroup">
-                                        <label className="invLabel">Inventory Type</label>
-                                        <div className="invRadioGroup">
-                                            <label className="invRadioLabel">
-                                                <input
-                                                    type="radio"
-                                                    checked={formData.type === 'DIRECT_SALE'}
-                                                    onChange={() => handleFormChange('type', 'DIRECT_SALE')}
-                                                /> Direct Sale (Product)
-                                            </label>
-                                            <label className="invRadioLabel">
-                                                <input
-                                                    type="radio"
-                                                    checked={formData.type === 'RAW_MATERIAL'}
-                                                    onChange={() => handleFormChange('type', 'RAW_MATERIAL')}
-                                                /> Raw Material
-                                            </label>
-                                        </div>
+                                        <GlobalSelect
+                                            label="Select Product"
+                                            value={formData.product_id}
+                                            onChange={(val) => setFormData({ ...formData, product_id: val })}
+                                            options={products.filter(p => p.active).map(p => ({ label: p.name, value: p.product_id }))}
+                                            placeholder="-- Select --"
+                                        />
                                     </div>
-
-                                    {formData.type === 'DIRECT_SALE' ? (
-                                        <div className="invFormGroup">
-                                            <label className="invLabel">Select Product</label>
-                                            <GlobalSelect
-                                                options={activeProducts.map(p => ({ label: p.name, value: p.product_id }))}
-                                                value={formData.product_id}
-                                                onChange={(val) => handleFormChange('product_id', val)}
-                                                placeholder="Select Product..."
-                                                className="invDropdown"
-                                            />
-                                        </div>
-                                    ) : (
-                                        <>
-                                            <div className="invFormGroup">
-                                                <label className="invLabel">Item Name</label>
-                                                <input
-                                                    className="invInput"
-                                                    value={formData.name}
-                                                    onChange={(e) => handleFormChange('name', e.target.value)}
-                                                    required
-                                                />
-                                            </div>
-                                            <div className="invFormGroup">
-                                                <label className="invLabel">Unit Price (₹)</label>
-                                                <input
-                                                    type="number"
-                                                    className="invInput"
-                                                    value={formData.unit_price}
-                                                    onChange={(e) => handleFormChange('unit_price', parseFloat(e.target.value))}
-                                                    min="0"
-                                                    step="0.01"
-                                                />
-                                            </div>
-                                        </>
-                                    )}
-
-                                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
-                                        <div className="invFormGroup">
-                                            <label className="invLabel">Initial Stock</label>
-                                            <input
-                                                type="number"
-                                                className="invInput"
-                                                value={formData.stock}
-                                                onChange={(e) => handleFormChange('stock', parseFloat(e.target.value))}
-                                                required
-                                            />
-                                        </div>
-                                        <div className="invFormGroup">
-                                            <label className="invLabel">Unit</label>
-                                            <GlobalSelect
-                                                options={[
-                                                    { label: 'Piece', value: 'piece' },
-                                                    { label: 'Packet', value: 'packet' },
-                                                    { label: 'Kg', value: 'kg' },
-                                                    { label: 'Litre', value: 'litre' },
-                                                    { label: 'Box', value: 'box' }
-                                                ]}
-                                                value={formData.unit}
-                                                onChange={(val) => handleFormChange('unit', val)}
-                                                placeholder="Select Unit"
-                                                className="invDropdown"
-                                            />
-                                        </div>
-                                    </div>
-
+                                ) : (
                                     <div className="invFormGroup">
-                                        <label className="invLabel">Low Stock Alert Level</label>
-                                        <div className="invSliderContainer">
-                                            <input
-                                                type="range"
-                                                min="0"
-                                                max="100"
-                                                className="invSlider"
-                                                value={formData.alert_threshold}
-                                                onChange={(e) => handleFormChange('alert_threshold', parseFloat(e.target.value))}
-                                            />
-                                            <div className="invSliderValue">{formData.alert_threshold}</div>
-                                        </div>
+                                        <label className="invLabel">Item Name</label>
+                                        <input
+                                            className="invInput"
+                                            value={formData.name}
+                                            onChange={e => setFormData({ ...formData, name: e.target.value })}
+                                            required
+                                        />
+                                    </div>
+                                )}
+
+                                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+                                    <div className="invFormGroup">
+                                        <label className="invLabel">Current Stock</label>
+                                        <input
+                                            type="number"
+                                            className="invInput"
+                                            value={formData.stock}
+                                            onChange={e => setFormData({ ...formData, stock: parseFloat(e.target.value) })}
+                                            required
+                                        />
+                                    </div>
+                                    <div className="invFormGroup">
+                                        <GlobalSelect
+                                            label="Unit"
+                                            value={formData.unit}
+                                            onChange={(val) => setFormData({ ...formData, unit: val })}
+                                            direction="top"
+                                            options={[
+                                                { label: 'Piece', value: 'piece' },
+                                                { label: 'Kg', value: 'kg' },
+                                                { label: 'Litre', value: 'litre' },
+                                                { label: 'Packet', value: 'packet' },
+                                                { label: 'Box', value: 'box' }
+                                            ]}
+                                        />
                                     </div>
                                 </div>
-                                <div className="invModalFooter">
+
+                                <div className="invFormGroup">
+                                    <label className="invLabel" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                        Low Stock Alert
+                                        <span style={{
+                                            background: isDark ? 'rgba(245, 158, 11, 0.1)' : '#fef3c7',
+                                            color: isDark ? '#fbbf24' : '#d97706',
+                                            padding: '2px 8px',
+                                            borderRadius: '12px',
+                                            fontSize: '12px',
+                                            fontWeight: 600
+                                        }}>
+                                            {formData.alert_threshold} units
+                                        </span>
+                                    </label>
+                                    <input
+                                        type="range"
+                                        min="1"
+                                        max="100"
+                                        value={formData.alert_threshold}
+                                        onChange={e => setFormData({ ...formData, alert_threshold: parseInt(e.target.value) })}
+                                        style={{
+                                            width: '100%',
+                                            height: '6px',
+                                            background: isDark ? '#334155' : '#e2e8f0',
+                                            borderRadius: '3px',
+                                            accentColor: '#f59e0b',
+                                            cursor: 'pointer',
+                                            marginTop: '8px',
+                                            appearance: 'auto'
+                                        }}
+                                    />
+                                    <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '4px', fontSize: '10px', color: isDark ? '#64748b' : '#94a3b8' }}>
+                                        <span>1</span>
+                                        <span>50</span>
+                                        <span>100</span>
+                                    </div>
+                                </div>
+
+                                <div className="invModalFooter" style={{ marginTop: '24px' }}>
                                     <button type="button" className="invBtn" onClick={() => setShowAddModal(false)}>Cancel</button>
                                     <button type="submit" className="invPrimaryBtn">Save Changes</button>
                                 </div>
@@ -716,65 +515,7 @@ const Inventory = () => {
                     </div>
                 )}
             </AnimatePresence>
-
-            {/* Adjust Modal */}
-            <AnimatePresence>
-                {showAdjustModal && (
-                    <div className="invModalOverlay">
-                        <motion.div
-                            className="invModal"
-                            initial={{ scale: 0.95, opacity: 0 }}
-                            animate={{ scale: 1, opacity: 1 }}
-                            exit={{ scale: 0.95, opacity: 0 }}
-                        >
-                            <div className="invModalHeader">
-                                <div className="invModalTitle">Adjust Stock: {selectedItem?.name}</div>
-                                <button className="invIconBtn" onClick={() => setShowAdjustModal(false)}>✕</button>
-                            </div>
-                            <form onSubmit={handleAdjustStock}>
-                                <div className="invModalBody">
-                                    <div className="invFormGroup">
-                                        <label className="invLabel">Action</label>
-                                        <div className="invRadioGroup">
-                                            <label className="invRadioLabel">
-                                                <input
-                                                    type="radio"
-                                                    checked={adjustData.type === 'add'}
-                                                    onChange={() => setAdjustData(prev => ({ ...prev, type: 'add' }))}
-                                                /> Add Stock
-                                            </label>
-                                            <label className="invRadioLabel">
-                                                <input
-                                                    type="radio"
-                                                    checked={adjustData.type === 'reduce'}
-                                                    onChange={() => setAdjustData(prev => ({ ...prev, type: 'reduce' }))}
-                                                /> Reduce Stock
-                                            </label>
-                                        </div>
-                                    </div>
-                                    <div className="invFormGroup">
-                                        <label className="invLabel">Quantity</label>
-                                        <input
-                                            type="number"
-                                            className="invInput"
-                                            value={adjustData.amount}
-                                            onChange={(e) => setAdjustData(prev => ({ ...prev, amount: e.target.value }))}
-                                            min="0"
-                                            step="0.01"
-                                            required
-                                        />
-                                    </div>
-                                </div>
-                                <div className="invModalFooter">
-                                    <button type="button" className="invBtn" onClick={() => setShowAdjustModal(false)}>Cancel</button>
-                                    <button type="submit" className="invPrimaryBtn">Update Stock</button>
-                                </div>
-                            </form>
-                        </motion.div>
-                    </div>
-                )}
-            </AnimatePresence>
-        </PageContainer>
+        </div>
     );
 };
 

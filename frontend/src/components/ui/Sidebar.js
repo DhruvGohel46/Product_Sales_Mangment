@@ -1,20 +1,18 @@
 import React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { useTheme } from '../../context/ThemeContext';
 import { useSettings } from '../../context/SettingsContext';
-import Button from './Button';
-
-
 
 const Sidebar = ({
-    activeTab,
-    onTabChange,
     isCollapsed,
     toggleCollapse,
     navItems = []
 }) => {
     const { currentTheme, isDark } = useTheme();
     const { settings } = useSettings();
+    const location = useLocation();
+    const navigate = useNavigate();
     const restaurantName = settings?.shop_name || 'ReBill POS';
 
     // Generate acronym
@@ -128,21 +126,27 @@ const Sidebar = ({
                 overflowY: 'auto',
             }}>
                 {navItems.map((item) => {
-                    const isActive = activeTab === item.id;
+                    // Route-based active detection
+                    const isActive = location.pathname === item.path ||
+                        (item.path !== '/' && location.pathname.startsWith(item.path));
 
                     return (
-                        <motion.button
+                        <motion.div
                             key={item.id}
-                            onClick={() => onTabChange(item.id)}
+                            onClick={() => navigate(item.path)}
                             title={isCollapsed ? item.label : ''}
-                            // 4. Hover State & 5. Active State
                             initial={false}
                             animate={{
-                                backgroundColor: isActive ? '#F97316' : 'transparent'
+                                backgroundColor: isActive ? '#F97316' : 'transparent',
+                                color: isActive ? '#FFFFFF' : (isDark ? '#A1A1AA' : '#52525B'),
+                                boxShadow: isActive
+                                    ? '0 4px 12px rgba(249,115,22,0.25), inset 0 1px 0 rgba(255,255,255,0.2)'
+                                    : 'none',
                             }}
                             whileHover={!isActive ? {
                                 x: 3,
                                 backgroundColor: isDark ? 'rgba(255,255,255,0.04)' : 'rgba(0,0,0,0.05)',
+                                color: isDark ? '#FFFFFF' : '#18181B', // White on dark, Black on light
                                 transition: { duration: 0.16 }
                             } : {
                                 x: 3,
@@ -160,32 +164,9 @@ const Sidebar = ({
                                 border: 'none',
                                 cursor: 'pointer',
                                 outline: 'none',
-                                color: isActive ? '#FFFFFF' : (isDark ? '#A1A1AA' : '#52525B'), // Muted text for inactive
-                                boxShadow: isActive
-                                    ? '0 4px 12px rgba(249,115,22,0.25), inset 0 1px 0 rgba(255,255,255,0.2)'
-                                    : 'none',
-                                transition: 'color 0.16s ease, box-shadow 0.16s ease'
+                                transition: 'all 0.2s ease' // Smooth transition for non-framer props
                             }}
                         >
-                            {/* 6. Active Item Signature Indicator (Left Accent) */}
-                            {isActive && (
-                                <motion.div
-                                    layoutId="activeIndicator"
-                                    initial={{ height: 0, opacity: 0 }}
-                                    animate={{ height: '60%', opacity: 1 }}
-                                    transition={{ duration: 0.2 }}
-                                    style={{
-                                        position: 'absolute',
-                                        left: '4px',
-                                        width: '3px',
-                                        backgroundColor: '#FDBA74', // Lighter orange
-                                        borderRadius: '4px',
-                                        // 14. Tiny imperfection: softer radius, vertically centered
-                                        top: '20%'
-                                    }}
-                                />
-                            )}
-
                             {/* Icon Wrapper */}
                             <motion.span
                                 style={{
@@ -193,16 +174,13 @@ const Sidebar = ({
                                     alignItems: 'center',
                                     justifyContent: 'center',
                                     fontSize: '20px',
-                                    // If collapsed, no margin needed, creating centered square look combined with padding
                                     marginRight: isCollapsed ? 0 : '12px',
-                                    color: isActive ? '#FFFFFF' : 'currentColor'
+                                    color: 'currentColor' // Inherits from parent
                                 }}
-                                // 7. Icon Humanization & 8. Breathing
                                 animate={isActive ? {
-                                    scale: [1, 1.05, 1], // Breathing
+                                    scale: [1, 1.05, 1],
                                     transition: { duration: 4, repeat: Infinity, ease: "easeInOut" }
                                 } : { scale: 1 }}
-                                whileHover={{ scale: 1.08 }} // Icon scale on hover
                             >
                                 {item.icon}
                             </motion.span>
@@ -225,7 +203,7 @@ const Sidebar = ({
                                     </motion.span>
                                 )}
                             </AnimatePresence>
-                        </motion.button>
+                        </motion.div>
                     );
                 })}
             </div>
@@ -246,7 +224,7 @@ const Sidebar = ({
                     style={{
                         background: 'transparent',
                         border: 'none',
-                        borderRadius: '12px', // Softer square
+                        borderRadius: '12px',
                         width: '32px',
                         height: '32px',
                         display: 'flex',

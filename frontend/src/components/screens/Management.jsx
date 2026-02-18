@@ -713,74 +713,72 @@ const ProductManagement = () => {
 
 const Management = () => {
   const [activeTab, setActiveTab] = useState('products');
+  const { currentTheme } = useSettings();
 
   return (
     <PageContainer>
       <div className="pmPage">
-        {/* Main Title & Tabs */}
-        <Card className="pmHeader" padding="16px">
-          <div className="pmHeaderLeft">
-            <div className="pmTitleRow">
-              <div className="pmTitle">Store Management</div>
-            </div>
-          </div>
+        {/* Header - Simple Tab Navigation */}
+        <div style={{
+          display: 'flex',
+          marginBottom: '20px',
+          borderBottom: '1px solid var(--border-primary)',
+          gap: '24px'
+        }}>
+          <button
+            onClick={() => setActiveTab('products')}
+            style={{
+              padding: '12px 4px',
+              background: 'none',
+              border: 'none',
+              borderBottom: activeTab === 'products' ? '2px solid #F97316' : '2px solid transparent',
+              color: activeTab === 'products' ? '#F97316' : 'var(--text-secondary)',
+              fontWeight: activeTab === 'products' ? 600 : 500,
+              fontSize: '16px',
+              cursor: 'pointer',
+              transition: 'all 0.2s'
+            }}
+          >
+            Products
+          </button>
+          <button
+            onClick={() => setActiveTab('categories')}
+            style={{
+              padding: '12px 4px',
+              background: 'none',
+              border: 'none',
+              borderBottom: activeTab === 'categories' ? '2px solid #F97316' : '2px solid transparent',
+              color: activeTab === 'categories' ? '#F97316' : 'var(--text-secondary)',
+              fontWeight: activeTab === 'categories' ? 600 : 500,
+              fontSize: '16px',
+              cursor: 'pointer',
+              transition: 'all 0.2s'
+            }}
+          >
+            Categories
+          </button>
+        </div>
 
-          <div className="pmHeaderActions" style={{ background: 'var(--bg-secondary)', padding: '4px', borderRadius: '12px', border: '1px solid var(--border-primary)', display: 'flex', gap: '4px' }}>
-            <button
-              className={`pmControlButton ${activeTab === 'products' ? 'pmActiveTab' : ''}`}
-              onClick={() => setActiveTab('products')}
-              style={{
-                border: 'none',
-                background: activeTab === 'products' ? 'var(--accent)' : 'transparent',
-                color: activeTab === 'products' ? 'white' : 'var(--text-secondary)',
-                boxShadow: activeTab === 'products' ? '0 4px 12px rgba(0,0,0,0.1)' : 'none',
-                fontWeight: 600,
-                borderRadius: '8px',
-                padding: '8px 16px',
-                cursor: 'pointer',
-                transition: 'all 0.2s'
-              }}
-            >
-              Products
-            </button>
-            <button
-              className={`pmControlButton ${activeTab === 'categories' ? 'pmActiveTab' : ''}`}
-              onClick={() => setActiveTab('categories')}
-              style={{
-                border: 'none',
-                background: activeTab === 'categories' ? 'var(--accent)' : 'transparent',
-                color: activeTab === 'categories' ? 'white' : 'var(--text-secondary)',
-                boxShadow: activeTab === 'categories' ? '0 4px 12px rgba(0,0,0,0.1)' : 'none',
-                fontWeight: 600,
-                borderRadius: '8px',
-                padding: '8px 16px',
-                cursor: 'pointer',
-                transition: 'all 0.2s'
-              }}
-            >
-              Categories
-            </button>
-          </div>
-        </Card>
-
-        {/* Tab Content */}
+        {/* Content */}
         <AnimatePresence mode="wait">
-          {activeTab === 'products' ? (
+          {activeTab === 'products' && (
             <motion.div
               key="products"
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -10 }}
+              initial={{ opacity: 0, x: -10 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: 10 }}
               transition={{ duration: 0.2 }}
             >
               <ProductManagement />
             </motion.div>
-          ) : (
+          )}
+
+          {activeTab === 'categories' && (
             <motion.div
               key="categories"
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -10 }}
+              initial={{ opacity: 0, x: 10 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: -10 }}
               transition={{ duration: 0.2 }}
             >
               <CategoryManagement />

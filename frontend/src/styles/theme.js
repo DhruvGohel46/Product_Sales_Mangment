@@ -379,6 +379,10 @@ export const lightTheme = {
     },
     border: '#E3E6EA',
     focus: colors.primary[500],
+    skeleton: {
+      base: neutral[200],
+      highlight: neutral[100],
+    },
   },
   glass: glass.light,
   typography,
@@ -411,6 +415,10 @@ export const darkTheme = {
     },
     border: '#2C2F36',
     focus: colors.primary[500],
+    skeleton: {
+      base: neutral[700],
+      highlight: neutral[600],
+    },
     sidebar: '#15161A',
     modal: '#1F1F1F',
   },

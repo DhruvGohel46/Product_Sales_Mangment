@@ -180,7 +180,9 @@ const Reports = () => {
   // Safeguard so we never read properties from null
   const safeSummary = summary || {};
 
+  /* State for Pie Chart Interaction */
   const [hoveredProduct, setHoveredProduct] = useState(null);
+  const [selectedProduct, setSelectedProduct] = useState(null); // New: Persistent selection
 
   // Load data when date changes
   useEffect(() => {
@@ -627,7 +629,7 @@ const Reports = () => {
           <div className="analytics-btn-group">
             {/* Clear Data Button */}
             <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
-              <Button onClick={() => setShowClearConfirm(true)} variant="secondary" size="lg"
+              <Button onClick={() => setShowClearConfirm(true)} variant="error" size="lg"
                 className="analytics-action-btn"
                 style={{
                   background: `linear-gradient(135deg, ${isDark ? (currentTheme.colors.error?.[600] || '#DC2626') : (currentTheme.colors.error?.[500] || '#EF4444')}, ${isDark ? (currentTheme.colors.error?.[700] || '#B91C1C') : (currentTheme.colors.error?.[600] || '#DC2626')})`,
@@ -643,7 +645,7 @@ const Reports = () => {
 
             {/* Refresh Data Button */}
             <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
-              <Button onClick={() => { loadSummary(); loadAvailableReports(); }} variant="secondary" size="lg"
+              <Button onClick={() => { loadSummary(); loadAvailableReports(); }} variant="primary" size="lg"
                 className="analytics-action-btn"
                 style={{
                   background: `linear-gradient(135deg, ${isDark ? currentTheme.colors.primary[600] : currentTheme.colors.primary[500]}, ${isDark ? currentTheme.colors.primary[700] : currentTheme.colors.primary[600]})`,
@@ -682,7 +684,12 @@ const Reports = () => {
               <p className="kpi-label" style={{ fontSize: '0.875rem', fontWeight: 600, color: currentTheme.colors.text.secondary, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
                 Net Sales
               </p>
-              <h3 className="kpi-value" style={{ fontSize: '2rem', fontWeight: 800, marginTop: '8px', background: isDark ? 'linear-gradient(to right, #fff, #94a3b8)' : 'linear-gradient(to right, #1e293b, #475569)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
+              <h3 className="kpi-value" style={{ 
+                fontSize: '2rem', 
+                fontWeight: 800, 
+                marginTop: '8px',
+                transition: 'color 0.3s ease'
+              }}>
                 {formatCurrency(safeSummary.total_sales || 0)}
               </h3>
             </div>
@@ -717,7 +724,12 @@ const Reports = () => {
               <p className="kpi-label" style={{ fontSize: '0.875rem', fontWeight: 600, color: currentTheme.colors.text.secondary, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
                 Total Orders
               </p>
-              <h3 className="kpi-value" style={{ fontSize: '2rem', fontWeight: 800, marginTop: '8px', background: isDark ? 'linear-gradient(to right, #fff, #94a3b8)' : 'linear-gradient(to right, #1e293b, #475569)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
+              <h3 className="kpi-value" style={{ 
+                fontSize: '2rem', 
+                fontWeight: 800, 
+                marginTop: '8px',
+                transition: 'color 0.3s ease'
+              }}>
                 {safeSummary.total_bills || 0}
               </h3>
             </div>
@@ -752,7 +764,12 @@ const Reports = () => {
               <p className="kpi-label" style={{ fontSize: '0.875rem', fontWeight: 600, color: currentTheme.colors.text.secondary, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
                 Avg. Order Value
               </p>
-              <h3 className="kpi-value" style={{ fontSize: '2rem', fontWeight: 800, marginTop: '8px', background: isDark ? 'linear-gradient(to right, #fff, #94a3b8)' : 'linear-gradient(to right, #1e293b, #475569)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
+              <h3 className="kpi-value" style={{ 
+                fontSize: '2rem', 
+                fontWeight: 800, 
+                marginTop: '8px',
+                transition: 'color 0.3s ease'
+              }}>
                 {formatCurrency(safeSummary.average_bill_value || 0)}
               </h3>
             </div>
@@ -818,13 +835,22 @@ const Reports = () => {
           {productSales.length > 0 ? (
             <div className="analytics-chart-grid">
               {/* Pie Chart */}
-              <div className="chart-card" style={{ height: 'auto', alignItems: 'center', justifyContent: 'center' }}>
-                <div style={{
-                  position: 'relative',
-                  width: '320px',
-                  height: '320px',
-                  marginBottom: currentTheme.spacing[4],
-                }}>
+              <div
+                className="chart-card"
+                style={{ height: 'auto', alignItems: 'center', justifyContent: 'center' }}
+              >
+                <div
+                  style={{
+                    position: 'relative',
+                    width: '320px',
+                    height: '320px',
+                    marginBottom: currentTheme.spacing[4],
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center'
+                  }}
+                  onMouseLeave={() => setHoveredProduct(null)}
+                >
                   <svg
                     width="320"
                     height="320"
@@ -834,127 +860,186 @@ const Reports = () => {
                       overflow: 'visible',
                     }}
                   >
-                    {productSales.map((product, index) => {
-                      const totalRevenue = productSales.reduce((sum, p) => sum + p.total_amount, 0);
-                      const percentage = (product.total_amount / totalRevenue) * 100;
-                      const previousPercentages = productSales.slice(0, index).reduce((sum, p) => sum + (p.total_amount / totalRevenue) * 100, 0);
+                    {/* Background Circle/Track */}
+                    <circle
+                      cx="160"
+                      cy="160"
+                      r="120"
+                      fill="none"
+                      stroke={isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.05)'}
+                      strokeWidth="35"
+                    />
 
-                      // Radius calculations
-                      const baseRadius = 120;
-                      const isHovered = hoveredProduct === index;
-                      const radius = isHovered ? 125 : 120; // Scale up on hover
-                      const strokeWidth = isHovered ? 45 : 35; // Thicker on hover
+                    {(() => {
+                      // Sort products by total_amount desc to make the chart look better
+                      const sortedProductSales = [...productSales].sort((a, b) => Number(b.total_amount) - Number(a.total_amount));
+                      const totalRevenue = sortedProductSales.reduce((sum, p) => sum + Number(p.total_amount), 0);
 
-                      const circumference = 2 * Math.PI * baseRadius; // Use base radius for calculation consistency
-                      const strokeDasharray = `${(percentage / 100) * circumference} ${circumference}`;
-                      const rotation = (previousPercentages / 100) * 360;
+                      return sortedProductSales.map((product, index) => {
+                        const productAmount = Number(product.total_amount);
+                        const percentage = totalRevenue > 0 ? (productAmount / totalRevenue) * 100 : 0;
 
-                      // Add gap by reducing the stroke length slightly
-                      // We do this by adjusting the strokeDasharray's first value slightly down
-                      // But for gaps between segments in a single circle, simpler to use transparent borders or multiple paths.
-                      // With stroke-dasharray on circle, adding gap is tricky. 
-                      // Alternative: Use a slightly smaller dash and a larger gap.
-                      const gapSize = 4; // px
-                      const dashLength = ((percentage / 100) * circumference) - gapSize;
-                      const adjustedDashArray = `${Math.max(0, dashLength)} ${circumference - Math.max(0, dashLength)}`;
+                        // Calculate accumulation for start position based on SORTED list
+                        const previousAmount = sortedProductSales.slice(0, index).reduce((sum, p) => sum + Number(p.total_amount), 0);
+                        const previousPercentage = totalRevenue > 0 ? (previousAmount / totalRevenue) * 100 : 0;
 
-                      const color = COLORS[index % COLORS.length];
+                        const radius = 120;
+                        const circumference = 2 * Math.PI * radius;
 
-                      return (
-                        <motion.circle
-                          key={product.product_id}
-                          initial={{ strokeDasharray: `0 ${circumference}` }}
-                          animate={{ strokeDasharray: adjustedDashArray }}
-                          transition={{ duration: 1, delay: index * 0.1, ease: "easeOut" }}
-                          cx="160"
-                          cy="160"
-                          r={radius} // Use dynamic radius
-                          fill="none"
-                          stroke={color}
-                          strokeWidth={strokeWidth}
-                          strokeDashoffset={-gapSize / 2} // Offset to center the gap
-                          transform={`rotate(${rotation} 160 160)`}
-                          style={{
-                            cursor: 'pointer',
-                            filter: isHovered ? 'drop-shadow(0px 4px 8px rgba(0,0,0,0.3))' : 'none',
-                            opacity: hoveredProduct !== null && !isHovered ? 0.6 : 1, // Dim others
-                          }}
-                          whileHover={{ scale: 1.02 }}
-                          onMouseEnter={() => setHoveredProduct(index)}
-                          onMouseLeave={() => setHoveredProduct(null)}
-                        />
-                      );
-                    })}
+                        // Calculate Dash Array
+                        const gapSize = 4;
+                        const strokeLength = ((percentage / 100) * circumference) - gapSize;
+                        const validStrokeLength = Math.max(0, strokeLength);
+                        const dashArray = `${validStrokeLength} ${circumference - validStrokeLength}`;
+
+                        // Calculate Rotation
+                        const rotationAngle = (previousPercentage / 100) * 360;
+
+                        // Consistent colors (using original index might be better for consistency if list changes, but index is fine here)
+                        const segmentColor = COLORS[index % COLORS.length];
+
+                        const isHovered = hoveredProduct === index;
+                        const isSelected = selectedProduct === index;
+                        const isActive = isHovered || isSelected;
+
+                        return (
+                          <g
+                            key={product.product_id}
+                            transform={`rotate(${rotationAngle}, 160, 160)`}
+                          >
+                            {/* Visible Segment */}
+                            <motion.circle
+                              cx="160"
+                              cy="160"
+                              r={radius}
+                              fill="none"
+                              stroke={segmentColor}
+                              strokeWidth={35}
+                              strokeDashoffset={-2}
+                              strokeLinecap="round"
+                              initial={{ opacity: 0, strokeDasharray: `0 ${circumference}` }}
+                              animate={{
+                                opacity: (hoveredProduct !== null || selectedProduct !== null) && !isActive ? 0.3 : 1,
+                                strokeDasharray: dashArray,
+                                scale: isActive ? 1.05 : 1
+                              }}
+                              transition={{
+                                duration: 0.8,
+                                ease: "easeOut",
+                                scale: { duration: 0.2 }
+                              }}
+                              style={{
+                                // originX: "160px",
+                                // originY: "160px"
+                              }}
+                            />
+
+                            {/* Invisible Interaction Layer */}
+                            <circle
+                              cx="160"
+                              cy="160"
+                              r={radius}
+                              fill="none"
+                              stroke="transparent"
+                              strokeWidth={50}
+                              strokeDasharray={dashArray}
+                              strokeDashoffset={-2}
+                              strokeLinecap="round"
+                              style={{ cursor: 'pointer' }}
+                              onMouseEnter={() => setHoveredProduct(index)}
+                              onMouseLeave={() => setHoveredProduct(null)}
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setSelectedProduct(isSelected ? null : index);
+                              }}
+                            />
+                          </g>
+                        );
+                      });
+                    })()}
                   </svg>
 
-                  {/* Interactive Center text */}
+                  {/* Center Text Information */}
                   <div style={{
                     position: 'absolute',
                     top: '50%',
                     left: '50%',
                     transform: 'translate(-50%, -50%)',
                     textAlign: 'center',
-                    pointerEvents: 'none', // Allow clicks to pass through
+                    pointerEvents: 'none',
+                    zIndex: 10
                   }}>
                     <AnimatePresence mode="wait">
-                      {hoveredProduct !== null ? (
-                        <motion.div
-                          key="hovered"
-                          initial={{ opacity: 0, y: 5 }}
-                          animate={{ opacity: 1, y: 0 }}
-                          exit={{ opacity: 0, y: -5 }}
-                          transition={{ duration: 0.2 }}
-                        >
-                          <div style={{
-                            fontSize: '0.875rem',
-                            fontWeight: 600,
-                            color: isDark ? '#94a3b8' : '#64748b',
-                            marginBottom: '4px',
-                            maxWidth: '120px',
-                            whiteSpace: 'nowrap',
-                            overflow: 'hidden',
-                            textOverflow: 'ellipsis',
-                            margin: '0 auto',
-                          }}>
-                            {productSales[hoveredProduct].name}
-                          </div>
-                          <div style={{
-                            fontSize: '1.5rem',
-                            fontWeight: 700,
-                            color: isDark ? '#f1f5f9' : '#1e293b',
-                            lineHeight: 1,
-                          }}>
-                            {((productSales[hoveredProduct].total_amount / productSales.reduce((sum, p) => sum + p.total_amount, 0)) * 100).toFixed(1)}%
-                          </div>
-                          <div style={{
-                            fontSize: '0.75rem',
-                            color: isDark ? '#64748b' : '#94a3b8',
-                            marginTop: '2px',
-                          }}>
-                            {formatCurrency(productSales[hoveredProduct].total_amount)}
-                          </div>
-                        </motion.div>
+                      {(hoveredProduct !== null || selectedProduct !== null) ? (
+                        (() => {
+                          // Determine which product to show
+                          const sortedProductSales = [...productSales].sort((a, b) => Number(b.total_amount) - Number(a.total_amount));
+                          const targetIndex = hoveredProduct !== null ? hoveredProduct : selectedProduct;
+                          const targetProduct = sortedProductSales[targetIndex]; // Use sorted list
+
+                          if (!targetProduct) return null;
+
+                          const totalRevenue = sortedProductSales.reduce((sum, p) => sum + Number(p.total_amount), 0);
+                          const percent = totalRevenue > 0 ? ((Number(targetProduct.total_amount) / totalRevenue) * 100).toFixed(1) : 0;
+
+                          return (
+                            <motion.div
+                              key="active-info"
+                              initial={{ opacity: 0, y: 5 }}
+                              animate={{ opacity: 1, y: 0 }}
+                              exit={{ opacity: 0, y: -5 }}
+                              transition={{ duration: 0.2 }}
+                            >
+                              <div style={{
+                                fontSize: '0.875rem',
+                                fontWeight: 600,
+                                color: currentTheme.colors.text.secondary,
+                                textTransform: 'uppercase',
+                                marginBottom: '4px'
+                              }}>
+                                {targetProduct.name}
+                              </div>
+                              <div style={{
+                                fontSize: '2rem',
+                                fontWeight: 800,
+                                color: currentTheme.colors.text.primary,
+                                lineHeight: 1
+                              }}>
+                                {percent}%
+                              </div>
+                              <div style={{
+                                fontSize: '0.875rem',
+                                color: currentTheme.colors.text.tertiary,
+                                marginTop: '4px'
+                              }}>
+                                {formatCurrency(targetProduct.total_amount)}
+                              </div>
+                            </motion.div>
+                          )
+                        })()
                       ) : (
                         <motion.div
-                          key="default"
-                          initial={{ opacity: 0, y: 5 }}
-                          animate={{ opacity: 1, y: 0 }}
-                          exit={{ opacity: 0, y: -5 }}
-                          transition={{ duration: 0.2 }}
+                          key="default-info"
+                          initial={{ opacity: 0 }}
+                          animate={{ opacity: 1 }}
+                          exit={{ opacity: 0 }}
                         >
                           <div style={{
-                            fontSize: '1.5rem',
-                            fontWeight: 700,
-                            color: isDark ? '#f1f5f9' : '#1e293b',
-                            marginBottom: currentTheme.spacing[1],
+                            fontSize: '2.5rem',
+                            fontWeight: 800,
+                            color: currentTheme.colors.text.primary,
+                            lineHeight: 1,
+                            marginBottom: '4px'
                           }}>
                             {productSales.length}
                           </div>
                           <div style={{
                             fontSize: '0.875rem',
-                            color: isDark ? '#94a3b8' : '#64748b',
+                            fontWeight: 600,
+                            color: currentTheme.colors.text.secondary,
+                            textTransform: 'uppercase'
                           }}>
-                            Products
+                            Categories
                           </div>
                         </motion.div>
                       )}
@@ -962,73 +1047,76 @@ const Reports = () => {
                   </div>
                 </div>
 
-                {/* Legend */}
+                {/* Legend / Key */}
                 <div style={{
                   display: 'flex',
                   flexWrap: 'wrap',
-                  gap: currentTheme.spacing[3], // Increased gap
+                  gap: currentTheme.spacing[2],
                   justifyContent: 'center',
-                  padding: '4px', // Space for focus ring/shadow
+                  marginTop: currentTheme.spacing[2],
+                  padding: `0 ${currentTheme.spacing[4]}`
                 }}>
-                  {productSales.map((product, index) => {
-                    const totalRevenue = productSales.reduce((sum, p) => sum + p.total_amount, 0);
-                    const percentage = ((product.total_amount / totalRevenue) * 100).toFixed(1);
-                    const color = COLORS[index % COLORS.length]; // Use constant colors
-                    const isHovered = hoveredProduct === index;
+                  {(() => {
+                    const sortedProductSales = [...productSales].sort((a, b) => Number(b.total_amount) - Number(a.total_amount));
+                    const totalRevenue = sortedProductSales.reduce((sum, p) => sum + Number(p.total_amount), 0);
 
-                    return (
-                      <div
-                        key={product.product_id}
-                        style={{
-                          display: 'flex',
-                          alignItems: 'center',
-                          gap: currentTheme.spacing[1.5],
-                          cursor: 'pointer',
-                          opacity: hoveredProduct !== null && !isHovered ? 0.5 : 1,
-                          transform: isHovered ? 'scale(1.05)' : 'scale(1)',
-                          transition: 'all 0.2s ease',
-                          padding: '4px 8px',
-                          borderRadius: '6px',
-                          background: isHovered ? (isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.05)') : 'transparent',
-                        }}
-                        onMouseEnter={() => setHoveredProduct(index)}
-                        onMouseLeave={() => setHoveredProduct(null)}
-                      >
-                        <div style={{
-                          width: '10px',
-                          height: '10px',
-                          borderRadius: '50%',
-                          background: color,
-                          flexShrink: 0,
-                          boxShadow: isHovered ? `0 0 8px ${color}` : 'none',
-                          transition: 'box-shadow 0.2s ease',
-                        }} />
-                        <div style={{
-                          fontSize: '0.75rem',
-                          fontWeight: 500,
-                          color: isDark ? '#94a3b8' : '#64748b',
-                          whiteSpace: 'nowrap',
-                          margin: ' 0 5px',
-                        }}>
-                          {product.name} -
+                    return sortedProductSales.map((product, index) => {
+                      const percentage = totalRevenue > 0 ? ((Number(product.total_amount) / totalRevenue) * 100).toFixed(1) : 0;
+                      const color = COLORS[index % COLORS.length];
+                      const isActive = hoveredProduct === index || selectedProduct === index;
+
+                      return (
+                        <div
+                          key={product.product_id}
+                          onClick={() => setSelectedProduct(selectedProduct === index ? null : index)}
+                          onMouseEnter={() => setHoveredProduct(index)}
+                          onMouseLeave={() => setHoveredProduct(null)}
+                          style={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            padding: '6px 10px',
+                            borderRadius: '8px',
+                            backgroundColor: isActive ? (isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.05)') : 'transparent',
+                            cursor: 'pointer',
+                            transition: 'all 0.2s',
+                            opacity: (hoveredProduct !== null || selectedProduct !== null) && !isActive ? 0.5 : 1,
+                            transform: isActive ? 'scale(1.05)' : 'scale(1)'
+                          }}
+                        >
+                          <div style={{
+                            width: '10px',
+                            height: '10px',
+                            borderRadius: '50%',
+                            backgroundColor: color,
+                            marginRight: '8px',
+                            boxShadow: isActive ? `0 0 8px ${color}` : 'none'
+                          }} />
+                          <span style={{
+                            fontSize: '0.8rem',
+                            color: currentTheme.colors.text.secondary,
+                            fontWeight: 500,
+                            marginRight: '4px'
+                          }}>
+                            {product.name}
+                          </span>
+                          <span style={{
+                            fontSize: '0.8rem',
+                            color: currentTheme.colors.text.primary,
+                            fontWeight: 700
+                          }}>
+                            {percentage}%
+                          </span>
                         </div>
-                        <div style={{
-                          fontSize: '0.75rem',
-                          fontWeight: 600,
-                          color: isDark ? '#f1f5f9' : '#1e293b',
-                        }}>
-                          {percentage}%
-                        </div>
-                      </div>
-                    );
-                  })}
+                      );
+                    });
+                  })()}
                 </div>
               </div>
 
 
               {/* Product Cards Grid */}
               <AnimatedList
-                items={productSales}
+                items={[...productSales].sort((a, b) => Number(b.total_amount) - Number(a.total_amount))} // Pass sorted list
                 onItemSelect={(product, index) => {
                   console.log('Selected product:', product, index);
                 }}
@@ -1038,33 +1126,37 @@ const Reports = () => {
                 className="product-list"
                 itemClassName="product-item"
               >
-                {(product, index) => (
-                  <div className="ranking-item">
-                    <div className="ranking-info" style={{ flex: 1, minWidth: 0 }}>
-                      <div className="ranking-badge" style={{ background: COLORS[index % COLORS.length], border: 'none', color: '#ffffff' }}>
-                        {index + 1}
+                {(product, index) => {
+                  const totalRevenue = productSales.reduce((sum, p) => sum + Number(p.total_amount), 0);
+                  const percentage = totalRevenue > 0 ? ((Number(product.total_amount) / totalRevenue) * 100).toFixed(1) : 0;
+                  return (
+                    <div className="ranking-item">
+                      <div className="ranking-info" style={{ flex: 1, minWidth: 0 }}>
+                        <div className="ranking-badge" style={{ background: COLORS[index % COLORS.length], border: 'none', color: '#ffffff' }}>
+                          {index + 1}
+                        </div>
+
+                        <div style={{ minWidth: 0 }}>
+                          <h3 className="ranking-name">
+                            {product.name}
+                          </h3>
+                          <div className="ranking-qty">
+                            {product.quantity} units
+                          </div>
+                        </div>
                       </div>
 
-                      <div style={{ minWidth: 0 }}>
-                        <h3 className="ranking-name">
-                          {product.name}
-                        </h3>
+                      <div className="ranking-meta">
+                        <div className="ranking-amount">
+                          {formatCurrency(product.total_amount)}
+                        </div>
                         <div className="ranking-qty">
-                          {product.quantity} units
+                          {percentage}%
                         </div>
                       </div>
                     </div>
-
-                    <div className="ranking-meta">
-                      <div className="ranking-amount">
-                        {formatCurrency(product.total_amount)}
-                      </div>
-                      <div className="ranking-qty">
-                        {((product.total_amount / productSales.reduce((sum, p) => sum + p.total_amount, 0)) * 100).toFixed(1)}%
-                      </div>
-                    </div>
-                  </div>
-                )}
+                  );
+                }}
               </AnimatedList>
             </div >
           ) : (

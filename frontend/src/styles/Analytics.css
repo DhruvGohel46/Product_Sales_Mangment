@@ -105,6 +105,9 @@
   margin: 0;
   margin-bottom: 8px;
   letter-spacing: -0.02em;
+  /* Allow gradient text override */
+  background-clip: text !important;
+  -webkit-background-clip: text !important;
 }
 
 .kpi-icon-wrapper {

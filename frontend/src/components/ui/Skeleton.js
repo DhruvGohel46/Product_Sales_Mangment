@@ -11,8 +11,8 @@ const Skeleton = ({
 }) => {
     const { currentTheme, isDark } = useTheme();
 
-    const baseColor = isDark ? '#334155' : '#e2e8f0'; // Slate 700 : Slate 200
-    const highlightColor = isDark ? '#475569' : '#f1f5f9'; // Slate 600 : Slate 100
+    const baseColor = currentTheme.colors.skeleton?.base || (isDark ? '#334155' : '#e2e8f0');
+    const highlightColor = currentTheme.colors.skeleton?.highlight || (isDark ? '#475569' : '#f1f5f9');
 
     return (
         <div

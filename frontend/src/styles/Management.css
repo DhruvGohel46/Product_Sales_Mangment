@@ -1077,3 +1077,47 @@
 [data-theme="dark"] .pmInput::placeholder {
   color: #64748b;
 }
+
+/* Light Mode Overrides */
+@media (prefers-color-scheme: light) {
+  .pm-title {
+    color: #111827;
+    /* Force dark text in light mode */
+  }
+}
+
+[data-theme='light'] .pm-card {
+  background: #FFFFFF;
+  border: 1px solid #E5E7EB;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+[data-theme='light'] .pm-card:hover {
+  background: #F9FAFB;
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+}
+
+[data-theme='light'] .pm-hub-title {
+  color: #111827;
+}
+
+/* Back Button in Nav */
+.pm-back-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  border-radius: 8px;
+  border: 1px solid var(--border-light);
+  background: var(--surface-primary);
+  color: var(--text-secondary);
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.pm-back-btn:hover {
+  background: var(--surface-hover);
+  color: var(--text-primary);
+}

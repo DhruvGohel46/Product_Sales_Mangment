@@ -2,6 +2,7 @@ from flask_sqlalchemy import SQLAlchemy
 from datetime import datetime
 from sqlalchemy.sql import func
 import json
+import uuid
 
 db = SQLAlchemy()
 
@@ -63,10 +64,73 @@ class Bill(db.Model):
     created_at = db.Column(db.DateTime, default=func.now())
     updated_at = db.Column(db.DateTime, default=func.now(), onupdate=func.now())
 
+
     __table_args__ = (
-        db.UniqueConstraint('bill_no', 'created_at', name='idx_daily_bill_unique'), # Note: This might need adjustment for ONLY date part. SQLA handling of functional index is complex, so we might skip the unique constraint enforcing via SQLA and rely on app logic or raw SQL index creation if needed. 
-        # Actually, Postgres supports functional indexes but SQLA `UniqueConstraint` on `func.date` is tricky.
-        # Let's rely on the migration script or manual index creation for the "daily bill no" constraint if strictly needed at DB level.
-        # For now, simplistic definition.
+        db.UniqueConstraint('bill_no', 'created_at', name='idx_daily_bill_unique'), 
     )
+
+# ==========================================
+# WORKER MANAGEMENT SYSTEM MODELS
+# Schema: worker
+# ==========================================
+
+class Worker(db.Model):
+    __tablename__ = 'workers'
+    __table_args__ = {'schema': 'worker'}
+
+    worker_id = db.Column(db.String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
+    name = db.Column(db.String(255), nullable=False)
+    phone = db.Column(db.String(15))
+    email = db.Column(db.String(255))
+    role = db.Column(db.String(100)) # e.g., 'Chef', 'Waiter', 'Manager'
+    salary = db.Column(db.Float, default=0.0)
+    join_date = db.Column(db.Date)
+    status = db.Column(db.String(20), default='active') # 'active', 'inactive'
+    photo = db.Column(db.Text) # Base64 string or URL
+    created_at = db.Column(db.DateTime, default=func.now())
+    updated_at = db.Column(db.DateTime, default=func.now(), onupdate=func.now())
+
+    # Relationships
+    advances = db.relationship('Advance', backref='worker', lazy=True)
+    salary_payments = db.relationship('SalaryPayment', backref='worker', lazy=True)
+    attendance_records = db.relationship('Attendance', backref='worker', lazy=True)
+
+class Advance(db.Model):
+    __tablename__ = 'advances'
+    __table_args__ = {'schema': 'worker'}
+
+    advance_id = db.Column(db.String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
+    worker_id = db.Column(db.String(36), db.ForeignKey('worker.workers.worker_id'), nullable=False)
+    amount = db.Column(db.Float, nullable=False)
+    reason = db.Column(db.Text)
+    date = db.Column(db.Date, default=func.current_date())
+    created_at = db.Column(db.DateTime, default=func.now())
+
+class SalaryPayment(db.Model):
+    __tablename__ = 'salary_payments'
+    __table_args__ = {'schema': 'worker'}
+
+    payment_id = db.Column(db.String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
+    worker_id = db.Column(db.String(36), db.ForeignKey('worker.workers.worker_id'), nullable=False)
+    month = db.Column(db.Integer, nullable=False)
+    year = db.Column(db.Integer, nullable=False)
+    base_salary = db.Column(db.Float, default=0.0)
+    advance_deduction = db.Column(db.Float, default=0.0)
+    final_salary = db.Column(db.Float, nullable=False)
+    paid = db.Column(db.Boolean, default=False)
+    paid_date = db.Column(db.Date)
+    created_at = db.Column(db.DateTime, default=func.now())
+
+class Attendance(db.Model):
+    __tablename__ = 'attendance'
+    __table_args__ = {'schema': 'worker'}
+
+    attendance_id = db.Column(db.String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
+    worker_id = db.Column(db.String(36), db.ForeignKey('worker.workers.worker_id'), nullable=False)
+    date = db.Column(db.Date, default=func.current_date())
+    status = db.Column(db.String(20), nullable=False) # 'Present', 'Absent', 'Half-day'
+    check_in = db.Column(db.Time, nullable=True)
+    check_out = db.Column(db.Time, nullable=True)
+    created_at = db.Column(db.DateTime, default=func.now())
+
 

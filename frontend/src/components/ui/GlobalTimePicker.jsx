@@ -296,7 +296,7 @@ const GlobalTimePicker = ({
                     document.body
                 )}
             </div>
-            <style jsx>{`
+            <style>{`
                 .time-column::-webkit-scrollbar {
                     display: none;
                 }

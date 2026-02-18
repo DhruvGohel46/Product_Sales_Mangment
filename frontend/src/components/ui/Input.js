@@ -47,6 +47,7 @@ const Input = React.forwardRef(({
     color: currentTheme.colors.text.primary,
     transition: 'all 0.2s ease',
     outline: 'none',
+    colorScheme: currentTheme.name === 'dark' ? 'dark' : 'light', // Force native picker theme
   };
 
   const sizeStyles = {

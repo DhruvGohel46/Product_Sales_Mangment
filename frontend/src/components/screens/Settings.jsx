@@ -6,7 +6,10 @@ import { useTheme } from '../../context/ThemeContext';
 import '../../styles/Settings.css';
 import Dropdown from '../ui/Dropdown';
 import GlobalTimePicker from '../ui/GlobalTimePicker';
+import GlobalDatePicker from '../ui/GlobalDatePicker';
 import Card from '../ui/Card'; // Import Shared Card Component
+import PageContainer from '../layout/PageContainer';
+import Button from '../ui/Button';
 
 const Settings = () => {
     const { showSuccess, showError } = useToast();
@@ -39,7 +42,10 @@ const Settings = () => {
         // App
         show_product_images: 'true',
         dark_mode: 'false',
-        sound_enabled: 'true'
+        sound_enabled: 'true',
+
+        // Workers
+        salary_day: '1'
     });
 
     // Sync form with global settings when they load
@@ -83,31 +89,37 @@ const Settings = () => {
         { id: 'shop', label: 'Shop Details' },
         { id: 'billing', label: 'Billing Configuration' },
         { id: 'printer', label: 'Printer Settings' },
-        { id: 'app', label: 'App Preferences' }
+        { id: 'app', label: 'App Preferences' },
+        { id: 'workers', label: 'Worker Configuration' }
     ];
 
     if (loading) {
-        return <div className="stShell"><div className="stPage">Loading settings...</div></div>;
+        return <PageContainer><Card>Loading settings...</Card></PageContainer>;
     }
 
     return (
-        <div className="stShell">
+        <PageContainer>
             <div className="stPage">
-                {/* Header using Card for consistency */}
-                <Card className="stHeader" padding="md" shadow="card">
-                    <div className="stTitle">System Settings</div>
-                </Card>
+                <div className="stStickyHeader">
+                    {/* Header */}
+                    <div className="stHeader">
+                        <div className="stTitle">System Settings</div>
+                    </div>
 
-                <div className="stTabs">
-                    {tabs.map(tab => (
-                        <button
-                            key={tab.id}
-                            className={`stTabButton ${activeTab === tab.id ? 'stTabActive' : ''}`}
-                            onClick={() => setActiveTab(tab.id)}
-                        >
-                            {tab.label}
-                        </button>
-                    ))}
+                    <div className="stTabs" style={{ display: 'flex', gap: '8px', overflowX: 'auto', paddingBottom: '4px' }}>
+                        {tabs.map(tab => (
+                            <Button
+                                key={tab.id}
+                                variant={activeTab === tab.id ? 'primary' : 'secondary'}
+                                onClick={() => setActiveTab(tab.id)}
+                                size="md"
+                                style={{ flexShrink: 0 }}
+                                className={`stTabButton ${activeTab === tab.id ? 'stTabActive' : ''}`}
+                            >
+                                {tab.label}
+                            </Button>
+                        ))}
+                    </div>
                 </div>
 
                 {/* Using Shared Card Component for Consistency */}
@@ -384,20 +396,64 @@ const Settings = () => {
                             </>
                         )}
 
+                        {activeTab === 'workers' && (
+                            <>
+                                <div className="stSectionTitle">Worker Management</div>
+
+                                <div className="stFormGroup">
+                                    <div className="stLabel">
+                                        <span className="stLabelTitle">Monthly Salary Date</span>
+                                        <span className="stLabelDesc">Day of the month to generate salary notifications (1-31)</span>
+                                    </div>
+                                    <div style={{ width: '100%' }}>
+                                        <GlobalDatePicker
+                                            value={(() => {
+                                                // Convert day number (1-31) to a valid date string for the picker
+                                                // We use current month/year to show a valid calendar context
+                                                const day = parseInt(formSettings.salary_day) || 1;
+                                                const now = new Date();
+                                                // Construct date string manually in YYYY-MM-DD format based on local time
+                                                // to avoid timezone shifts that occur with toISOString()
+                                                const year = now.getFullYear();
+                                                const month = String(now.getMonth() + 1).padStart(2, '0');
+                                                const dayStr = String(day).padStart(2, '0');
+                                                return `${year}-${month}-${dayStr}`;
+                                            })()}
+                                            onChange={(dateStr) => {
+                                                // Extract just the day number from the selected date
+                                                if (dateStr) {
+                                                    // dateStr is YYYY-MM-DD from the picker
+                                                    const parts = dateStr.split('-');
+                                                    if (parts.length === 3) {
+                                                        const day = parseInt(parts[2]);
+                                                        handleChange('salary_day', day.toString());
+                                                    }
+                                                }
+                                            }}
+                                            placeholder="Select Salary Day"
+                                        />
+                                        <div style={{ marginTop: '8px', fontSize: '0.85rem', color: isDark ? '#94a3b8' : '#64748b' }}>
+                                            Selected: <strong style={{ color: isDark ? '#fff' : '#0f172a' }}>Day {formSettings.salary_day || 1}</strong> of every month
+                                        </div>
+                                    </div>
+                                </div>
+                            </>
+                        )}
+
                         <div className="stActions">
-                            <button className="stButton" onClick={handleDiscard}>Discard Changes</button>
-                            <button
-                                className="stButton stButtonPrimary"
+                            <Button variant="secondary" onClick={handleDiscard}>Discard Changes</Button>
+                            <Button
+                                variant="primary"
                                 onClick={handleSave}
-                                disabled={saving}
+                                loading={saving}
                             >
                                 {saving ? 'Saving...' : 'Save Settings'}
-                            </button>
+                            </Button>
                         </div>
                     </motion.div>
                 </Card>
             </div>
-        </div>
+        </PageContainer >
     );
 };
 

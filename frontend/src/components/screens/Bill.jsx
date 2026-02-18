@@ -69,6 +69,8 @@ import SearchBar from '../ui/SearchBar';
 import '../../styles/Management.css';
 
 
+
+
 const TrashIcon = ({ color }) => (
   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style={{ color }}>
     <path d="M3 6H5H21M8 6V20C8 21.1046 8.89543 22 10 22H14C15.1046 22 16 21.1046 16 20V6M19 6V20C19 21.1046 19.1046 22 18 22H10C8.89543 22 8 21.1046 8 20V6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
@@ -305,19 +307,20 @@ const WorkingPOSInterface = ({ onBillCreated }) => {
   const mainContainerStyle = {
     display: 'flex',
     height: '100%',
-    backgroundColor: currentTheme.colors.background,
+    backgroundColor: 'transparent', // Allow global background to show through
     fontFamily: currentTheme.typography.fontFamily.primary,
     overflow: 'hidden',
     boxSizing: 'border-box',
   };
 
   const leftSidebarStyle = {
-    width: '180px',
-    backgroundColor: currentTheme.colors.surface,
+    width: '240px', // Slightly wider for better text fit
+    backgroundColor: isDark ? currentTheme.colors.surface : currentTheme.colors.surface,
     borderRight: `1px solid ${currentTheme.colors.border}`,
     display: 'flex',
     flexDirection: 'column',
     height: "100%",
+    zIndex: 2,
   };
 
   const middleSectionStyle = {
@@ -325,7 +328,7 @@ const WorkingPOSInterface = ({ onBillCreated }) => {
     padding: currentTheme.spacing[6],
     overflowY: 'auto',
     height: '100%',
-    backgroundColor: currentTheme.colors.background,
+    backgroundColor: currentTheme.colors.background, // Global background
   };
 
   // rightSectionStyle is unused now as we inlined it to fix nesting, but keeping for safety if referenced elsewhere or cleanup later.
@@ -344,7 +347,6 @@ const WorkingPOSInterface = ({ onBillCreated }) => {
         <div style={{
           padding: currentTheme.spacing[5],
           borderBottom: `1px solid ${currentTheme.colors.border}`,
-          backgroundColor: currentTheme.colors.surface,
         }}>
           <SearchBar
             value={searchTerm}
@@ -356,278 +358,267 @@ const WorkingPOSInterface = ({ onBillCreated }) => {
         <div style={{
           flex: 1,
           overflowY: 'auto',
-          padding: `0 ${currentTheme.spacing[4]} ${currentTheme.spacing[6]}`,
-          backgroundColor: 'transparent',
+          padding: currentTheme.spacing[3],
         }}>
-          {categories.map((category) => (
-            <motion.div
-              key={category.id}
-              whileHover={{ x: 4 }}
-              transition={{ duration: 0.2 }}
-            >
-              <Card
-                variant={selectedCategory === category.id ? 'primary' : 'ghost'} // Use ghost for unselected
-                hover={selectedCategory !== category.id}
-                padding="sm"
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  marginBottom: currentTheme.spacing[2],
-                  marginTop: currentTheme.spacing[2],
-                  cursor: 'pointer',
-                  border: selectedCategory === category.id
-                    ? `1px solid ${currentTheme.colors.primary[500]}`
-                    : '1px solid transparent',
-                  backgroundColor: selectedCategory === category.id
-                    ? (isDark ? 'rgba(249, 115, 22, 0.2)' : '#fff7ed')
-                    : 'transparent',
-                  borderRadius: '12px',
-                }}
-                onClick={() => setSelectedCategory(category.id)}
-              >
-                <div style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: currentTheme.spacing[3],
-                  width: '100%',
-                }}>
+          <h4 style={{
+            fontSize: '12px',
+            textTransform: 'uppercase',
+            letterSpacing: '0.05em',
+            color: currentTheme.colors.text.secondary,
+            marginBottom: currentTheme.spacing[3],
+            paddingLeft: currentTheme.spacing[2],
+            fontWeight: 600
+          }}>Categories</h4>
+
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+            {categories.map((category) => {
+              const isActive = selectedCategory === category.id;
+              return (
+                <motion.button
+                  key={category.id}
+                  onClick={() => setSelectedCategory(category.id)}
+                  whileHover={{ backgroundColor: isDark ? 'rgba(255,255,255,0.03)' : 'rgba(0,0,0,0.04)' }}
+                  whileTap={{ scale: 0.98 }}
+                  style={{
+                    position: 'relative',
+                    width: '100%',
+                    height: '56px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: currentTheme.spacing[3],
+                    padding: `0 ${currentTheme.spacing[3]}`,
+                    backgroundColor: isActive ? (isDark ? 'rgba(255, 106, 0, 0.12)' : 'rgba(255, 106, 0, 0.08)') : 'transparent',
+                    border: 'none',
+                    borderRadius: '12px',
+                    cursor: 'pointer',
+                    color: isActive ? '#FF6A00' : currentTheme.colors.text.secondary,
+                    transition: 'color 0.2s',
+                    textAlign: 'left'
+                  }}
+                >
+                  {isActive && (
+                    <motion.div
+                      layoutId="activeCategory"
+                      style={{
+                        position: 'absolute',
+                        left: 0,
+                        top: '12px',
+                        bottom: '12px',
+                        width: '4px',
+                        backgroundColor: '#FF6A00',
+                        borderRadius: '0 4px 4px 0',
+                      }}
+                    />
+                  )}
+
                   <div style={{
                     width: '32px',
                     height: '32px',
                     borderRadius: '8px',
-                    backgroundColor: selectedCategory === category.id ? currentTheme.colors.primary[500] : (isDark ? 'rgba(255,255,255,0.1)' : '#e2e8f0'),
+                    backgroundColor: isActive ? '#FF6A00' : (isDark ? 'rgba(255,255,255,0.05)' : '#F1F5F9'),
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
-                    color: selectedCategory === category.id ? '#fff' : currentTheme.colors.text.secondary,
-                    fontWeight: 'bold',
-                    fontSize: '0.8rem',
+                    color: isActive ? '#FFFFFF' : currentTheme.colors.text.secondary,
+                    fontSize: '14px',
+                    fontWeight: 600,
+                    transition: 'background-color 0.2s, color 0.2s'
                   }}>
                     {category.name.charAt(0)}
                   </div>
-                  <div style={{ flex: 1 }}>
-                    <div style={{
-                      fontSize: '0.9rem',
-                      fontWeight: selectedCategory === category.id ? 600 : 500,
-                      color: selectedCategory === category.id ? currentTheme.colors.primary[600] : currentTheme.colors.text.primary,
-                    }}>
-                      {category.name}
-                    </div>
-                  </div>
-                  {selectedCategory === category.id && (
-                    <motion.div layoutId="active-indicator" style={{
-                      width: '6px', height: '6px', borderRadius: '50%', backgroundColor: currentTheme.colors.primary[500]
-                    }} />
-                  )}
-                </div>
-              </Card>
-            </motion.div>
-          ))}
+
+                  <span style={{
+                    fontSize: '15px',
+                    fontWeight: isActive ? 600 : 500
+                  }}>
+                    {category.name}
+                  </span>
+                </motion.button>
+              );
+            })}
+          </div>
         </div>
       </div>
 
       <div style={middleSectionStyle}>
         <div style={{
-          padding: currentTheme.spacing[2], // Reduced padding for better grid fit
+          padding: 0, // Handled by Grid gap
           minHeight: 'calc(100% - 1rem)',
         }}>
           {loading ? (
-            // Skeleton Loader for Products
             <div style={{
               display: 'grid',
-              gridTemplateColumns: 'repeat(auto-fill, minmax(160px, 1fr))',
+              gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))',
               gap: currentTheme.spacing[4],
             }}>
               {[...Array(8)].map((_, i) => (
-                <Card key={i} style={{ height: '220px', padding: '12px' }}>
-                  <div style={{ height: '120px', backgroundColor: isDark ? '#334155' : '#e2e8f0', borderRadius: '8px', marginBottom: '12px', opacity: 0.5 }}></div>
-                  <div style={{ height: '20px', width: '80%', backgroundColor: isDark ? '#334155' : '#e2e8f0', borderRadius: '4px', marginBottom: '8px', opacity: 0.5 }}></div>
-                  <div style={{ height: '20px', width: '40%', backgroundColor: isDark ? '#334155' : '#e2e8f0', borderRadius: '4px', opacity: 0.5 }}></div>
-                </Card>
+                <div key={i} style={{
+                  height: '240px',
+                  backgroundColor: isDark ? 'rgba(255,255,255,0.03)' : 'rgba(0,0,0,0.03)',
+                  borderRadius: '16px',
+                  animation: 'pulse 1.5s infinite'
+                }} />
               ))}
             </div>
           ) : filteredProducts.length === 0 ? (
             <div style={{
-              textAlign: 'center',
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              justifyContent: 'center',
               padding: currentTheme.spacing[12],
-              color: currentTheme.colors.text.secondary
+              color: currentTheme.colors.text.secondary,
+              height: '100%',
+              textAlign: 'center'
             }}>
-              {/* No Products UI - Kept mostly same but cleaner */}
+              {/* Empty State - Same as before but cleaner */}
               <div style={{
-                fontSize: currentTheme.typography.fontSize['2xl'],
-                fontWeight: currentTheme.typography.fontWeight.semibold,
-                color: currentTheme.colors.text.primary,
-                marginBottom: currentTheme.spacing[2],
+                width: '80px',
+                height: '80px',
+                borderRadius: '50%',
+                background: isDark ? 'rgba(255,255,255,0.03)' : '#f3f4f6',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                marginBottom: '24px'
               }}>
-                No Products Found
+                <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" style={{ opacity: 0.5 }}>
+                  <circle cx="11" cy="11" r="8"></circle>
+                  <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                </svg>
               </div>
-              <p style={{
-                fontSize: currentTheme.typography.fontSize.base,
-                color: currentTheme.colors.text.secondary,
-              }}>
-                Try adjusting your search or category filter
+              <h3 style={{ fontSize: '18px', fontWeight: 600, color: currentTheme.colors.text.primary, marginBottom: '8px' }}>
+                No products found
+              </h3>
+              <p style={{ fontSize: '14px', color: currentTheme.colors.text.secondary }}>
+                Try adjusting your search or filters.
               </p>
             </div>
           ) : (
-            <div style={{
-              display: 'grid',
-              gridTemplateColumns: 'repeat(auto-fill, minmax(180px, 1fr))', // Slightly wider cards
-              gap: currentTheme.spacing[4],
-              paddingBottom: currentTheme.spacing[4],
-            }}>
+            <motion.div
+              initial={{ opacity: 0, y: 12 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.35, staggerChildren: 0.05 }}
+              style={{
+                display: 'grid',
+                gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))',
+                gap: currentTheme.spacing[4],
+                paddingBottom: currentTheme.spacing[8],
+              }}
+            >
               {filteredProducts.map((product) => (
                 <Card
                   key={product.product_id}
-                  variant="default" // Using default variant now which has glass/hover effects in Card.js
                   hover={true}
-                  padding="none" // Custom padding inside
+                  padding="none"
                   onClick={(e) => handleAddItem(product, e)}
                   style={{
                     height: '100%',
                     display: 'flex',
                     flexDirection: 'column',
-                    justifyContent: 'space-between',
                     cursor: product.stock_status === 'Out of Stock' ? 'not-allowed' : 'pointer',
-                    overflow: 'visible', // For hover effects
                     opacity: product.stock_status === 'Out of Stock' ? 0.6 : 1,
-                    filter: product.stock_status === 'Out of Stock' ? 'grayscale(1)' : 'none',
                   }}
                 >
-                  <div style={{ position: 'relative', padding: '12px' }}>
-                    {/* Interaction Area */}
-                    {/* Stock Status Badges */}
-                    {product.stock_status === 'Out of Stock' && (
-                      <div style={{
-                        position: 'absolute',
-                        top: '12px',
-                        left: '12px',
-                        backgroundColor: '#EF4444',
-                        color: 'white',
-                        fontSize: '0.7rem',
-                        fontWeight: 'bold',
-                        padding: '4px 8px',
-                        borderRadius: '4px',
-                        zIndex: 10,
-                        boxShadow: '0 2px 4px rgba(0,0,0,0.2)'
-                      }}>
-                        OUT OF STOCK
-                      </div>
-                    )}
-                    {product.stock_status === 'Low Stock' && (
-                      <div style={{
-                        position: 'absolute',
-                        top: '12px',
-                        left: '12px',
-                        backgroundColor: '#F59E0B',
-                        color: 'white',
-                        fontSize: '0.7rem',
-                        fontWeight: 'bold',
-                        padding: '4px 8px',
-                        borderRadius: '4px',
-                        zIndex: 10,
-                        boxShadow: '0 2px 4px rgba(0,0,0,0.2)'
-                      }}>
-                        LOW STOCK
-                      </div>
-                    )}
+                  <div style={{ padding: '14px', height: '100%', display: 'flex', flexDirection: 'column' }}>
 
-                    {showImages && (
-                      <div style={{
-                        height: '140px',
-                        marginBottom: '12px',
-                        borderRadius: '12px',
-                        overflow: 'hidden',
-                        backgroundColor: isDark ? 'rgba(0,0,0,0.2)' : '#f8fafc',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                      }}>
-                        {product.image_filename ? (
-                          <img
-                            src={productsAPI.getImageUrl(product.image_filename)}
-                            alt={product.name}
-                            style={{ width: '100%', height: '100%', objectFit: 'contain' }}
-                            loading="lazy"
-                          />
-                        ) : (
-                          <span style={{ fontSize: '0.75rem', color: currentTheme.colors.text.muted }}>No Image</span>
-                        )}
-                      </div>
-                    )}
-
+                    {/* Image Container - Human Quality */}
                     <div style={{
+                      aspectRatio: '1/1', // Square
+                      width: '100%',
+                      marginBottom: '14px',
+                      borderRadius: '12px',
+                      overflow: 'hidden',
+                      backgroundColor: isDark ? 'rgba(0,0,0,0.2)' : '#F6F7F9',
+                      padding: '18px', // Breathing space
                       display: 'flex',
-                      flexDirection: 'column',
-                      gap: '4px',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      position: 'relative'
                     }}>
+                      {product.stock_status === 'Out of Stock' && (
+                        <div style={{
+                          position: 'absolute', top: '8px', left: '8px',
+                          backgroundColor: '#EF4444', color: 'white',
+                          fontSize: '10px', fontWeight: 700,
+                          padding: '4px 8px', borderRadius: '4px', zIndex: 10
+                        }}>OUT</div>
+                      )}
+
+                      {product.image_filename ? (
+                        <img
+                          src={productsAPI.getImageUrl(product.image_filename)}
+                          alt={product.name}
+                          style={{ width: '100%', height: '100%', objectFit: 'contain' }}
+                          loading="lazy"
+                        />
+                      ) : (
+                        <span style={{ fontSize: '12px', color: currentTheme.colors.text.muted }}>No Image</span>
+                      )}
+                    </div>
+
+                    <div style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
                       <h4 style={{
-                        fontSize: '1rem',
+                        fontSize: '15px',
                         fontWeight: 600,
                         color: currentTheme.colors.text.primary,
-                        margin: 0,
+                        margin: '0 0 4px 0',
                         lineHeight: 1.3,
-                        display: '-webkit-box',
-                        WebkitLineClamp: 2,
-                        WebkitBoxOrient: 'vertical',
-                        overflow: 'hidden',
                       }}>
                         {product.name}
                       </h4>
-                      <span style={{
-                        fontSize: '1.1rem',
-                        fontWeight: 700,
-                        color: currentTheme.colors.primary[500],
-                        marginTop: 'auto',
-                      }}>
-                        {formatCurrency(product.price)}
-                      </span>
-                    </div>
+                      <div style={{ marginTop: 'auto', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                        <span style={{
+                          fontSize: '16px',
+                          fontWeight: 700,
+                          color: '#FF6A00', // Signature Orange
+                        }}>
+                          {formatCurrency(product.price)}
+                        </span>
 
-                    {/* Add Button Overlay */}
-                    <motion.div
-                      initial={{ opacity: 0, scale: 0.8 }}
-                      whileHover={{ opacity: 1, scale: 1 }}
-                      style={{
-                        position: 'absolute',
-                        bottom: '12px',
-                        right: '12px',
-                        backgroundColor: currentTheme.colors.primary[500],
-                        borderRadius: '50%',
-                        width: '32px',
-                        height: '32px',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        boxShadow: '0 4px 6px -1px rgba(0,0,0,0.1)',
-                      }}
-                    >
-                      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" stroke="#fff" strokeWidth="2">
-                        <path d="M12 5V19M5 12H19" strokeLinecap="round" strokeLinejoin="round" />
-                      </svg>
-                    </motion.div>
+                        {/* Add Button - Signature Element */}
+                        <motion.div
+                          whileHover={{ scale: 1.1 }}
+                          whileTap={{ scale: 0.9 }}
+                          style={{
+                            width: '32px', height: '32px',
+                            backgroundColor: '#FF6A00',
+                            borderRadius: '50%',
+                            display: 'flex', alignItems: 'center', justifyContent: 'center',
+                            boxShadow: '0 4px 12px rgba(255,106,0,0.3)',
+                            color: 'white'
+                          }}
+                        >
+                          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                            <path d="M12 5V19M5 12H19" strokeLinecap="round" strokeLinejoin="round" />
+                          </svg>
+                        </motion.div>
+                      </div>
+                    </div>
                   </div>
                 </Card>
               ))}
-            </div>
+            </motion.div>
           )}
         </div>
       </div>
 
-      {/* Right Side - Billing Panel */}
       <div style={{
         width: '400px',
-        backgroundColor: currentTheme.colors.surface,
+        backgroundColor: isDark ? '#15161A' : '#FFFFFF', // Secondary Surface
         borderLeft: `1px solid ${currentTheme.colors.border}`,
         display: 'flex',
         flexDirection: 'column',
         height: '100%',
         overflow: 'hidden',
+        boxShadow: '-8px 0 24px rgba(0,0,0,0.06)', // Depth to split screen
+        zIndex: 5
       }}>
         <div style={{
           flex: 1,
           padding: currentTheme.spacing[4],
           overflowY: 'auto',
-          borderBottom: `1px solid ${currentTheme.colors.border}`,
+          // No border bottom here, we want it clean
         }}>
           {/* Header for Right Section */}
           <div style={{
@@ -635,16 +626,19 @@ const WorkingPOSInterface = ({ onBillCreated }) => {
             justifyContent: 'space-between',
             alignItems: 'center',
             marginBottom: currentTheme.spacing[4],
-            paddingBottom: currentTheme.spacing[2],
+            paddingBottom: currentTheme.spacing[3],
             borderBottom: `1px solid ${currentTheme.colors.border}`,
           }}>
             <h3 style={{
               margin: 0,
-              fontSize: currentTheme.typography.fontSize.lg,
-              fontWeight: currentTheme.typography.fontWeight.semibold,
+              fontSize: '18px',
+              fontWeight: 700,
               color: currentTheme.colors.text.primary,
             }}>
-              {editingBill ? `Editing Bill #${editingBill.bill_no}` : 'Current Bill'}
+              {editingBill ? `Editing #${editingBill.bill_no}` : 'Current Bill'}
+              <span style={{ fontSize: '13px', color: currentTheme.colors.text.tertiary, fontWeight: 500, marginLeft: '8px' }}>
+                {orderItems.length} items
+              </span>
             </h3>
             <Button
               variant="ghost"
@@ -667,67 +661,36 @@ const WorkingPOSInterface = ({ onBillCreated }) => {
 
           {orderItems.length === 0 ? (
             <div style={{
-              textAlign: 'center',
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              justifyContent: 'center',
               padding: currentTheme.spacing[8],
-              color: currentTheme.colors.text.secondary
+              color: currentTheme.colors.text.secondary,
+              height: '60%'
             }}>
-              <div style={{
-                width: '56px',
-                height: '56px',
-                borderRadius: currentTheme.borderRadius.full,
-                border: `1px solid ${currentTheme.colors.border}`,
-                backgroundColor: currentTheme.colors.surface,
-                margin: `0 auto ${currentTheme.spacing[4]}`,
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-              }}>
-                <svg
-                  width="22"
-                  height="22"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  xmlns="http://www.w3.org/2000/svg"
-                  aria-hidden="true"
-                  style={{ color: currentTheme.colors.text.muted }}
-                >
-                  <path
-                    d="M6.5 6.5h14l-1.5 8.5H8.2L6.5 6.5Z"
-                    stroke="currentColor"
-                    strokeWidth="1.75"
-                    strokeLinejoin="round"
-                  />
-                  <path
-                    d="M6.5 6.5 6 4H3.5"
-                    stroke="currentColor"
-                    strokeWidth="1.75"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  />
-                  <path
-                    d="M9 20a1 1 0 1 0 0-2 1 1 0 0 0 0 2Zm8 0a1 1 0 1 0 0-2 1 1 0 0 0 0 2Z"
-                    stroke="currentColor"
-                    strokeWidth="1.75"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  />
+              {/* Bobbing Animation */}
+              <motion.div
+                animate={{ y: [0, -8, 0] }}
+                transition={{ repeat: Infinity, duration: 2, ease: "easeInOut" }}
+                style={{
+                  width: '64px', height: '64px',
+                  borderRadius: '16px',
+                  background: isDark ? 'rgba(255,255,255,0.03)' : '#F6F7F9',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  marginBottom: '16px'
+                }}
+              >
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+                  <path d="M9 20a1 1 0 1 0 0-2 1 1 0 0 0 0 2Zm8 0a1 1 0 1 0 0-2 1 1 0 0 0 0 2Z" />
+                  <path d="M2.05 2.05h2l2.66 12.42a2 2 0 0 0 2 1.58h9.78a2 2 0 0 0 1.95-1.57l1.65-7.43H5.12" />
                 </svg>
+              </motion.div>
+              <div style={{ fontSize: '16px', fontWeight: 600, color: currentTheme.colors.text.primary }}>
+                Your cart is empty
               </div>
-              <div style={{
-                fontSize: currentTheme.typography.fontSize.lg,
-                fontWeight: currentTheme.typography.fontWeight.semibold,
-                color: currentTheme.colors.text.primary,
-                marginBottom: currentTheme.spacing[2],
-              }}>
-                No items in the order
-              </div>
-              <div style={{
-                fontSize: currentTheme.typography.fontSize.sm,
-                color: currentTheme.colors.text.secondary,
-                maxWidth: '260px',
-                margin: '0 auto',
-              }}>
-                Select products to start billing.
+              <div style={{ fontSize: '13px', opacity: 0.6, marginTop: '4px' }}>
+                Add items to create a bill
               </div>
             </div>
           ) : (
@@ -819,21 +782,25 @@ const WorkingPOSInterface = ({ onBillCreated }) => {
             display: 'flex',
             justifyContent: 'space-between',
             alignItems: 'center',
-            fontSize: currentTheme.typography.fontSize.lg,
-            fontWeight: currentTheme.typography.fontWeight.semibold,
             marginBottom: currentTheme.spacing[3],
-            padding: `${currentTheme.spacing[3]} ${currentTheme.spacing[3]}`,
-            backgroundColor: currentTheme.colors.surface,
-            borderRadius: currentTheme.borderRadius.lg,
-            border: `1px solid ${currentTheme.colors.border}`,
+            padding: '16px',
+            backgroundColor: isDark ? 'rgba(255,255,255,0.03)' : '#F6F7F9', // Glass-like strip
+            borderRadius: '12px',
+            border: isDark ? '1px solid rgba(255,255,255,0.03)' : 'none'
           }}>
             <span style={{
-              fontSize: currentTheme.typography.fontSize.sm,
+              fontSize: '14px',
               color: currentTheme.colors.text.secondary,
-              letterSpacing: currentTheme.typography.letterSpacing.wide,
+              fontWeight: 600,
               textTransform: 'uppercase',
-            }}>Total</span>
-            <span style={{ color: currentTheme.colors.primary[600] }}>
+              letterSpacing: '0.05em'
+            }}>Total Amount</span>
+            <span style={{
+              fontSize: '24px',
+              fontFamily: 'monospace', // Tabular nums
+              fontWeight: 700,
+              color: currentTheme.colors.text.primary
+            }}>
               {formatCurrency(calculateTotal())}
             </span>
           </div>
@@ -841,12 +808,12 @@ const WorkingPOSInterface = ({ onBillCreated }) => {
           <div style={{
             display: 'grid',
             gridTemplateColumns: '1fr 1fr',
-            gap: currentTheme.spacing[2],
+            gap: '12px',
           }}>
-            <Button variant="secondary" onClick={handleSaveOrder}>
-              {editingBill ? 'Update Bill' : 'Save'}
+            <Button variant="secondary" onClick={handleSaveOrder} size="lg" fullWidth>
+              {editingBill ? 'Update' : 'Save Bill'}
             </Button>
-            <Button variant="primary" onClick={handleSaveAndPrintOrder}>
+            <Button variant="primary" onClick={handleSaveAndPrintOrder} size="lg" fullWidth>
               {editingBill ? 'Update & Print' : 'Save & Print'}
             </Button>
           </div>

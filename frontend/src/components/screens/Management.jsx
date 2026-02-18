@@ -7,6 +7,9 @@ import CategoryManagement from './CategoryManagement';
 import '../../styles/Management.css';
 import { useSettings } from '../../context/SettingsContext';
 import GlobalSelect from '../ui/GlobalSelect';
+import PageContainer from '../layout/PageContainer';
+import Card from '../ui/Card';
+import Button from '../ui/Button';
 
 const IconPlus = (props) => (
   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" {...props}>
@@ -331,7 +334,7 @@ const ProductManagement = () => {
     <div className="pmSectionContent" ref={topRef}>
 
       {/* Controls */}
-      <div className="pmPanel pmPanelTight">
+      <Card className="pmPanel pmPanelTight" padding="20px">
         <div className="pmControls">
           <div className="pmField">
             <div className="pmLabel">Search</div>
@@ -357,40 +360,34 @@ const ProductManagement = () => {
           <div className="pmField">
             <div className="pmLabel">View</div>
             <div style={{ display: 'flex', gap: '8px' }}>
-              <button
-                type="button"
-                className="pmControlButton"
+              <Button
+                variant={productViewTab === 'active' ? 'primary' : 'secondary'}
                 onClick={() => setProductViewTab('active')}
-                style={{
-                  flex: 1,
-                  border: productViewTab === 'active' ? '1px solid var(--accent)' : undefined,
-                  background: productViewTab === 'active' ? 'var(--accent)' : undefined,
-                  color: productViewTab === 'active' ? 'white' : undefined
-                }}
+                size="sm"
+                style={{ flex: 1 }}
               >
                 Active
-              </button>
-              <button
-                type="button"
-                className="pmControlButton"
+              </Button>
+              <Button
+                variant={productViewTab === 'inactive' ? 'primary' : 'secondary'}
                 onClick={() => setProductViewTab('inactive')}
-                style={{
-                  flex: 1,
-                  border: productViewTab === 'inactive' ? '1px solid var(--accent)' : undefined,
-                  background: productViewTab === 'inactive' ? 'var(--accent)' : undefined,
-                  color: productViewTab === 'inactive' ? 'white' : undefined
-                }}
+                size="sm"
+                style={{ flex: 1 }}
               >
                 Inactive
-              </button>
+              </Button>
             </div>
           </div>
 
-          <button type="button" className="pmControlButton" onClick={loadProducts}>
+          <Button
+            variant="secondary"
+            onClick={loadProducts}
+            icon={loading ? <div className="spinner" /> : null}
+          >
             Refresh
-          </button>
+          </Button>
         </div>
-      </div>
+      </Card>
 
       {/* Add/Edit Form */}
       <AnimatePresence>
@@ -565,116 +562,122 @@ const ProductManagement = () => {
       {error && <div className="pmError">{error}</div>}
 
       {/* Products Grid */}
-      <div className="pmPanel">
-        <div className="pmGridHeader">
-          <div className="pmGridTitle">{productViewTab === 'active' ? 'Active Products' : 'Inactive Products'}</div>
-          <div className="pmGridHint">{loading ? 'Refreshing…' : `${filteredProducts.length} shown`}</div>
+      <div className="pmGridSection">
+        <div className="pmGridHeader" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+          <div>
+            <div className="pmGridTitle" style={{ fontSize: '1.5rem', fontWeight: 700 }}>{productViewTab === 'active' ? 'Active Products' : 'Inactive Products'}</div>
+            <div className="pmGridHint" style={{ opacity: 0.7 }}>{loading ? 'Refreshing…' : `${filteredProducts.length} shown`}</div>
+          </div>
           <div className="pmHeaderActions">
-            <button
-              type="button"
-              className="pmPrimaryCta"
+            <Button
+              variant="primary"
               onClick={() => setShowAddForm(true)}
               disabled={showAddForm}
+              icon={<IconPlus aria-hidden="true" />}
             >
-              <IconPlus aria-hidden="true" />
               Add Product
-            </button>
+            </Button>
           </div>
         </div>
 
         {loading ? (
-          <div className="pmEmpty">Loading products…</div>
+          <Card className="pmEmpty">Loading products…</Card>
         ) : filteredProducts.length === 0 ? (
-          <div className="pmEmpty">No matching products found.</div>
+          <Card className="pmEmpty">No matching products found.</Card>
         ) : (
           <motion.div className="pmGrid" variants={staggerContainer} initial="initial" animate="animate">
             {filteredProducts.map((product) => (
               <motion.div
                 key={product.product_id}
                 variants={staggerItem}
-                className={`pmCard ${!product.active ? 'pmCardInactive' : ''}`}
-                style={{
-                  minHeight: showImages ? '180px' : 'auto',
-                  padding: showImages ? '20px' : '16px',
-                }}
               >
-                {showImages && (
-                  <div className="pmCardImageContainer">
-                    {product.image_filename ? (
-                      <img
-                        src={productsAPI.getImageUrl(product.image_filename)}
-                        alt={product.name}
-                        className="pmCardImage"
-                        onError={(e) => {
-                          e.target.style.display = 'none';
-                          e.target.nextSibling.style.display = 'flex';
-                        }}
-                      />
-                    ) : null}
-                    {/* Fallback placeholder (shown if no image or error) */}
-                    <div className="pmCardImagePlaceholder" style={{ display: product.image_filename ? 'none' : 'flex', position: product.image_filename ? 'absolute' : 'relative', width: '100%', height: '100%', alignItems: 'center', justifyContent: 'center' }}>
-                      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <path d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                      </svg>
-                      <span>No Image</span>
-                    </div>
-                  </div>
-                )}
-
-                <div className="pmCardContent" style={{ padding: showImages ? '16px' : '0 0 8px 0', gap: showImages ? '12px' : '8px' }}>
-                  <div className="pmCardHeader">
-                    <div className="pmName" title={product.name} style={{ fontSize: showImages ? '16px' : '17px', WebkitLineClamp: showImages ? 2 : 1 }}>{product.name}</div>
-                    <div className="pmPriceRow">
-                      <div className="pmPrice">{formatCurrency(product.price)}</div>
-                      <div className="pmBadge">{product.category_name || product.category || 'Other'}</div>
-                    </div>
-                  </div>
-
+                <Card
+                  className={`pmCard ${!product.active ? 'pmCardInactive' : ''}`}
+                  padding={showImages ? '20px' : '16px'}
+                  hover={true}
+                  style={{
+                    minHeight: showImages ? '180px' : 'auto',
+                    marginBottom: '0' // Reset default CArd margin
+                  }}
+                >
                   {showImages && (
-                    <div className="pmMetaRow" style={{ justifyContent: 'center', width: '100%' }}>
-                      <div className="pmId">ID: {product.product_id}</div>
+                    <div className="pmCardImageContainer">
+                      {product.image_filename ? (
+                        <img
+                          src={productsAPI.getImageUrl(product.image_filename)}
+                          alt={product.name}
+                          className="pmCardImage"
+                          onError={(e) => {
+                            e.target.style.display = 'none';
+                            e.target.nextSibling.style.display = 'flex';
+                          }}
+                        />
+                      ) : null}
+                      {/* Fallback placeholder (shown if no image or error) */}
+                      <div className="pmCardImagePlaceholder" style={{ display: product.image_filename ? 'none' : 'flex', position: product.image_filename ? 'absolute' : 'relative', width: '100%', height: '100%', alignItems: 'center', justifyContent: 'center' }}>
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                          <path d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                        </svg>
+                        <span>No Image</span>
+                      </div>
                     </div>
                   )}
 
-                  <div className={`pmActions ${showImages ? 'pmActionsWithBorder' : ''}`}>
-                    {/* Stock Status Badge */}
-                    <div className="pmStockRow">
-                      <span className="pmStockLabel">Stock</span>
-                      <span className="pmStockValue" style={{
-                        color: (product.stock === 0 || product.stock_status === 'Out of Stock') ? '#EF4444' :
-                          product.stock_status === 'Low Stock' ? '#F59E0B' : '#10B981'
-                      }}>
-                        {product.stock !== undefined ? product.stock : '-'}
-                      </span>
+                  <div className="pmCardContent" style={{ padding: showImages ? '16px' : '0 0 8px 0', gap: showImages ? '12px' : '8px' }}>
+                    <div className="pmCardHeader">
+                      <div className="pmName" title={product.name} style={{ fontSize: showImages ? '16px' : '17px', WebkitLineClamp: showImages ? 2 : 1 }}>{product.name}</div>
+                      <div className="pmPriceRow">
+                        <div className="pmPrice">{formatCurrency(product.price)}</div>
+                        <div className="pmBadge">{product.category_name || product.category || 'Other'}</div>
+                      </div>
                     </div>
 
-                    <div className="pmButtonGrid">
-                      <button className="pmActionBtn" onClick={() => handleEdit(product)} style={{ justifyContent: 'center' }}>
-                        <IconEdit /> {showImages ? 'Edit' : ''}
-                      </button>
-                      {product.active ? (
-                        <button className="pmActionBtn pmActionDanger" onClick={() => onRequestDeactivate(product)} title="Deactivate" style={{ justifyContent: 'center' }}>
-                          <IconPower /> {showImages ? 'Disable' : ''}
+                    {showImages && (
+                      <div className="pmMetaRow" style={{ justifyContent: 'center', width: '100%' }}>
+                        <div className="pmId">ID: {product.product_id}</div>
+                      </div>
+                    )}
+
+                    <div className={`pmActions ${showImages ? 'pmActionsWithBorder' : ''}`}>
+                      {/* Stock Status Badge */}
+                      <div className="pmStockRow">
+                        <span className="pmStockLabel">Stock</span>
+                        <span className="pmStockValue" style={{
+                          color: (product.stock === 0 || product.stock_status === 'Out of Stock') ? '#EF4444' :
+                            product.stock_status === 'Low Stock' ? '#F59E0B' : '#10B981'
+                        }}>
+                          {product.stock !== undefined ? product.stock : '-'}
+                        </span>
+                      </div>
+
+                      <div className="pmButtonGrid">
+                        <button className="pmActionBtn" onClick={() => handleEdit(product)} style={{ justifyContent: 'center' }}>
+                          <IconEdit /> {showImages ? 'Edit' : ''}
                         </button>
-                      ) : (
-                        <>
-                          <button className="pmActionBtn pmActionReactivate" onClick={() => handleReactivate(product)} title="Reactivate" style={{ color: '#10B981', borderColor: 'rgba(16, 185, 129, 0.3)', background: 'rgba(16, 185, 129, 0.1)', justifyContent: 'center' }}>
-                            <IconPower /> {showImages ? 'Enable' : ''}
+                        {product.active ? (
+                          <button className="pmActionBtn pmActionDanger" onClick={() => onRequestDeactivate(product)} title="Deactivate" style={{ justifyContent: 'center' }}>
+                            <IconPower /> {showImages ? 'Disable' : ''}
                           </button>
-                          <button className="pmActionBtn" onClick={() => handlePermanentDelete(product)} title="Delete Permanently" style={{
-                            color: '#EF4444',
-                            borderColor: 'rgba(239, 68, 68, 0.3)',
-                            background: 'rgba(239, 68, 68, 0.1)',
-                            justifyContent: 'center',
-                            gridColumn: '1 / -1'
-                          }}>
-                            <IconTrash /> {showImages ? 'Delete Permanently' : ''}
-                          </button>
-                        </>
-                      )}
+                        ) : (
+                          <>
+                            <button className="pmActionBtn pmActionReactivate" onClick={() => handleReactivate(product)} title="Reactivate" style={{ color: '#10B981', borderColor: 'rgba(16, 185, 129, 0.3)', background: 'rgba(16, 185, 129, 0.1)', justifyContent: 'center' }}>
+                              <IconPower /> {showImages ? 'Enable' : ''}
+                            </button>
+                            <button className="pmActionBtn" onClick={() => handlePermanentDelete(product)} title="Delete Permanently" style={{
+                              color: '#EF4444',
+                              borderColor: 'rgba(239, 68, 68, 0.3)',
+                              background: 'rgba(239, 68, 68, 0.1)',
+                              justifyContent: 'center',
+                              gridColumn: '1 / -1'
+                            }}>
+                              <IconTrash /> {showImages ? 'Delete Permanently' : ''}
+                            </button>
+                          </>
+                        )}
+                      </div>
                     </div>
                   </div>
-                </div>
+                </Card>
               </motion.div>
             ))}
           </motion.div>
@@ -712,17 +715,17 @@ const Management = () => {
   const [activeTab, setActiveTab] = useState('products');
 
   return (
-    <div className="pmShell">
+    <PageContainer>
       <div className="pmPage">
         {/* Main Title & Tabs */}
-        <div className="pmHeader">
+        <Card className="pmHeader" padding="16px">
           <div className="pmHeaderLeft">
             <div className="pmTitleRow">
               <div className="pmTitle">Store Management</div>
             </div>
           </div>
 
-          <div className="pmHeaderActions" style={{ background: 'var(--bg-secondary)', padding: '4px', borderRadius: '12px', border: '1px solid var(--border-primary)' }}>
+          <div className="pmHeaderActions" style={{ background: 'var(--bg-secondary)', padding: '4px', borderRadius: '12px', border: '1px solid var(--border-primary)', display: 'flex', gap: '4px' }}>
             <button
               className={`pmControlButton ${activeTab === 'products' ? 'pmActiveTab' : ''}`}
               onClick={() => setActiveTab('products')}
@@ -730,7 +733,12 @@ const Management = () => {
                 border: 'none',
                 background: activeTab === 'products' ? 'var(--accent)' : 'transparent',
                 color: activeTab === 'products' ? 'white' : 'var(--text-secondary)',
-                boxShadow: activeTab === 'products' ? '0 4px 12px rgba(0,0,0,0.1)' : 'none'
+                boxShadow: activeTab === 'products' ? '0 4px 12px rgba(0,0,0,0.1)' : 'none',
+                fontWeight: 600,
+                borderRadius: '8px',
+                padding: '8px 16px',
+                cursor: 'pointer',
+                transition: 'all 0.2s'
               }}
             >
               Products
@@ -742,18 +750,45 @@ const Management = () => {
                 border: 'none',
                 background: activeTab === 'categories' ? 'var(--accent)' : 'transparent',
                 color: activeTab === 'categories' ? 'white' : 'var(--text-secondary)',
-                boxShadow: activeTab === 'categories' ? '0 4px 12px rgba(0,0,0,0.1)' : 'none'
+                boxShadow: activeTab === 'categories' ? '0 4px 12px rgba(0,0,0,0.1)' : 'none',
+                fontWeight: 600,
+                borderRadius: '8px',
+                padding: '8px 16px',
+                cursor: 'pointer',
+                transition: 'all 0.2s'
               }}
             >
               Categories
             </button>
           </div>
-        </div>
+        </Card>
 
         {/* Tab Content */}
-        {activeTab === 'products' ? <ProductManagement /> : <CategoryManagement />}
+        <AnimatePresence mode="wait">
+          {activeTab === 'products' ? (
+            <motion.div
+              key="products"
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -10 }}
+              transition={{ duration: 0.2 }}
+            >
+              <ProductManagement />
+            </motion.div>
+          ) : (
+            <motion.div
+              key="categories"
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -10 }}
+              transition={{ duration: 0.2 }}
+            >
+              <CategoryManagement />
+            </motion.div>
+          )}
+        </AnimatePresence>
       </div>
-    </div>
+    </PageContainer>
   );
 };
 

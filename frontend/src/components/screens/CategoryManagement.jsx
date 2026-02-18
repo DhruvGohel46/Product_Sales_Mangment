@@ -3,6 +3,8 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useAnimation } from '../../hooks/useAnimation';
 import { categoriesAPI, handleAPIError } from '../../utils/api';
 import '../../styles/Management.css';
+import Card from '../ui/Card';
+import Button from '../ui/Button';
 
 const IconPlus = (props) => (
     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" {...props}>
@@ -131,18 +133,18 @@ const CategoryManagement = () => {
     };
 
     return (
-        <div className="pmPage">
+        <div className="pmSectionContent">
             {/* Header Actions */}
-            <div className="pmHeader" style={{ border: 'none', boxShadow: 'none', background: 'transparent', padding: 0 }}>
-                <div className="pmHeaderLeft">
-                    <div className="pmTitleRow">
-                        <div className="pmTitle" style={{ fontSize: '24px' }}>Category Management</div>
-                    </div>
-                </div>
+            <div className="pmHeader" style={{ border: 'none', boxShadow: 'none', background: 'transparent', padding: '16px 0', display: 'flex', justifyContent: 'flex-end' }}>
                 <div className="pmHeaderActions">
-                    <button className="pmPrimaryCta" onClick={() => setShowAddForm(true)} disabled={showAddForm}>
-                        <IconPlus /> Add Category
-                    </button>
+                    <Button
+                        variant="primary"
+                        onClick={() => setShowAddForm(true)}
+                        disabled={showAddForm}
+                        icon={<IconPlus />}
+                    >
+                        Add Category
+                    </Button>
                 </div>
             </div>
 
@@ -193,49 +195,55 @@ const CategoryManagement = () => {
             {error && <div className="pmError">{error}</div>}
 
             {/* Categories Grid */}
-            <div className="pmPanel">
+            <div className="pmGridSection">
                 <div className="pmGridHeader">
                     <div className="pmGridTitle" style={{ fontSize: '20px' }}>Available Categories</div>
                     <div className="pmGridHint">{loading ? 'Loading...' : `${categories.length} categories`}</div>
                 </div>
 
                 {loading ? (
-                    <div className="pmEmpty">Loading categories...</div>
+                    <Card className="pmEmpty">Loading categories...</Card>
                 ) : categories.length === 0 ? (
-                    <div className="pmEmpty">No categories found. Add your first category!</div>
+                    <Card className="pmEmpty">No categories found. Add your first category!</Card>
                 ) : (
                     <motion.div className="pmGrid" variants={staggerContainer} initial="initial" animate="animate">
                         {categories.map((cat) => (
-                            <motion.div key={cat.id} variants={staggerItem} className={`pmCard ${!cat.active ? 'pmCardInactive' : ''}`}>
-                                <div className="pmCardTop">
-                                    <div className="pmName">{cat.name}</div>
-                                    <div className={`pmBadge ${cat.active ? 'pmBadgePaan' : 'pmBadgeOther'}`}>
-                                        {cat.active ? 'Active' : 'Inactive'}
+                            <motion.div key={cat.id} variants={staggerItem}>
+                                <Card
+                                    className={`pmCard ${!cat.active ? 'pmCardInactive' : ''}`}
+                                    hover={true}
+                                    padding="20px"
+                                >
+                                    <div className="pmCardTop">
+                                        <div className="pmName">{cat.name}</div>
+                                        <div className={`pmBadge ${cat.active ? 'pmBadgePaan' : 'pmBadgeOther'}`}>
+                                            {cat.active ? 'Active' : 'Inactive'}
+                                        </div>
                                     </div>
-                                </div>
-                                <div className="pmMetaRow">
-                                    <div className="pmId" style={{ color: 'var(--text-secondary)' }}>
-                                        {cat.description || 'No description'}
+                                    <div className="pmMetaRow">
+                                        <div className="pmId" style={{ color: 'var(--text-secondary)' }}>
+                                            {cat.description || 'No description'}
+                                        </div>
                                     </div>
-                                </div>
-                                <div className="pmMetaRow" style={{ marginTop: '10px' }}>
-                                    <div className="pmStatusRow">
-                                        <div className={`pmStatusDot ${cat.active ? 'pmStatusActive' : 'pmStatusInactive'}`} style={{ width: 8, height: 8, borderRadius: '50%' }} />
-                                        <span className="pmStatusLabel">
-                                            {cat.product_count} linked products
-                                        </span>
+                                    <div className="pmMetaRow" style={{ marginTop: '10px' }}>
+                                        <div className="pmStatusRow">
+                                            <div className={`pmStatusDot ${cat.active ? 'pmStatusActive' : 'pmStatusInactive'}`} style={{ width: 8, height: 8, borderRadius: '50%' }} />
+                                            <span className="pmStatusLabel">
+                                                {cat.product_count} linked products
+                                            </span>
+                                        </div>
                                     </div>
-                                </div>
-                                <div className="pmActions" style={{ marginTop: '15px' }}>
-                                    <div className="pmButtonGrid">
-                                        <button className="pmActionBtn" onClick={() => handleEdit(cat)}>
-                                            <IconEdit /> Edit
-                                        </button>
-                                        <button className="pmActionBtn pmActionDanger" onClick={() => onRequestDelete(cat)}>
-                                            <IconTrash /> Remove
-                                        </button>
+                                    <div className="pmActions" style={{ marginTop: '15px' }}>
+                                        <div className="pmButtonGrid">
+                                            <button className="pmActionBtn" onClick={() => handleEdit(cat)}>
+                                                <IconEdit /> Edit
+                                            </button>
+                                            <button className="pmActionBtn pmActionDanger" onClick={() => onRequestDelete(cat)}>
+                                                <IconTrash /> Remove
+                                            </button>
+                                        </div>
                                     </div>
-                                </div>
+                                </Card>
                             </motion.div>
                         ))}
                     </motion.div>

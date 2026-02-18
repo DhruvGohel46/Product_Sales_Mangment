@@ -7,24 +7,24 @@ const Card = React.forwardRef(({
   children,
   variant = 'default',
   padding = 'md',
-  shadow = 'base',
+  shadow = 'card', // ReBill Default
   hover = false,
   className = '',
   onClick,
-  fullHeight = false, // Added new prop
-  style, // Allow external style overrides
+  fullHeight = false,
+  style,
   ...props
 }, ref) => {
-  const { currentTheme } = useTheme();
-  const { cardVariants, cardTransition } = useAnimation();
-  const isDark = currentTheme.isDark;
+  const { currentTheme, isDark } = useTheme();
+  // We use custom animation for cards now, but keep hook for other things
+  const { cardVariants } = useAnimation();
 
   const paddingStyles = {
     none: '0',
-    sm: currentTheme.spacing[3],
-    md: currentTheme.spacing[5],
-    lg: currentTheme.spacing[6],
-    xl: currentTheme.spacing[8],
+    sm: '12px',
+    md: '14px', // ReBill Standard
+    lg: '18px', // Image Container
+    xl: '24px',
   };
 
   const shadowStyles = {
@@ -38,34 +38,29 @@ const Card = React.forwardRef(({
     none: 'none',
   };
 
-  const finalShadow = shadowStyles[shadow] || shadowStyles.base;
+  const finalShadow = shadowStyles[shadow] || shadowStyles.card;
 
   const baseStyles = {
-    background: currentTheme.glass?.card || currentTheme.colors.surface,
-    backdropFilter: currentTheme.glass?.blur || 'blur(20px)',
-    WebkitBackdropFilter: currentTheme.glass?.blur || 'blur(20px)',
-    borderRadius: currentTheme.borderRadius.xl,
-    border: `1px solid ${currentTheme.glass?.border || currentTheme.colors.border}`,
+    background: currentTheme.colors.card,
+    // ReBill Card Physics
+    borderRadius: '16px',
+    border: `1px solid ${isDark ? '#2C2F36' : '#E3E6EA'}`, // Specific border colors
     boxShadow: finalShadow,
     padding: paddingStyles[padding],
     fontFamily: currentTheme.typography.fontFamily.primary,
     height: fullHeight ? '100%' : 'auto',
     overflow: 'hidden',
     position: 'relative',
-    transition: 'all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1)',
+    transition: 'all 160ms cubic-bezier(.4,0,.2,1)', // Fast & Precise
     ...style
   };
 
   const hoverStyles = hover ? {
     cursor: onClick ? 'pointer' : 'default',
-    '&:hover': {
-      transform: 'translateY(-3px)',
-      boxShadow: currentTheme.shadows.cardHover,
-      borderColor: isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)',
-    }
+    // Hover styles handled by Framer Motion for hardware acceleration
   } : {};
 
-  // Variant overrides (optional, but keeping for compatibility)
+  // Variant overrides
   const variantStyles = {
     elevated: {
       border: 'none',
@@ -74,27 +69,28 @@ const Card = React.forwardRef(({
       background: 'transparent',
       border: `2px solid ${currentTheme.colors.primary[200]}`,
     },
-    // Add other variants if needed, or rely on baseStyles for "default"
   };
 
   const combinedStyles = {
     ...baseStyles,
     ...(variantStyles[variant] || {}),
     ...hoverStyles,
-    transform: 'translateZ(0)', // Hardware acceleration
+    willChange: hover ? 'transform, box-shadow' : 'auto',
   };
 
   const MotionComponent = onClick || hover ? motion.div : 'div';
+
+  // ReBill Signature Interaction
   const motionProps = onClick || hover ? {
-    initial: cardVariants.initial,
-    animate: cardVariants.animate,
-    exit: cardVariants.exit,
-    transition: cardTransition,
+    initial: false,
     whileHover: hover ? {
-      y: -3,
-      boxShadow: currentTheme.isDark ? currentTheme.shadows.cardDarkHover : currentTheme.shadows.cardHover,
+      y: -4,
+      scale: 1.02,
+      boxShadow: isDark ? currentTheme.shadows.cardDarkHover : currentTheme.shadows.cardHover,
+      borderColor: currentTheme.colors.primary[500], // Subtle hint
+      transition: { duration: 0.2, ease: "easeOut" }
     } : undefined,
-    whileTap: onClick ? { scale: 0.98 } : undefined,
+    whileTap: onClick ? { scale: 0.96 } : undefined,
   } : {};
 
   return (

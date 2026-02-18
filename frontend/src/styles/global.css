@@ -18,9 +18,8 @@ body {
   font-family: var(--font-primary);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  background: var(--bg-primary);
-  /* Fallback */
-  background-image: var(--gradient-glow), var(--gradient-background);
+  background-color: var(--bg-primary);
+  background-image: var(--gradient-glow);
   background-attachment: fixed;
   background-size: cover;
   background-repeat: no-repeat;
@@ -800,6 +799,36 @@ body {
 .static {
   position: static;
 }
+
+/* Date Picker Theme Override */
+:root {
+  color-scheme: light;
+}
+
+[data-theme="dark"] {
+  color-scheme: dark;
+}
+
+/* Ensure inputs respect the theme */
+input[type="date"],
+input[type="datetime-local"],
+input[type="time"],
+input[type="month"],
+input[type="week"] {
+  color-scheme: light;
+}
+
+[data-theme="dark"] input[type="date"],
+[data-theme="dark"] input[type="datetime-local"],
+[data-theme="dark"] input[type="time"],
+[data-theme="dark"] input[type="month"],
+[data-theme="dark"] input[type="week"] {
+  color-scheme: dark;
+  background-color: var(--surface-secondary);
+  color: var(--text-primary);
+  border: 1px solid var(--border-primary);
+}
+
 
 .top-0 {
   top: 0;

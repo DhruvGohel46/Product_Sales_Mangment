@@ -4,6 +4,8 @@ import { useTheme } from '../../context/ThemeContext';
 import { useSettings } from '../../context/SettingsContext';
 import Button from './Button';
 
+
+
 const Sidebar = ({
     activeTab,
     onTabChange,
@@ -15,14 +17,14 @@ const Sidebar = ({
     const { settings } = useSettings();
     const restaurantName = settings?.shop_name || 'ReBill POS';
 
-    // Generate acronym for collapsed state (e.g. "Burger Bhau" -> "BB")
+    // Generate acronym
     const getAcronym = (name) => {
         return name
             .split(' ')
             .map(word => word[0])
             .join('')
             .toUpperCase()
-            .slice(0, 2); // Max 2 chars
+            .slice(0, 2);
     };
 
     const acronym = getAcronym(restaurantName);
@@ -54,16 +56,20 @@ const Sidebar = ({
             onTouchEnd={handleDoubleTap}
             style={{
                 height: '100%',
-                backgroundColor: currentTheme.glass?.sidebar || currentTheme.colors.sidebar,
-                backdropFilter: currentTheme.glass?.blur || 'blur(20px)',
-                WebkitBackdropFilter: currentTheme.glass?.blur || 'blur(20px)',
-                borderRight: `1px solid ${currentTheme.glass?.border || currentTheme.colors.border}`,
+                // 1. Sidebar Surface Depth
+                backgroundColor: isDark ? '#0C0C0D' : '#FAFAFA',
+                backgroundImage: isDark
+                    ? 'radial-gradient(circle at 0% 50%, rgba(249,115,22,0.05), transparent 60%)'
+                    : 'none',
+                boxShadow: isDark
+                    ? 'inset -1px 0 0 rgba(255,255,255,0.04)'
+                    : 'inset -1px 0 0 rgba(0,0,0,0.06)',
                 display: 'flex',
                 flexDirection: 'column',
                 zIndex: 50,
                 flexShrink: 0,
                 userSelect: 'none',
-                touchAction: 'manipulation', // Improves touch response
+                position: 'relative'
             }}
         >
             {/* Header / Logo Area */}
@@ -71,125 +77,200 @@ const Sidebar = ({
                 height: '80px',
                 display: 'flex',
                 alignItems: 'center',
-                justifyContent: isCollapsed ? 'center' : 'space-between',
-                padding: isCollapsed ? '0' : `0 ${currentTheme.spacing[4]}`,
-                borderBottom: `1px solid ${currentTheme.colors.border}`,
+                justifyContent: isCollapsed ? 'center' : 'flex-start',
+                padding: isCollapsed ? '0' : '0 24px',
+                marginBottom: '8px'
             }}>
-                {!isCollapsed && (
-                    <div style={{
-                        fontSize: '1.25rem',
-                        fontWeight: currentTheme.typography.fontWeight.bold,
-                        background: `linear-gradient(135deg, ${currentTheme.colors.primary[500]}, ${currentTheme.colors.primary[600]})`,
-                        WebkitBackgroundClip: 'text',
-                        WebkitTextFillColor: 'transparent',
-                        whiteSpace: 'nowrap',
-                    }}>
-                        {restaurantName}
-                    </div>
-                )}
-                {isCollapsed && (
-                    <div style={{
-                        fontSize: '1.5rem',
-                        fontWeight: currentTheme.typography.fontWeight.bold,
-                        color: currentTheme.colors.primary[500],
-                    }}>
-                        {acronym}
-                    </div>
-                )}
+                <AnimatePresence mode="wait">
+                    {!isCollapsed ? (
+                        <motion.div
+                            key="full-logo"
+                            initial={{ opacity: 0, y: -6 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            exit={{ opacity: 0 }}
+                            transition={{ duration: 0.4 }}
+                            style={{
+                                fontSize: '20px',
+                                fontWeight: 600,
+                                letterSpacing: '0.3px',
+                                color: '#F97316',
+                                cursor: 'default'
+                            }}
+                            whileHover={{ filter: 'brightness(1.1)' }}
+                        >
+                            {restaurantName}
+                        </motion.div>
+                    ) : (
+                        <motion.div
+                            key="acronym-logo"
+                            initial={{ opacity: 0, scale: 0.8 }}
+                            animate={{ opacity: 1, scale: 1 }}
+                            exit={{ opacity: 0 }}
+                            style={{
+                                fontSize: '20px',
+                                fontWeight: 600,
+                                color: '#F97316',
+                            }}
+                        >
+                            {acronym}
+                        </motion.div>
+                    )}
+                </AnimatePresence>
             </div>
 
             {/* Navigation Items */}
             <div style={{
                 flex: 1,
-                padding: currentTheme.spacing[3],
+                padding: '0 12px',
                 display: 'flex',
                 flexDirection: 'column',
-                gap: currentTheme.spacing[2],
+                gap: '8px', // 10. Vertical Rhythm
                 overflowY: 'auto',
             }}>
                 {navItems.map((item) => {
                     const isActive = activeTab === item.id;
 
                     return (
-                        <div key={item.id} title={isCollapsed ? item.label : ''}>
-                            <Button
-                                variant={isActive ? 'primary' : 'ghost'}
-                                fullWidth
-                                onClick={() => onTabChange(item.id)}
+                        <motion.button
+                            key={item.id}
+                            onClick={() => onTabChange(item.id)}
+                            title={isCollapsed ? item.label : ''}
+                            // 4. Hover State & 5. Active State
+                            initial={false}
+                            animate={{
+                                backgroundColor: isActive ? '#F97316' : 'transparent'
+                            }}
+                            whileHover={!isActive ? {
+                                x: 3,
+                                backgroundColor: isDark ? 'rgba(255,255,255,0.04)' : 'rgba(0,0,0,0.05)',
+                                transition: { duration: 0.16 }
+                            } : {
+                                x: 3,
+                                transition: { duration: 0.16 }
+                            }}
+                            whileTap={{ scale: 0.97, transition: { duration: 0.1 } }}
+                            style={{
+                                position: 'relative',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: isCollapsed ? 'center' : 'flex-start',
+                                width: '100%',
+                                padding: '10px 14px',
+                                borderRadius: '10px',
+                                border: 'none',
+                                cursor: 'pointer',
+                                outline: 'none',
+                                color: isActive ? '#FFFFFF' : (isDark ? '#A1A1AA' : '#52525B'), // Muted text for inactive
+                                boxShadow: isActive
+                                    ? '0 4px 12px rgba(249,115,22,0.25), inset 0 1px 0 rgba(255,255,255,0.2)'
+                                    : 'none',
+                                transition: 'color 0.16s ease, box-shadow 0.16s ease'
+                            }}
+                        >
+                            {/* 6. Active Item Signature Indicator (Left Accent) */}
+                            {isActive && (
+                                <motion.div
+                                    layoutId="activeIndicator"
+                                    initial={{ height: 0, opacity: 0 }}
+                                    animate={{ height: '60%', opacity: 1 }}
+                                    transition={{ duration: 0.2 }}
+                                    style={{
+                                        position: 'absolute',
+                                        left: '4px',
+                                        width: '3px',
+                                        backgroundColor: '#FDBA74', // Lighter orange
+                                        borderRadius: '4px',
+                                        // 14. Tiny imperfection: softer radius, vertically centered
+                                        top: '20%'
+                                    }}
+                                />
+                            )}
+
+                            {/* Icon Wrapper */}
+                            <motion.span
                                 style={{
-                                    justifyContent: isCollapsed ? 'center' : 'flex-start',
-                                    padding: isCollapsed ? currentTheme.spacing[3] : `${currentTheme.spacing[3]} ${currentTheme.spacing[4]}`,
-                                    position: 'relative',
-                                    overflow: 'hidden',
-                                }}
-                            >
-                                <span style={{
                                     display: 'flex',
                                     alignItems: 'center',
                                     justifyContent: 'center',
-                                    fontSize: '1.25rem',
-                                    marginRight: isCollapsed ? 0 : currentTheme.spacing[3]
-                                }}>
-                                    {item.icon}
-                                </span>
+                                    fontSize: '20px',
+                                    // If collapsed, no margin needed, creating centered square look combined with padding
+                                    marginRight: isCollapsed ? 0 : '12px',
+                                    color: isActive ? '#FFFFFF' : 'currentColor'
+                                }}
+                                // 7. Icon Humanization & 8. Breathing
+                                animate={isActive ? {
+                                    scale: [1, 1.05, 1], // Breathing
+                                    transition: { duration: 4, repeat: Infinity, ease: "easeInOut" }
+                                } : { scale: 1 }}
+                                whileHover={{ scale: 1.08 }} // Icon scale on hover
+                            >
+                                {item.icon}
+                            </motion.span>
 
+                            {/* Label */}
+                            <AnimatePresence>
                                 {!isCollapsed && (
                                     <motion.span
-                                        initial={{ opacity: 0 }}
-                                        animate={{ opacity: 1 }}
-                                        exit={{ opacity: 0 }}
+                                        initial={{ opacity: 0, x: -10 }}
+                                        animate={{ opacity: 1, x: 0 }}
+                                        exit={{ opacity: 0, x: -10 }}
+                                        transition={{ duration: 0.2 }}
+                                        style={{
+                                            fontWeight: isActive ? 600 : 500,
+                                            fontSize: '14px',
+                                            whiteSpace: 'nowrap'
+                                        }}
                                     >
                                         {item.label}
                                     </motion.span>
                                 )}
-
-                                {isActive && !isCollapsed && (
-                                    <motion.div
-                                        layoutId="activeIndicator"
-                                        style={{
-                                            position: 'absolute',
-                                            right: 0,
-                                            top: '15%',
-                                            bottom: '15%',
-                                            width: '4px',
-                                            backgroundColor: currentTheme.colors.white,
-                                            borderTopLeftRadius: '4px',
-                                            borderBottomLeftRadius: '4px',
-                                            opacity: 0.6
-                                        }}
-                                    />
-                                )}
-                            </Button>
-                        </div>
+                            </AnimatePresence>
+                        </motion.button>
                     );
                 })}
             </div>
 
             {/* Collapse Toggle */}
             <div style={{
-                padding: currentTheme.spacing[4],
-                borderTop: `1px solid ${currentTheme.colors.border}`,
+                padding: '24px',
                 display: 'flex',
                 justifyContent: isCollapsed ? 'center' : 'flex-end',
             }}>
-                <Button
-                    size="sm"
-                    variant="ghost"
+                <motion.button
                     onClick={toggleCollapse}
+                    whileHover={{
+                        backgroundColor: isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.05)',
+                        scale: 1.05
+                    }}
+                    whileTap={{ scale: 0.92 }}
                     style={{
-                        borderRadius: '50%',
-                        width: '40px',
-                        height: '40px',
-                        padding: 0,
+                        background: 'transparent',
+                        border: 'none',
+                        borderRadius: '12px', // Softer square
+                        width: '32px',
+                        height: '32px',
                         display: 'flex',
                         alignItems: 'center',
                         justifyContent: 'center',
+                        cursor: 'pointer',
+                        color: isDark ? '#71717A' : '#A1A1AA',
+                        transition: 'color 0.2s'
                     }}
                 >
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style={{ transform: isCollapsed ? 'rotate(180deg)' : 'rotate(0deg)', transition: 'transform 0.3s' }}>
+                    <svg
+                        width="18"
+                        height="18"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        xmlns="http://www.w3.org/2000/svg"
+                        style={{
+                            transform: isCollapsed ? 'rotate(180deg)' : 'rotate(0deg)',
+                            transition: 'transform 0.4s cubic-bezier(.4,0,.2,1)'
+                        }}
+                    >
                         <path d="M15 18L9 12L15 6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
                     </svg>
-                </Button>
+                </motion.button>
             </div>
         </motion.div>
     );

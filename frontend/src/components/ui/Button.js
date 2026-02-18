@@ -17,142 +17,85 @@ const Button = React.forwardRef(({
   style: styleProp,
   ...props
 }, ref) => {
-  const { currentTheme } = useTheme();
+  const { currentTheme, isDark } = useTheme();
   const { buttonTap } = useAnimation();
 
   const baseStyles = {
     display: 'inline-flex',
     alignItems: 'center',
     justifyContent: 'center',
-    gap: '0.5rem',
-    fontWeight: currentTheme.typography.fontWeight.medium,
-    borderRadius: currentTheme.borderRadius.lg,
+    gap: '8px',
+    fontWeight: 600, // Slightly bolder
+    borderRadius: '12px', // Standard ReBill Radius
     border: 'none',
     cursor: disabled || loading ? 'not-allowed' : 'pointer',
-    transition: 'all 0.15s cubic-bezier(0.4, 0, 0.2, 1)',
     position: 'relative',
     overflow: 'hidden',
     fontFamily: currentTheme.typography.fontFamily.primary,
-    letterSpacing: currentTheme.typography.letterSpacing.tight,
+    letterSpacing: '0',
     whiteSpace: 'nowrap',
+    transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
   };
 
   const sizeStyles = {
     sm: {
-      padding: '0.5rem 0.875rem',
-      fontSize: currentTheme.typography.fontSize.sm,
-      minHeight: '2rem',
+      padding: '0 12px',
+      fontSize: '13px',
+      height: '32px',
     },
     md: {
-      padding: '0.625rem 1.25rem',
-      fontSize: currentTheme.typography.fontSize.base,
-      minHeight: '2.5rem',
+      padding: '0 16px',
+      fontSize: '14px',
+      height: '40px',
     },
     lg: {
-      padding: '0.75rem 1.75rem',
-      fontSize: currentTheme.typography.fontSize.lg,
-      minHeight: '3rem',
+      padding: '0 24px',
+      fontSize: '16px',
+      height: '48px', // Critical Fix Size
     },
     xl: {
-      padding: '1rem 2.25rem',
-      fontSize: currentTheme.typography.fontSize.xl,
-      minHeight: '3.5rem',
+      padding: '0 32px',
+      fontSize: '18px',
+      height: '56px',
     }
   };
 
   const variantStyles = {
     primary: {
-      backgroundColor: currentTheme.colors.primary[600],
-      color: currentTheme.colors.white,
-      boxShadow: currentTheme.shadows.sm,
-      border: '1px solid transparent',
-      '&:hover': {
-        backgroundColor: currentTheme.colors.primary[700],
-        boxShadow: `0 4px 12px ${currentTheme.colors.primary[500]}40`, // Colored shadow
-        transform: 'translateY(-1px)',
-      },
-      '&:active': {
-        backgroundColor: currentTheme.colors.primary[800],
-        boxShadow: 'none',
-        transform: 'translateY(0)',
-      },
+      background: '#FF6A00', // Signature orange
+      color: '#FFFFFF',
+      boxShadow: '0 6px 18px rgba(255,106,0,0.35)', // Signature Shadow
+      border: 'none',
+      // Hover handled by motion
     },
     secondary: {
-      backgroundColor: currentTheme.isDark ? 'rgba(255, 255, 255, 0.05)' : currentTheme.colors.surface,
+      background: isDark ? '#23262D' : '#E9EDF2',
       color: currentTheme.colors.text.primary,
-      border: `1px solid ${currentTheme.colors.border.primary}`,
-      backdropFilter: 'blur(8px)',
-      boxShadow: currentTheme.shadows.sm,
-      '&:hover': {
-        backgroundColor: currentTheme.isDark ? 'rgba(255, 255, 255, 0.1)' : currentTheme.colors.neutral[50],
-        borderColor: currentTheme.colors.primary[500],
-        boxShadow: currentTheme.shadows.md,
-        transform: 'translateY(-1px)',
-      },
-      '&:active': {
-        backgroundColor: currentTheme.isDark ? 'rgba(255, 255, 255, 0.05)' : currentTheme.colors.neutral[100],
-        borderColor: currentTheme.colors.primary[600],
-        transform: 'translateY(0)',
-      },
+      border: 'none', // No border for secondary
+      boxShadow: 'none',
     },
     success: {
       backgroundColor: currentTheme.colors.success[600],
       color: currentTheme.colors.white,
       boxShadow: currentTheme.shadows.sm,
-      border: '1px solid transparent',
-      '&:hover': {
-        backgroundColor: currentTheme.colors.success[700],
-        boxShadow: `0 4px 12px ${currentTheme.colors.success[500]}40`,
-        transform: 'translateY(-1px)',
-      },
-      '&:active': {
-        backgroundColor: currentTheme.colors.success[800],
-        transform: 'translateY(0)',
-      },
+      border: 'none',
     },
     warning: {
-      backgroundColor: currentTheme.colors.warning[500], // Brighter for warning
-      color: '#1a1a1a', // Dark text for better contrast on yellow/orange
+      backgroundColor: currentTheme.colors.warning[500],
+      color: '#1a1a1a',
       boxShadow: currentTheme.shadows.sm,
-      border: '1px solid transparent',
-      '&:hover': {
-        backgroundColor: currentTheme.colors.warning[400],
-        boxShadow: `0 4px 12px ${currentTheme.colors.warning[500]}40`,
-        transform: 'translateY(-1px)',
-      },
-      '&:active': {
-        backgroundColor: currentTheme.colors.warning[600],
-        transform: 'translateY(0)',
-      },
+      border: 'none',
     },
     error: {
       backgroundColor: currentTheme.colors.error[600],
       color: currentTheme.colors.white,
       boxShadow: currentTheme.shadows.sm,
-      border: '1px solid transparent',
-      '&:hover': {
-        backgroundColor: currentTheme.colors.error[700],
-        boxShadow: `0 4px 12px ${currentTheme.colors.error[500]}40`,
-        transform: 'translateY(-1px)',
-      },
-      '&:active': {
-        backgroundColor: currentTheme.colors.error[800],
-        transform: 'translateY(0)',
-      },
+      border: 'none',
     },
     ghost: {
       backgroundColor: 'transparent',
       color: currentTheme.colors.text.secondary,
-      border: '1px solid transparent',
-      '&:hover': {
-        backgroundColor: currentTheme.isDark ? 'rgba(255, 255, 255, 0.05)' : currentTheme.colors.neutral[100],
-        color: currentTheme.colors.primary[500],
-        transform: 'translateY(-1px)',
-      },
-      '&:active': {
-        backgroundColor: currentTheme.isDark ? 'rgba(255, 255, 255, 0.1)' : currentTheme.colors.neutral[200],
-        transform: 'translateY(0)',
-      },
+      border: 'none',
     },
   };
 
@@ -160,6 +103,7 @@ const Button = React.forwardRef(({
     opacity: 0.5,
     cursor: 'not-allowed',
     transform: 'none !important',
+    boxShadow: 'none !important',
   };
 
   const loadingStyles = {
@@ -189,7 +133,7 @@ const Button = React.forwardRef(({
     const iconStyles = {
       display: 'flex',
       alignItems: 'center',
-      fontSize: '1em',
+      fontSize: '1.2em', // Slightly larger icons
       flexShrink: 0,
     };
 
@@ -229,6 +173,39 @@ const Button = React.forwardRef(({
     );
   };
 
+  // Signature Animations
+  const getMotionProps = () => {
+    if (disabled || loading) return {};
+
+    if (variant === 'primary') {
+      return {
+        whileHover: { scale: 1.08 }, // Signature hover
+        whileTap: { scale: 0.92 },  // Signature tap
+        transition: { type: "spring", stiffness: 320, damping: 20 }
+      };
+    }
+
+    if (variant === 'secondary') {
+      return {
+        whileHover: { y: -1, background: isDark ? '#2A2D35' : '#E2E6EC' }, // Lift
+        whileTap: { scale: 0.96 },
+        transition: { duration: 0.2 }
+      };
+    }
+
+    if (variant === 'ghost') {
+      return {
+        whileHover: { background: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.05)' },
+        whileTap: { scale: 0.95 }
+      };
+    }
+
+    return {
+      whileHover: { scale: 1.02, boxShadow: '0 4px 12px rgba(0,0,0,0.15)' },
+      whileTap: { scale: 0.96 }
+    };
+  };
+
   return (
     <motion.button
       ref={ref}
@@ -236,8 +213,7 @@ const Button = React.forwardRef(({
       className={className}
       disabled={disabled || loading}
       onClick={onClick}
-      whileTap={!disabled && !loading ? buttonTap.tap : undefined}
-      whileHover={!disabled && !loading ? buttonTap.hover : undefined}
+      {...getMotionProps()}
       {...props}
     >
       {renderContent()}

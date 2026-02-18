@@ -71,6 +71,7 @@ import Card from '../ui/Card';
 import Skeleton from '../ui/Skeleton';
 import AnimatedList from '../ui/AnimatedList';
 import GlobalDatePicker from '../ui/GlobalDatePicker';
+import PageContainer from '../layout/PageContainer';
 import '../../styles/Analytics.css';
 
 // ... other imports ...
@@ -601,7 +602,7 @@ const Reports = () => {
   ];
 
   return (
-    <div className="analytics-page">
+    <PageContainer>
       {/* Header Section */}
       <motion.div
         initial={{ opacity: 0, y: -20 }}
@@ -667,23 +668,34 @@ const Reports = () => {
         className="analytics-kpi-grid"
       >
         {/* Total Sales Card */}
-        <Card>
+        <Card
+          hover={true}
+          style={{
+            background: isDark ? 'linear-gradient(145deg, #1e293b, #0f172a)' : 'linear-gradient(145deg, #ffffff, #f8fafc)',
+            border: isDark ? '1px solid rgba(255,255,255,0.05)' : '1px solid rgba(226, 232, 240, 0.8)',
+            boxShadow: isDark ? '0 10px 15px -3px rgba(0, 0, 0, 0.3)' : '0 10px 15px -3px rgba(0, 0, 0, 0.05)',
+          }}
+          whileHover={{ y: -5, boxShadow: isDark ? '0 20px 25px -5px rgba(0, 0, 0, 0.4)' : '0 20px 25px -5px rgba(0, 0, 0, 0.1)' }}
+        >
           <div className="kpi-card-header">
             <div>
-              <p className="kpi-label">
+              <p className="kpi-label" style={{ fontSize: '0.875rem', fontWeight: 600, color: currentTheme.colors.text.secondary, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
                 Net Sales
               </p>
-              <h3 className="kpi-value">
+              <h3 className="kpi-value" style={{ fontSize: '2rem', fontWeight: 800, marginTop: '8px', background: isDark ? 'linear-gradient(to right, #fff, #94a3b8)' : 'linear-gradient(to right, #1e293b, #475569)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
                 {formatCurrency(safeSummary.total_sales || 0)}
               </h3>
             </div>
             <div className="kpi-icon-wrapper" style={{
               background: isDark ? 'rgba(16, 185, 129, 0.1)' : '#ecfdf5',
+              borderRadius: '16px',
+              padding: '12px',
+              boxShadow: '0 4px 6px -1px rgba(16, 185, 129, 0.1)'
             }}>
               <TrendingUpIcon color={isDark ? '#34d399' : '#059669'} />
             </div>
           </div>
-          <div className="kpi-subtext">
+          <div className="kpi-subtext" style={{ marginTop: '16px', fontSize: '0.875rem', color: isDark ? '#94a3b8' : '#64748b' }}>
             <span>
               Total revenue for today
             </span>
@@ -691,23 +703,34 @@ const Reports = () => {
         </Card>
 
         {/* Total Orders Card */}
-        <Card>
+        <Card
+          hover={true}
+          style={{
+            background: isDark ? 'linear-gradient(145deg, #1e293b, #0f172a)' : 'linear-gradient(145deg, #ffffff, #f8fafc)',
+            border: isDark ? '1px solid rgba(255,255,255,0.05)' : '1px solid rgba(226, 232, 240, 0.8)',
+            boxShadow: isDark ? '0 10px 15px -3px rgba(0, 0, 0, 0.3)' : '0 10px 15px -3px rgba(0, 0, 0, 0.05)',
+          }}
+          whileHover={{ y: -5, boxShadow: isDark ? '0 20px 25px -5px rgba(0, 0, 0, 0.4)' : '0 20px 25px -5px rgba(0, 0, 0, 0.1)' }}
+        >
           <div className="kpi-card-header">
             <div>
-              <p className="kpi-label">
+              <p className="kpi-label" style={{ fontSize: '0.875rem', fontWeight: 600, color: currentTheme.colors.text.secondary, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
                 Total Orders
               </p>
-              <h3 className="kpi-value">
+              <h3 className="kpi-value" style={{ fontSize: '2rem', fontWeight: 800, marginTop: '8px', background: isDark ? 'linear-gradient(to right, #fff, #94a3b8)' : 'linear-gradient(to right, #1e293b, #475569)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
                 {safeSummary.total_bills || 0}
               </h3>
             </div>
             <div className="kpi-icon-wrapper" style={{
               background: isDark ? 'rgba(59, 130, 246, 0.1)' : '#eff6ff',
+              borderRadius: '16px',
+              padding: '12px',
+              boxShadow: '0 4px 6px -1px rgba(59, 130, 246, 0.1)'
             }}>
               <ReceiptIcon color={isDark ? '#60a5fa' : '#2563eb'} />
             </div>
           </div>
-          <div className="kpi-subtext">
+          <div className="kpi-subtext" style={{ marginTop: '16px', fontSize: '0.875rem', color: isDark ? '#94a3b8' : '#64748b' }}>
             <span>
               Bills generated today
             </span>
@@ -715,23 +738,34 @@ const Reports = () => {
         </Card>
 
         {/* Average Order Value Card */}
-        <Card>
+        <Card
+          hover={true}
+          style={{
+            background: isDark ? 'linear-gradient(145deg, #1e293b, #0f172a)' : 'linear-gradient(145deg, #ffffff, #f8fafc)',
+            border: isDark ? '1px solid rgba(255,255,255,0.05)' : '1px solid rgba(226, 232, 240, 0.8)',
+            boxShadow: isDark ? '0 10px 15px -3px rgba(0, 0, 0, 0.3)' : '0 10px 15px -3px rgba(0, 0, 0, 0.05)',
+          }}
+          whileHover={{ y: -5, boxShadow: isDark ? '0 20px 25px -5px rgba(0, 0, 0, 0.4)' : '0 20px 25px -5px rgba(0, 0, 0, 0.1)' }}
+        >
           <div className="kpi-card-header">
             <div>
-              <p className="kpi-label">
+              <p className="kpi-label" style={{ fontSize: '0.875rem', fontWeight: 600, color: currentTheme.colors.text.secondary, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
                 Avg. Order Value
               </p>
-              <h3 className="kpi-value">
+              <h3 className="kpi-value" style={{ fontSize: '2rem', fontWeight: 800, marginTop: '8px', background: isDark ? 'linear-gradient(to right, #fff, #94a3b8)' : 'linear-gradient(to right, #1e293b, #475569)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
                 {formatCurrency(safeSummary.average_bill_value || 0)}
               </h3>
             </div>
             <div className="kpi-icon-wrapper" style={{
               background: isDark ? 'rgba(245, 158, 11, 0.1)' : '#fffbeb',
+              borderRadius: '16px',
+              padding: '12px',
+              boxShadow: '0 4px 6px -1px rgba(245, 158, 11, 0.1)'
             }}>
               <DollarSignIcon color={isDark ? '#fbbf24' : '#d97706'} />
             </div>
           </div>
-          <div className="kpi-subtext">
+          <div className="kpi-subtext" style={{ marginTop: '16px', fontSize: '0.875rem', color: isDark ? '#94a3b8' : '#64748b' }}>
             <span>
               Per transaction average
             </span>
@@ -827,23 +861,25 @@ const Reports = () => {
                       const color = COLORS[index % COLORS.length];
 
                       return (
-                        <circle
+                        <motion.circle
                           key={product.product_id}
+                          initial={{ strokeDasharray: `0 ${circumference}` }}
+                          animate={{ strokeDasharray: adjustedDashArray }}
+                          transition={{ duration: 1, delay: index * 0.1, ease: "easeOut" }}
                           cx="160"
                           cy="160"
                           r={radius} // Use dynamic radius
                           fill="none"
                           stroke={color}
                           strokeWidth={strokeWidth}
-                          strokeDasharray={adjustedDashArray}
                           strokeDashoffset={-gapSize / 2} // Offset to center the gap
                           transform={`rotate(${rotation} 160 160)`}
                           style={{
-                            transition: 'all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275)', // Spring-like transition
                             cursor: 'pointer',
                             filter: isHovered ? 'drop-shadow(0px 4px 8px rgba(0,0,0,0.3))' : 'none',
                             opacity: hoveredProduct !== null && !isHovered ? 0.6 : 1, // Dim others
                           }}
+                          whileHover={{ scale: 1.02 }}
                           onMouseEnter={() => setHoveredProduct(index)}
                           onMouseLeave={() => setHoveredProduct(null)}
                         />
@@ -1613,7 +1649,7 @@ const Reports = () => {
           </motion.div>
         )}
       </AnimatePresence >
-    </div >
+    </PageContainer>
   );
 };
 

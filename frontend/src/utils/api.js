@@ -268,4 +268,33 @@ export const inventoryAPI = {
   getLowStock: () => api.get('/api/inventory/low-stock'),
 };
 
+// Worker Management APIs (Refactored)
+export const workerAPI = {
+  // Stats
+  getStats: () => api.get('/api/workers/stats'),
+
+  // CRUD
+  getWorkers: () => api.get('/api/workers'),
+  createWorker: (data) => api.post('/api/workers', data),
+  getWorker: (id) => api.get(`/api/workers/${id}`),
+  updateWorker: (id, data) => api.put(`/api/workers/${id}`, data),
+  deleteWorker: (id) => api.delete(`/api/workers/${id}`),
+
+  // Advances
+  addAdvance: (id, data) => api.post(`/api/workers/${id}/advance`, data),
+  getAdvances: (id) => api.get(`/api/workers/${id}/advances`),
+
+  // Salary
+  generateSalary: (id, month, year) => api.post(`/api/workers/${id}/generate-salary`, { month, year }),
+  getSalaryHistory: (id) => api.get(`/api/workers/${id}/salary-history`),
+  markPaid: (paymentId) => api.post(`/api/salary/${paymentId}/pay`),
+  checkMonthlySalaryStatus: (month, year) => api.get(`/api/workers/salary/status?month=${month}&year=${year}`),
+
+  // Attendance
+  getWorkerAttendance: (id) => api.get(`/api/workers/${id}/attendance`),
+  markAttendance: (id, data) => api.post(`/api/workers/${id}/attendance`, data),
+  bulkMarkPresent: () => api.post('/api/workers/attendance/bulk'),
+  checkAttendanceStatus: () => api.get('/api/workers/attendance/status'),
+};
+
 export default api;

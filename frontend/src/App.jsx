@@ -63,6 +63,15 @@ import { settingsAPI } from './api/settings';
 import { setCurrencySymbol } from './utils/api';
 import NotificationSystem from './components/system/NotificationSystem';
 
+// Worker Pages
+// Worker Pages
+import WorkersDashboard from './components/workers/WorkersPage';
+import WorkerList from './components/workers/WorkerList';
+import WorkerProfile from './components/workers/WorkerProfile';
+import Attendance from './components/workers/Attendance';
+import SalaryManager from './components/workers/SalaryManager';
+import { workerAPI } from './api/workers';
+
 // Import UI components
 import Button from './components/ui/Button';
 import Card from './components/ui/Card';
@@ -81,6 +90,44 @@ function AppContent() {
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
   const [posKey, setPosKey] = useState(0);
   const notificationRef = React.useRef(null);
+  const [showAttendancePrompt, setShowAttendancePrompt] = useState(false);
+
+  // Check Attendance & Salary on Mount
+  useEffect(() => {
+    const checkStatus = async () => {
+      try {
+        // 1. Attendance Check
+        const status = await workerAPI.checkAttendanceStatus();
+        if (!status.is_marked) {
+          setShowAttendancePrompt(true);
+        }
+
+        // 2. Salary Day Check
+        if (settings?.salary_day) {
+          const today = new Date();
+          if (today.getDate() === parseInt(settings.salary_day)) {
+            const salaryStatus = await workerAPI.checkMonthlySalaryStatus(today.getMonth() + 1, today.getFullYear());
+            if (salaryStatus.data && !salaryStatus.data.all_paid) {
+              setSalaryNotification(true);
+            }
+          }
+        }
+      } catch (e) {
+        console.error("Status check failed", e);
+      }
+    };
+
+    // Delay slightly to ensure settings are loaded (though text might pop in)
+    // or rely on settings dependency
+    if (settings?.salary_day) {
+      checkStatus();
+    } else {
+      // Initial check without settings, or just wait for settings to load
+      setTimeout(checkStatus, 3000);
+    }
+  }, [settings?.salary_day]);
+
+  const [salaryNotification, setSalaryNotification] = useState(false);
 
   // Initial Stock Check
   useEffect(() => {
@@ -100,6 +147,7 @@ function AppContent() {
     if (pathname.startsWith('/analytics')) return 'summary';
     if (pathname.startsWith('/analytics')) return 'summary';
     if (pathname.startsWith('/management')) return 'management';
+    if (pathname.startsWith('/workers')) return 'workers';
     if (pathname.startsWith('/inventory')) return 'inventory';
     if (pathname.startsWith('/settings')) return 'settings';
     return 'pos';
@@ -135,6 +183,19 @@ function AppContent() {
       )
     },
     {
+      id: 'workers',
+      label: 'Workers',
+      path: '/workers',
+      icon: (
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"></path>
+          <circle cx="9" cy="7" r="4" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"></circle>
+          <path d="M23 21v-2a4 4 0 0 0-3-3.87" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"></path>
+          <path d="M16 3.13a4 4 0 0 1 0 7.75" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"></path>
+        </svg>
+      )
+    },
+    {
       id: 'inventory',
       label: 'Inventory',
       path: '/inventory',
@@ -159,6 +220,7 @@ function AppContent() {
         </svg>
       )
     },
+
     {
       id: 'settings',
       label: 'Settings',
@@ -212,6 +274,7 @@ function AppContent() {
           else if (id === 'summary') navigate('/analytics');
           else if (id === 'inventory') navigate('/inventory');
           else if (id === 'management') navigate('/management');
+          else if (id === 'workers') navigate('/workers');
           else if (id === 'settings') navigate('/settings');
         }}
         isCollapsed={isSidebarCollapsed}
@@ -230,43 +293,57 @@ function AppContent() {
       }}>
         {/* Header */}
         <motion.header
-          initial={headerEnter.initial}
-          animate={headerEnter.animate}
-          transition={headerEnter.transition}
+          initial={{ opacity: 0, y: -12 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.35, ease: "easeOut" }}
+          whileHover={{ filter: 'brightness(1.05)' }}
           style={{
-            height: '80px',
+            height: '64px',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'space-between',
-            padding: `0 ${currentTheme.spacing[8]}`,
-            borderBottom: `1px solid ${currentTheme.glass?.border || 'rgba(0,0,0,0.05)'}`,
-            backgroundColor: currentTheme.glass?.header || 'rgba(255,255,255,0.7)',
-            backdropFilter: currentTheme.glass?.blur || 'blur(20px)',
-            WebkitBackdropFilter: currentTheme.glass?.blur || 'blur(20px)',
+            padding: '0 24px',
+            borderBottom: isDark ? '1px solid rgba(255,255,255,0.06)' : '1px solid rgba(0,0,0,0.06)',
+            backgroundColor: isDark ? 'rgba(11,11,12,0.72)' : 'rgba(255,255,255,0.75)',
+            backdropFilter: 'blur(14px)',
+            WebkitBackdropFilter: 'blur(14px)',
             zIndex: 40,
             flexShrink: 0,
+            transition: 'filter 0.2s ease',
           }}
         >
           {/* Left Side - New Bill Button */}
           <div style={{ width: '200px' }}>
-            {/* Show "Start New Bill" button on all screens */}
-            <Button
-              variant="primary"
-              size="md"
+            <motion.button
+              whileHover={{
+                transform: 'translateY(-1px)',
+                boxShadow: '0 6px 16px rgba(249,115,22,0.45)'
+              }}
+              whileTap={{
+                transform: 'translateY(0px) scale(0.97)'
+              }}
               onClick={() => {
                 setPosKey(prev => prev + 1);
                 navigate('/');
               }}
               style={{
-                background: 'linear-gradient(135deg, #FF6B00 0%, #FF8800 100%)',
-                boxShadow: '0 4px 12px rgba(255, 107, 0, 0.3)',
+                background: '#F97316', // Orange identity
+                boxShadow: '0 4px 12px rgba(249,115,22,0.35), inset 0 1px 0 rgba(255,255,255,0.2)', // Depth
                 border: 'none',
+                borderRadius: '8px', // Standard radius
+                padding: '8px 16px',
                 color: 'white',
-                fontWeight: 600
+                fontWeight: 600,
+                fontSize: '14px',
+                cursor: 'pointer',
+                display: 'inline-flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                transition: '180ms ease'
               }}
             >
               Start New Bill
-            </Button>
+            </motion.button>
           </div>
 
           {/* Center - Title */}
@@ -274,25 +351,31 @@ function AppContent() {
             flex: 1,
             display: 'flex',
             justifyContent: 'center',
-            alignItems: 'center',
-            gap: currentTheme.spacing[3]
+            alignItems: 'center'
           }}>
-            <h1 style={{
-              fontSize: '2rem',
-              fontWeight: 800,
-              margin: 0,
-              background: `linear-gradient(135deg, ${currentTheme.colors.primary[500]}, ${currentTheme.colors.primary[600]})`,
-              WebkitBackgroundClip: 'text',
-              WebkitTextFillColor: 'transparent',
-              letterSpacing: '-0.02em',
-            }}>
+            <h1
+              style={{
+                fontSize: '22px',
+                fontWeight: 600,
+                letterSpacing: '0.3px',
+                color: '#F97316',
+                textShadow: '0 0 12px rgba(249,115,22,0.25)', // Glow
+                margin: 0,
+                cursor: 'default',
+                transition: 'opacity 200ms ease',
+                display: 'flex',
+                alignItems: 'center'
+              }}
+              onMouseEnter={(e) => e.currentTarget.style.opacity = '0.85'}
+              onMouseLeave={(e) => e.currentTarget.style.opacity = '1'}
+            >
               ReBill
               <span style={{
-                fontSize: '1.25rem',
-                fontWeight: 500,
+                fontSize: '14px',
+                fontWeight: 400,
                 color: currentTheme.colors.text.secondary,
-                WebkitTextFillColor: currentTheme.colors.text.secondary,
-                marginLeft: '12px'
+                opacity: 0.65,
+                marginLeft: '8px'
               }}>
                 ({settings.shop_name || 'Burger Bhau'})
               </span>
@@ -305,31 +388,46 @@ function AppContent() {
             display: 'flex',
             justifyContent: 'flex-end',
             alignItems: 'center',
-            gap: currentTheme.spacing[4]
+            gap: '16px'
           }}>
-            <div style={{
-              padding: `${currentTheme.spacing[1]} ${currentTheme.spacing[3]}`,
-              backgroundColor: currentTheme.colors.surface,
-              border: `1px solid ${currentTheme.colors.border}`,
-              borderRadius: '999px',
-              fontSize: '0.875rem',
-              fontWeight: 500,
-              color: currentTheme.colors.text.secondary,
-            }}>
+            {/* Date Chip */}
+            <div
+              style={{
+                padding: '6px 12px',
+                backgroundColor: isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.04)',
+                border: isDark ? '1px solid rgba(255,255,255,0.06)' : '1px solid rgba(0,0,0,0.06)',
+                borderRadius: '999px',
+                fontSize: '0.875rem',
+                fontWeight: 500,
+                color: currentTheme.colors.text.secondary,
+                cursor: 'default',
+                transition: 'background 0.2s'
+              }}
+              onMouseEnter={(e) => e.currentTarget.style.background = isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.06)'}
+              onMouseLeave={(e) => e.currentTarget.style.background = isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.04)'}
+            >
               {todayLabel}
             </div>
 
-            <Button
-              variant="ghost"
-              size="sm"
+            {/* Theme Toggle */}
+            <motion.button
+              whileHover={{
+                backgroundColor: isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.08)'
+              }}
+              whileTap={{ scale: 0.92 }}
               onClick={toggleTheme}
               style={{
                 width: '40px',
                 height: '40px',
                 padding: 0,
                 borderRadius: '12px',
-                border: `1px solid ${currentTheme.colors.border}`,
-                backgroundColor: currentTheme.colors.surface,
+                border: 'none',
+                backgroundColor: isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.04)',
+                color: currentTheme.colors.text.primary,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                cursor: 'pointer'
               }}
             >
               {isDark ? (
@@ -337,7 +435,7 @@ function AppContent() {
               ) : (
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" /></svg>
               )}
-            </Button>
+            </motion.button>
           </div>
         </motion.header>
 
@@ -357,6 +455,14 @@ function AppContent() {
             <Route path="/analytics" element={<Reports />} />
             <Route path="/inventory" element={<Inventory />} />
             <Route path="/management" element={<ProductManagement />} />
+
+            {/* Worker Routes */}
+            <Route path="/workers" element={<WorkersDashboard />} />
+            <Route path="/workers/list" element={<WorkerList />} /> {/* Optional alias if needed, but dashboard is main entry */}
+            <Route path="/workers/:id" element={<WorkerProfile />} />
+            <Route path="/workers/attendance" element={<Attendance />} />
+            <Route path="/workers/salary" element={<SalaryManager />} />
+
             <Route path="/settings" element={<Settings />} />
             <Route path="*" element={<WorkingPOSInterface key={posKey} onBillCreated={handleBillCreated} />} />
           </Routes>
@@ -501,6 +607,114 @@ function AppContent() {
 
       {/* Global Notification System */}
       <NotificationSystem ref={notificationRef} />
+
+      {/* Startup Attendance Prompt */}
+      <AnimatePresence>
+        {showAttendancePrompt && (
+          <div style={{
+            position: 'fixed', inset: 0, zIndex: 2000,
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            backgroundColor: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(5px)'
+          }}>
+            <motion.div
+              initial={{ scale: 0.9, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.9, opacity: 0 }}
+              style={{
+                background: isDark ? '#1e293b' : 'white',
+                padding: '32px', borderRadius: '16px',
+                maxWidth: '400px', width: '90%',
+                boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)',
+                border: '1px solid #FF6B00'
+              }}
+            >
+              <h2 style={{
+                marginTop: 0,
+                color: currentTheme.colors.text.primary,
+                display: 'flex', alignItems: 'center', gap: '12px'
+              }}>
+                <span style={{ fontSize: '1.5rem' }}>⏰</span>
+                Mark Attendance?
+              </h2>
+              <p style={{ color: currentTheme.colors.text.secondary }}>
+                You haven't marked worker attendance for today yet. Would you like to do it now?
+              </p>
+              <div style={{ display: 'flex', gap: '12px', marginTop: '24px', justifyContent: 'flex-end' }}>
+                <Button
+                  variant="ghost"
+                  onClick={() => setShowAttendancePrompt(false)}
+                >
+                  Later
+                </Button>
+                <Button
+                  variant="primary"
+                  onClick={() => {
+                    setShowAttendancePrompt(false);
+                    navigate('/workers/attendance');
+                  }}
+                  style={{ background: '#FF6B00', border: 'none' }}
+                >
+                  Yes, Mark Now
+                </Button>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
+      {/* Salary Day Notification */}
+      <AnimatePresence>
+        {salaryNotification && (
+          <div style={{
+            position: 'fixed', inset: 0, zIndex: 2000,
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            backgroundColor: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(5px)'
+          }}>
+            <motion.div
+              initial={{ scale: 0.9, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.9, opacity: 0 }}
+              style={{
+                background: isDark ? '#1e293b' : 'white',
+                padding: '32px', borderRadius: '16px',
+                maxWidth: '400px', width: '90%',
+                boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)',
+                border: '1px solid #10B981'
+              }}
+            >
+              <h2 style={{
+                marginTop: 0,
+                color: currentTheme.colors.text.primary,
+                display: 'flex', alignItems: 'center', gap: '12px'
+              }}>
+                <span style={{ fontSize: '1.5rem' }}>💰</span>
+                It's Salary Day!
+              </h2>
+              <p style={{ color: currentTheme.colors.text.secondary }}>
+                Today is the designated salary day. Would you like to review and process worker salaries now?
+              </p>
+              <div style={{ display: 'flex', gap: '12px', marginTop: '24px', justifyContent: 'flex-end' }}>
+                <Button
+                  variant="ghost"
+                  onClick={() => setSalaryNotification(false)}
+                >
+                  Later
+                </Button>
+                <Button
+                  variant="primary"
+                  onClick={() => {
+                    setSalaryNotification(false);
+                    navigate('/workers/salary');
+                  }}
+                  style={{ background: '#10B981', border: 'none' }}
+                >
+                  Go to Salary Manager
+                </Button>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }

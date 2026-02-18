@@ -67,16 +67,17 @@
 // Professional enterprise color system with consistent usage across all screens
 
 // Primary brand color - Modern Vibrant Orange
+// Primary brand color - ReBill Signature Orange
 export const primary = {
-  50: '#FFF1E9',  // Soft Orange Background
+  50: '#FFF1E9',
   100: '#FFDBC2',
   200: '#FFBFA0',
   300: '#FF9E75',
-  400: '#FF8A3D', // Secondary Orange
-  500: '#FF6B2C', // Primary Orange (Base)
-  600: '#E85A1F', // Hover Orange
-  700: '#C44112',
-  800: '#99300B',
+  400: '#FF8A3D',
+  500: '#FF6A00', // ReBill Signature Primary
+  600: '#FF7A1A', // ReBill Hover
+  700: '#E85C00', // ReBill Pressed
+  800: '#C44112',
   900: '#752307',
   950: '#401002',
 };
@@ -84,17 +85,17 @@ export const primary = {
 // Neutral color system - Professional Slate Scale (Blue-tinted grays)
 export const neutral = {
   0: '#ffffff',     // Pure White
-  50: '#f8fafc',    // Slate 50
-  100: '#f1f5f9',   // Slate 100
-  200: '#e2e8f0',   // Slate 200
-  300: '#cbd5e1',   // Slate 300
-  400: '#94a3b8',   // Slate 400
-  500: '#64748b',   // Slate 500
-  600: '#475569',   // Slate 600
-  700: '#334155',   // Slate 700
-  800: '#1e293b',   // Slate 800
-  900: '#0f172a',   // Slate 900
-  950: '#020617',   // Slate 950
+  50: '#f8fafc',
+  100: '#f1f5f9',
+  200: '#e2e8f0',
+  300: '#cbd5e1',
+  400: '#94a3b8',
+  500: '#64748b',
+  600: '#475569',
+  700: '#334155',
+  800: '#1e293b',
+  900: '#0f172a',
+  950: '#020617',
 };
 
 // Semantic colors - consistent across all screens
@@ -251,61 +252,60 @@ export const typography = {
   }
 };
 
-// Spacing system
+// Strict Spacing Scale
 export const spacing = {
   0: '0',
-  1: '0.25rem',   // 4px
-  2: '0.5rem',    // 8px
-  3: '0.75rem',   // 12px
-  4: '1rem',      // 16px
-  5: '1.25rem',   // 20px
-  6: '1.5rem',    // 24px
-  8: '2rem',      // 32px
-  10: '2.5rem',   // 40px
-  12: '3rem',     // 48px
-  16: '4rem',     // 64px
-  20: '5rem',     // 80px
-  24: '6rem',     // 96px
-  32: '8rem',     // 128px
+  1: '4px',
+  2: '8px',
+  3: '12px',
+  4: '16px',
+  6: '24px',
+  8: '32px',
+  10: '40px',
+  12: '48px',
+  16: '64px',
+  20: '80px',
+  24: '96px',
+  32: '128px',
 };
 
 // Border radius
 export const borderRadius = {
   none: '0',
-  sm: '0.25rem',    // 4px
-  base: '0.375rem', // 6px
-  md: '0.5rem',     // 8px
-  lg: '0.75rem',    // 12px
-  xl: '1rem',       // 16px (Card Standard)
-  '2xl': '1.5rem',  // 24px
-  '3xl': '2rem',    // 32px
+  sm: '4px',
+  base: '6px',
+  md: '8px',
+  lg: '12px',
+  xl: '16px', // Standard ReBill Card
+  '2xl': '24px',
+  '3xl': '32px',
   full: '9999px',
 };
 
-// Shadows - subtle and professional
+// Shadows - Human Quality Depth
 export const shadows = {
   none: 'none',
-  sm: '0 1px 2px 0 rgba(0, 0, 0, 0.03)',
-  base: '0 1px 3px 0 rgba(0, 0, 0, 0.05), 0 1px 2px 0 rgba(0, 0, 0, 0.03)',
+  sm: '0 1px 2px rgba(0,0,0,0.04)',
+  base: '0 1px 2px rgba(0,0,0,0.04), 0 4px 12px rgba(0,0,0,0.04)',
   md: '0 4px 6px -1px rgba(0, 0, 0, 0.06), 0 2px 4px -1px rgba(0, 0, 0, 0.04)',
   lg: '0 8px 12px -2px rgba(0, 0, 0, 0.08), 0 4px 8px -2px rgba(0, 0, 0, 0.04)',
   xl: '0 12px 20px -4px rgba(0, 0, 0, 0.1), 0 6px 12px -2px rgba(0, 0, 0, 0.05)',
   '2xl': '0 20px 32px -8px rgba(0, 0, 0, 0.12), 0 10px 20px -4px rgba(0, 0, 0, 0.06)',
 
-  // Strong shadows for cards (Premium Scale)
-  card: '0 4px 20px rgba(0,0,0,0.06)',
-  cardHover: '0 10px 25px rgba(0,0,0,0.08)',
+  // ReBill Signature Card Shadows
+  card: '0 1px 2px rgba(0,0,0,0.04), 0 8px 24px rgba(0,0,0,0.08)',
+  cardHover: '0 12px 32px rgba(0,0,0,0.12), 0 0 0 1px rgba(255,106,0,0.20)', // Lift + Glow
 
-  // Dark theme card shadows
-  cardDark: '0 4px 20px rgba(0,0,0,0.4)',
-  cardDarkHover: '0 10px 30px rgba(0,0,0,0.5)',
+  // Dark Theme Shadows
+  cardDark: '0 1px 0 rgba(255,255,255,0.03), 0 8px 24px rgba(0,0,0,0.35)',
+  cardDarkHover: '0 12px 32px rgba(0,0,0,0.45), 0 0 0 1px rgba(255,106,0,0.25)', // Lift + Glow
 
   inner: 'inset 0 1px 2px 0 rgba(0, 0, 0, 0.03)',
 
   // Colored shadows for accent elements
   primary: {
-    sm: '0 1px 2px 0 rgba(255, 107, 44, 0.1)',
-    md: '0 4px 6px -1px rgba(255, 107, 44, 0.15), 0 2px 4px -1px rgba(255, 107, 44, 0.1)',
+    sm: '0 1px 2px 0 rgba(255, 106, 0, 0.1)',
+    md: '0 6px 18px rgba(255,106,0,0.35)',
   },
 
   success: {
@@ -325,9 +325,9 @@ export const shadows = {
 
   // Glow effects for interactive states
   glow: {
-    primary: '0 0 0 1px rgba(255, 107, 44, 0.1), 0 0 8px rgba(255, 107, 44, 0.1)',
-    success: '0 0 0 1px rgba(34, 197, 94, 0.1), 0 0 8px rgba(34, 197, 94, 0.1)',
-    error: '0 0 0 1px rgba(239, 68, 68, 0.1), 0 0 8px rgba(239, 68, 68, 0.1)',
+    primary: '0 0 0 2px rgba(255, 106, 0, 0.35)',
+    success: '0 0 0 2px rgba(34, 197, 94, 0.35)',
+    error: '0 0 0 2px rgba(239, 68, 68, 0.35)',
   }
 };
 
@@ -349,35 +349,35 @@ const glass = {
     input: 'rgba(255, 255, 255, 0.9)',
     dropdown: 'rgba(255, 255, 255, 0.95)',
     header: 'rgba(255, 255, 255, 0.7)',
-    border: 'rgba(0, 0, 0, 0.06)',
+    border: '#E3E6EA',
     blur: 'blur(20px)',
   },
   dark: {
-    sidebar: 'rgba(20, 20, 20, 0.7)',
-    card: 'rgba(25, 25, 25, 0.75)',
-    modal: 'rgba(25, 25, 25, 0.9)',
-    input: 'rgba(40, 40, 40, 0.9)',
-    dropdown: 'rgba(30, 30, 30, 0.95)',
-    header: 'rgba(20, 20, 20, 0.7)',
-    border: 'rgba(255, 255, 255, 0.06)',
+    sidebar: 'rgba(21, 22, 26, 0.7)',
+    card: 'rgba(27, 29, 34, 0.75)',
+    modal: 'rgba(27, 29, 34, 0.9)',
+    input: 'rgba(35, 38, 45, 0.9)',
+    dropdown: 'rgba(35, 38, 45, 0.95)',
+    header: 'rgba(21, 22, 26, 0.7)',
+    border: '#2C2F36',
     blur: 'blur(20px)',
   }
 };
 
-// Light theme configuration
+// Light theme configuration - ReBill Light
 export const lightTheme = {
   colors: {
     ...colors,
-    background: '#FFF7F3',   // Fallback
-    surface: 'rgba(255, 255, 255, 0.75)', // Glass surface
-    card: 'rgba(255, 255, 255, 0.75)',
+    background: '#F4F6F8', // ReBill Light Background
+    surface: '#FFFFFF',
+    card: '#FFFFFF',
     text: {
       primary: neutral[900],
       secondary: neutral[600],
       muted: neutral[400],
       inverse: neutral[0],
     },
-    border: 'rgba(0, 0, 0, 0.06)', // Glass border
+    border: '#E3E6EA',
     focus: colors.primary[500],
   },
   glass: glass.light,
@@ -386,32 +386,32 @@ export const lightTheme = {
   borderRadius,
   shadows: {
     ...shadows,
-    card: '0 4px 20px rgba(0, 0, 0, 0.06)',
-    cardHover: '0 8px 30px rgba(0, 0, 0, 0.08)',
+    card: shadows.card,
+    cardHover: shadows.cardHover,
   },
   gradients: {
-    background: 'linear-gradient(180deg, #FFF7F3 0%, #FFFFFF 35%, #FFF4EE 100%)',
-    glow: 'radial-gradient(circle at 15% 20%, rgba(255,107,44,0.08), transparent 40%), radial-gradient(circle at 85% 80%, rgba(255,138,61,0.05), transparent 40%)',
-    primary: 'linear-gradient(135deg, #FF6B2C, #FF8A3D)',
+    background: '#F4F6F8',
+    glow: 'none',
+    primary: 'linear-gradient(135deg, #FF6A00, #FF8A3D)',
   }
 };
 
-// Dark theme configuration - Professional Modern Dark
+// Dark theme configuration - ReBill Dark
 export const darkTheme = {
   colors: {
     ...colors,
-    background: '#0E0E0E', // Fallback
-    surface: 'rgba(25, 25, 25, 0.75)', // Glass surface
-    card: 'rgba(25, 25, 25, 0.75)',
+    background: '#0E0E11', // ReBill Dark Background
+    surface: '#15161A', // Secondary Surface
+    card: '#1B1D22', // Card Surface
     text: {
       primary: '#e5e5e5',
       secondary: '#a3a3a3',
       muted: '#737373',
       inverse: '#121212',
     },
-    border: 'rgba(255, 255, 255, 0.06)', // Glass border
+    border: '#2C2F36',
     focus: colors.primary[500],
-    sidebar: '#111111',
+    sidebar: '#15161A',
     modal: '#1F1F1F',
   },
   glass: glass.dark,
@@ -420,17 +420,17 @@ export const darkTheme = {
   borderRadius,
   shadows: {
     ...shadows,
-    card: '0 4px 20px rgba(0, 0, 0, 0.4)',
-    cardHover: '0 8px 30px rgba(0, 0, 0, 0.6)',
+    card: shadows.cardDark,
+    cardHover: shadows.cardDarkHover,
     glow: {
-      primary: '0 0 20px rgba(255, 107, 44, 0.15)',
+      primary: '0 0 20px rgba(255, 106, 0, 0.15)',
       success: '0 0 20px rgba(34, 197, 94, 0.15)',
     }
   },
   gradients: {
-    background: 'linear-gradient(180deg, #0E0E0E 0%, #141414 50%, #101010 100%)',
-    glow: 'radial-gradient(circle at 20% 25%, rgba(255,107,44,0.15), transparent 40%), radial-gradient(circle at 80% 75%, rgba(255,138,61,0.10), transparent 40%)',
-    primary: 'linear-gradient(135deg, #FF6B2C, #FF8A3D)',
+    background: '#0E0E11',
+    glow: 'radial-gradient(circle at 15% 20%, rgba(255,106,0,0.06), transparent 40%), radial-gradient(circle at 85% 80%, rgba(255,106,0,0.04), transparent 40%)',
+    primary: 'linear-gradient(135deg, #FF6A00, #FF8A3D)',
   }
 };
 

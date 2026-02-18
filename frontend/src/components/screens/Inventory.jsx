@@ -4,6 +4,10 @@ import { inventoryAPI, productsAPI, handleAPIError } from '../../api/api';
 import { useToast } from '../../context/ToastContext';
 import '../../styles/Inventory.css';
 import GlobalSelect from '../ui/GlobalSelect';
+import PageContainer from '../layout/PageContainer';
+import Card from '../ui/Card';
+import Button from '../ui/Button';
+import { useTheme } from '../../context/ThemeContext';
 
 // --- Icons ---
 const SearchIcon = () => (
@@ -338,56 +342,76 @@ const Inventory = () => {
 
     const activeProducts = products.filter(p => p.active);
 
+    const { currentTheme, isDark } = useTheme();
+
     return (
-        <div className="invPage">
+        <PageContainer>
             {/* --- Summary Dashboard --- */}
             <div className="invSummaryGrid">
-                <div
-                    className={`invSummaryCard ${filterStatus === 'ALL' ? 'active' : ''}`}
+                <Card
+                    hover={true}
                     onClick={() => setFilterStatus('ALL')}
+                    style={{
+                        cursor: 'pointer',
+                        borderColor: filterStatus === 'ALL' ? currentTheme.colors.accent : 'transparent',
+                        background: filterStatus === 'ALL' && isDark ? 'rgba(var(--accent-rgb), 0.1)' : undefined
+                    }}
                 >
                     <span className="invSummaryLabel">Total Products</span>
                     <span className="invSummaryValue">{metrics.totalProducts}</span>
-                </div>
-                <div
-                    className={`invSummaryCard ${filterStatus === 'LOW_STOCK' ? 'active' : ''}`}
+                </Card>
+
+                <Card
+                    hover={true}
                     onClick={() => setFilterStatus(filterStatus === 'LOW_STOCK' ? 'ALL' : 'LOW_STOCK')}
+                    style={{
+                        cursor: 'pointer',
+                        borderColor: filterStatus === 'LOW_STOCK' ? currentTheme.colors.warning.primary : 'transparent',
+                    }}
                 >
                     <span className="invSummaryLabel">Low Stock</span>
                     <span className="invSummaryValue" style={{ color: metrics.lowStock > 0 ? '#F59E0B' : 'inherit' }}>
                         {metrics.lowStock}
                     </span>
-                </div>
-                <div
-                    className={`invSummaryCard ${filterStatus === 'OUT_OF_STOCK' ? 'active' : ''}`}
+                </Card>
+
+                <Card
+                    hover={true}
                     onClick={() => setFilterStatus(filterStatus === 'OUT_OF_STOCK' ? 'ALL' : 'OUT_OF_STOCK')}
+                    style={{
+                        cursor: 'pointer',
+                        borderColor: filterStatus === 'OUT_OF_STOCK' ? currentTheme.colors.error.primary : 'transparent',
+                    }}
                 >
                     <span className="invSummaryLabel">Out of Stock</span>
                     <span className="invSummaryValue" style={{ color: metrics.outOfStock > 0 ? '#EF4444' : 'inherit' }}>
                         {metrics.outOfStock}
                     </span>
-                </div>
-                <div className="invSummaryCard">
+                </Card>
+
+                <Card hover={true}>
                     <span className="invSummaryLabel">Total Units</span>
                     <span className="invSummaryValue">{metrics.totalStockValue.toLocaleString()}</span>
-                </div>
-                <div className="invSummaryCard">
+                </Card>
+
+                <Card hover={true}>
                     <span className="invSummaryLabel">Inventory Value</span>
                     <span className="invSummaryValue" style={{ color: '#10B981' }}>
                         ₹{metrics.inventoryValue.toLocaleString()}
                     </span>
-                </div>
-                <div className="invSummaryCard">
+                </Card>
+
+                <Card hover={true}>
                     <span className="invSummaryLabel">Inactive Stock Value</span>
                     <span className="invSummaryValue" style={{ color: '#6B7280' }}>
                         Rs {metrics.inactiveStockValue.toLocaleString()}
                     </span>
-                </div>
+                </Card>
             </div>
 
 
             {/* --- Main Content --- */}
-            <div className="invMainContent">
+            <Card className="invMainContent" padding="0">
                 {/* Header */}
                 <div className="invHeader">
                     <div className="invTitleGroup">
@@ -429,9 +453,9 @@ const Inventory = () => {
                                 <SearchIcon />
                             </div>
                         </div>
-                        <button className="invPrimaryBtn" onClick={openAddModal}>
-                            <PlusIcon /> Add Inventory
-                        </button>
+                        <Button variant="primary" onClick={openAddModal} icon={<PlusIcon />}>
+                            Add Inventory
+                        </Button>
                     </div>
                 </div>
 
@@ -565,7 +589,7 @@ const Inventory = () => {
                     <div>Showing {sortedItems.length} of {items.length} products</div>
                     <div>{filterStatus !== 'ALL' ? `Filtered by ${filterStatus.replace('_', ' ').toLowerCase()}` : 'All items'}</div>
                 </div>
-            </div>
+            </Card>
 
             {/* --- Modals (Unchanged logic, just ensure existing ones are present) --- */}
             <AnimatePresence>
@@ -750,7 +774,7 @@ const Inventory = () => {
                     </div>
                 )}
             </AnimatePresence>
-        </div>
+        </PageContainer>
     );
 };
 

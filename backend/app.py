@@ -36,7 +36,9 @@ def create_app(config_name='default'):
     from routes.reports import reports_bp
     from routes.categories import categories_bp
     from routes.settings import settings_bp
+    from routes.settings import settings_bp
     from routes.inventory import inventory_bp
+    from routes.workers import workers_bp
     
     # Load configuration
     app.config.from_object(config[config_name])
@@ -62,6 +64,7 @@ def create_app(config_name='default'):
     app.register_blueprint(categories_bp)
     app.register_blueprint(settings_bp)
     app.register_blueprint(inventory_bp)
+    app.register_blueprint(workers_bp)
 
     # Serve product images
     @app.route('/api/images/<path:filename>')
@@ -149,6 +152,14 @@ if __name__ == '__main__':
     # Create tables if they don't exist
     try:
         with app.app_context():
+            # Ensure worker schema exists (PostgreSQL specific)
+            try:
+                from sqlalchemy import text
+                db.session.execute(text("CREATE SCHEMA IF NOT EXISTS worker"))
+                db.session.commit()
+            except Exception as e:
+                print(f"Schema creation warning (ignore if using SQLite): {e}")
+
             db.create_all()
             print("Database tables created/verified")
     except Exception as e:

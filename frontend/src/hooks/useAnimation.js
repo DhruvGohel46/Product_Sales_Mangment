@@ -5,20 +5,17 @@ import { ANIMATION_DURATIONS, EASINGS } from '../utils/constants';
 export const useAnimation = () => {
   // Page transition variants
   const pageVariants = {
-    initial: { 
-      opacity: 0, 
-      y: 15,
-      scale: 0.99
+    initial: {
+      opacity: 0,
+      y: 10
     },
-    in: { 
-      opacity: 1, 
-      y: 0,
-      scale: 1
+    in: {
+      opacity: 1,
+      y: 0
     },
-    out: { 
-      opacity: 0, 
-      y: -15,
-      scale: 0.99
+    out: {
+      opacity: 0,
+      y: -10
     }
   };
 
@@ -30,18 +27,18 @@ export const useAnimation = () => {
 
   // Card entrance animation
   const cardVariants = {
-    initial: { 
-      opacity: 0, 
+    initial: {
+      opacity: 0,
       y: 12,
       scale: 0.98
     },
-    animate: { 
-      opacity: 1, 
+    animate: {
+      opacity: 1,
       y: 0,
       scale: 1
     },
-    exit: { 
-      opacity: 0, 
+    exit: {
+      opacity: 0,
       y: -12,
       scale: 0.98
     }
@@ -62,11 +59,11 @@ export const useAnimation = () => {
 
   // Success animation - gentle spring
   const successVariants = {
-    initial: { 
+    initial: {
       scale: 0.8,
       opacity: 0
     },
-    animate: { 
+    animate: {
       scale: 1,
       opacity: 1,
       transition: {
@@ -75,7 +72,7 @@ export const useAnimation = () => {
         damping: 20
       }
     },
-    exit: { 
+    exit: {
       scale: 0.8,
       opacity: 0
     }
@@ -168,27 +165,27 @@ export const useAnimation = () => {
     // Page animations
     pageVariants,
     pageTransition,
-    
+
     // Component animations
     cardVariants,
     cardTransition,
     buttonTap,
-    
+
     // Special animations
     successVariants,
     slideInRight,
     slideInLeft,
     fadeInUp,
-    
+
     // List animations
     staggerContainer,
     staggerItem,
-    
+
     // Utility animations
     pulseVariants,
     bounceVariants,
     microInteractions,
-    
+
     // Animation presets for common use cases
     presets: {
       // For page transitions
@@ -198,7 +195,7 @@ export const useAnimation = () => {
         exit: pageVariants.out,
         transition: pageTransition
       },
-      
+
       // For cards
       cardEntrance: {
         initial: cardVariants.initial,
@@ -206,10 +203,10 @@ export const useAnimation = () => {
         exit: cardVariants.exit,
         transition: cardTransition
       },
-      
+
       // For buttons
       buttonPress: buttonTap,
-      
+
       // For lists
       listContainer: staggerContainer,
       listItem: staggerItem

@@ -62,14 +62,14 @@ const Button = React.forwardRef(({
 
   const variantStyles = {
     primary: {
-      background: '#FF6A00', // Signature orange
+      backgroundColor: '#FF6A00', // Signature orange
       color: '#FFFFFF',
       boxShadow: '0 6px 18px rgba(255,106,0,0.35)', // Signature Shadow
       border: 'none',
       // Hover handled by motion
     },
     secondary: {
-      background: isDark ? '#23262D' : '#E9EDF2',
+      backgroundColor: isDark ? '#23262D' : '#E9EDF2',
       color: currentTheme.colors.text.primary,
       border: 'none', // No border for secondary
       boxShadow: 'none',
@@ -187,7 +187,7 @@ const Button = React.forwardRef(({
 
     if (variant === 'secondary') {
       return {
-        whileHover: { y: -1, background: isDark ? '#2A2D35' : '#E2E6EC' }, // Lift
+        whileHover: { y: -1, backgroundColor: isDark ? '#2A2D35' : '#E2E6EC' }, // Lift
         whileTap: { scale: 0.96 },
         transition: { duration: 0.2 }
       };
@@ -195,7 +195,7 @@ const Button = React.forwardRef(({
 
     if (variant === 'ghost') {
       return {
-        whileHover: { background: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.05)' },
+        whileHover: { backgroundColor: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.05)' },
         whileTap: { scale: 0.95 }
       };
     }

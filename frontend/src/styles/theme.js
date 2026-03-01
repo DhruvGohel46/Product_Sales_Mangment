@@ -218,14 +218,14 @@ export const typography = {
   },
 
   fontSize: {
-    xs: '0.75rem',    // 12px
-    sm: '0.875rem',   // 14px
-    base: '0.9375rem', // 15px
-    lg: '1rem',       // 16px
-    xl: '1.125rem',   // 18px
-    '2xl': '1.25rem', // 20px
-    '3xl': '1.5rem',  // 24px
-    '4xl': '1.875rem', // 30px
+    xs: 'var(--font-size-ui-xs)',    // 12px
+    sm: 'var(--font-size-ui-sm)',   // 14px
+    base: 'var(--font-size-ui-base)', // 15px
+    lg: 'var(--font-size-ui-lg)',       // 16px
+    xl: 'var(--font-size-ui-xl)',   // 18px
+    '2xl': 'var(--font-size-ui-2xl)', // 20px
+    '3xl': 'var(--font-size-ui-3xl)',  // 24px
+    '4xl': 'var(--font-size-ui-4xl)', // 30px
     '5xl': '2.25rem', // 36px
     '6xl': '3rem',    // 48px
   },
@@ -255,18 +255,18 @@ export const typography = {
 // Strict Spacing Scale
 export const spacing = {
   0: '0',
-  1: '4px',
-  2: '8px',
-  3: '12px',
-  4: '16px',
-  6: '24px',
-  8: '32px',
-  10: '40px',
-  12: '48px',
-  16: '64px',
-  20: '80px',
-  24: '96px',
-  32: '128px',
+  1: 'calc(4px * var(--ui-scale))',
+  2: 'calc(8px * var(--ui-scale))',
+  3: 'calc(12px * var(--ui-scale))',
+  4: 'calc(16px * var(--ui-scale))',
+  6: 'calc(24px * var(--ui-scale))',
+  8: 'calc(32px * var(--ui-scale))',
+  10: 'calc(40px * var(--ui-scale))',
+  12: 'calc(48px * var(--ui-scale))',
+  16: 'calc(64px * var(--ui-scale))',
+  20: 'calc(80px * var(--ui-scale))',
+  24: 'calc(96px * var(--ui-scale))',
+  32: 'calc(128px * var(--ui-scale))',
 };
 
 // Border radius

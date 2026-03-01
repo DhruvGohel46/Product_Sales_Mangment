@@ -3,20 +3,20 @@
 .workerPage {
     display: flex;
     flex-direction: column;
-    gap: 24px;
-    padding-bottom: 40px;
+    gap: calc(24px * var(--ui-scale));
+    padding-bottom: calc(40px * var(--ui-scale));
 }
 
 /* --- Profile Header --- */
 .wpHeader {
     background: var(--surface-primary);
-    border-radius: 16px;
-    padding: 24px 32px;
+    border-radius: calc(16px * var(--ui-scale));
+    padding: calc(24px * var(--ui-scale)) calc(32px * var(--ui-scale));
     /* Slimmer padding */
     display: flex;
-    gap: 32px;
+    gap: calc(32px * var(--ui-scale));
     align-items: center;
-    margin-bottom: 24px;
+    margin-bottom: calc(24px * var(--ui-scale));
     box-shadow: var(--shadow-card);
     border: 1px solid var(--border-primary);
     position: sticky;
@@ -36,9 +36,9 @@
 }
 
 .wpAvatar {
-    width: 100px;
+    width: calc(100px * var(--ui-scale));
     /* Slightly smaller avatar */
-    height: 100px;
+    height: calc(100px * var(--ui-scale));
     border-radius: 50%;
     background: var(--accent);
     color: white;
@@ -65,8 +65,8 @@
 }
 
 .wpName {
-    margin: 0 0 8px 0;
-    font-size: 26px;
+    margin: 0 0 calc(8px * var(--ui-scale)) 0;
+    font-size: calc(26px * var(--ui-font-scale));
     font-weight: 700;
     letter-spacing: -0.5px;
     color: var(--text-primary) !important;
@@ -76,23 +76,23 @@
 .wpRoleRow {
     display: flex;
     align-items: center;
-    gap: 8px;
-    margin-bottom: 16px;
+    gap: calc(8px * var(--ui-scale));
+    margin-bottom: calc(16px * var(--ui-scale));
 }
 
 .wpRole {
-    font-size: 14px;
+    font-size: calc(14px * var(--ui-font-scale));
     color: var(--text-secondary);
     font-weight: 500;
     opacity: 0.9;
 }
 
 .wpStatusBadge {
-    padding: 4px 12px;
-    border-radius: 20px;
-    font-size: 12px;
+    padding: calc(4px * var(--ui-scale)) calc(12px * var(--ui-scale));
+    border-radius: calc(20px * var(--ui-scale));
+    font-size: calc(12px * var(--ui-font-scale));
     font-weight: 600;
-    margin-left: 8px;
+    margin-left: calc(8px * var(--ui-scale));
 }
 
 .wpStatusActive {
@@ -108,18 +108,18 @@
 
 .wpMetaGrid {
     display: flex;
-    gap: 12px;
+    gap: calc(12px * var(--ui-scale));
     flex-wrap: wrap;
 }
 
 .wpMetaItem {
     background: var(--bg-secondary);
-    padding: 6px 12px;
-    border-radius: 8px;
+    padding: calc(6px * var(--ui-scale)) calc(12px * var(--ui-scale));
+    border-radius: calc(8px * var(--ui-scale));
     display: flex;
     align-items: center;
-    gap: 8px;
-    font-size: 13px;
+    gap: calc(8px * var(--ui-scale));
+    font-size: calc(13px * var(--ui-font-scale));
     color: var(--text-secondary);
     font-weight: 500;
 }
@@ -127,21 +127,21 @@
 /* --- Tabs --- */
 .wpTabs {
     border-bottom: 1px solid var(--border-primary);
-    margin-bottom: 24px;
+    margin-bottom: calc(24px * var(--ui-scale));
     display: flex;
-    gap: 8px;
+    gap: calc(8px * var(--ui-scale));
     position: sticky;
-    top: 154px;
+    top: calc(154px * var(--ui-scale));
     /* Adjust based on header height + margin */
     z-index: 90;
     background: var(--bg-primary);
     /* Ensure background is solid behind tabs */
-    padding-top: 8px;
+    padding-top: calc(8px * var(--ui-scale));
     padding-bottom: 0;
 }
 
 .wpTabButton {
-    padding: 12px 20px;
+    padding: calc(12px * var(--ui-scale)) calc(20px * var(--ui-scale));
     background: transparent;
     border: none;
     position: relative;
@@ -151,7 +151,7 @@
     font-size: 0.95rem;
     display: flex;
     align-items: center;
-    gap: 8px;
+    gap: calc(8px * var(--ui-scale));
     outline: none;
     opacity: 0.7;
     transition: all 0.2s;
@@ -161,7 +161,7 @@
     opacity: 1;
     background: var(--surface-secondary);
     /* Hover effect */
-    border-radius: 8px 8px 0 0;
+    border-radius: calc(8px * var(--ui-scale)) calc(8px * var(--ui-scale)) 0 0;
 }
 
 .wpTabActive {
@@ -173,14 +173,14 @@
 /* --- Stats Grid --- */
 .wpStatsGrid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-    gap: 20px;
+    grid-template-columns: repeat(auto-fit, minmax(calc(240px * var(--ui-scale)), 1fr));
+    gap: calc(20px * var(--ui-scale));
 }
 
 .wpStatCard {
     background: var(--surface-primary);
-    border-radius: 16px;
-    padding: 24px;
+    border-radius: calc(16px * var(--ui-scale));
+    padding: calc(24px * var(--ui-scale));
     border: 1px solid var(--border-primary);
     box-shadow: var(--shadow-card);
     display: flex;
@@ -192,8 +192,8 @@
 .wpStatHeader {
     display: flex;
     align-items: center;
-    gap: 10px;
-    margin-bottom: 16px;
+    gap: calc(10px * var(--ui-scale));
+    margin-bottom: calc(16px * var(--ui-scale));
     color: var(--text-secondary);
     font-size: 0.9rem;
     font-weight: 500;
@@ -203,7 +203,7 @@
     font-size: 2rem;
     font-weight: 700;
     color: var(--text-primary);
-    margin-bottom: 4px;
+    margin-bottom: calc(4px * var(--ui-scale));
 }
 
 .wpStatSub {
@@ -213,8 +213,8 @@
 
 .wpStatIcon {
     position: absolute;
-    right: 20px;
-    top: 20px;
+    right: calc(20px * var(--ui-scale));
+    top: calc(20px * var(--ui-scale));
     opacity: 0.1;
     transform: scale(1.5);
     color: var(--text-primary);
@@ -227,7 +227,7 @@
 }
 
 .wpTable th {
-    padding: 16px;
+    padding: calc(16px * var(--ui-scale));
     text-align: left;
     font-size: 0.75rem;
     text-transform: uppercase;
@@ -237,7 +237,7 @@
 }
 
 .wpTable td {
-    padding: 16px;
+    padding: calc(16px * var(--ui-scale));
     border-bottom: 1px solid var(--border-primary);
     color: var(--text-primary);
     font-size: 0.95rem;

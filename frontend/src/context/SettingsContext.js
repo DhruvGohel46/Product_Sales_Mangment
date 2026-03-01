@@ -13,14 +13,61 @@ export const useSettings = () => {
     return context;
 };
 
-export const SettingsProvider = ({ children }) => {
-    const { setTheme, isDark, toggleTheme } = useTheme();
+// ===========================================================================
+// DISPLAY PREFERENCES — UNIVERSAL SCALE
+//
+// SCREEN_SCALE_MAP: Multiplier for layout sizes (padding, gaps, sidebar, header)
+// FONT_SCALE_MAP: Multiplier for ALL text sizes across the site.
+// ===========================================================================
 
-    // Initialize from localStorage for offline support
+const SCREEN_SCALE_MAP = {
+    small: 0.60,   // very compact
+    medium: 0.90,   // compact
+    large: 1.05,   // original-ish
+};
+
+const FONT_SCALE_MAP = {
+    small: 0.60,   // very compact
+    medium: 0.90,   // compact
+    large: 1.05,   // standard
+};
+
+export const applyDisplayPrefs = (config = {}) => {
+    const root = document.documentElement;
+
+    // Clear any legacy zoom/frame styling
+    document.body.style.zoom = '';
+    const appRoot = document.getElementById('root');
+    if (appRoot) {
+        appRoot.style.zoom = '';
+        appRoot.style.width = '';
+        appRoot.style.height = '';
+        appRoot.style.overflow = '';
+    }
+
+    // Apply Screen Scale (Layout)
+    const screenSize = config.screen_size || 'medium';
+    const scale = SCREEN_SCALE_MAP[screenSize] ?? 0.90;
+    root.style.setProperty('--ui-scale', scale);
+
+    // Apply Font Scale (Text) - "Link every text with this"
+    const fontSize = config.font_size || 'medium';
+    const fontScale = FONT_SCALE_MAP[fontSize] ?? 0.90;
+    root.style.setProperty('--ui-font-scale', fontScale);
+
+    // Fallback scaling for rem-based units not using the direct variable
+    root.style.fontSize = (fontScale * 100) + '%';
+};
+
+export const SettingsProvider = ({ children }) => {
+    const { setTheme } = useTheme();
+
     const [settings, setSettings] = useState(() => {
         try {
             const saved = localStorage.getItem('pos_settings');
-            return saved ? JSON.parse(saved) : {};
+            const parsed = saved ? JSON.parse(saved) : {};
+            applyDisplayPrefs(parsed);
+            return parsed;
         } catch (e) {
             console.error("Failed to parse local settings", e);
             return {};
@@ -30,75 +77,46 @@ export const SettingsProvider = ({ children }) => {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
 
-    // Initial load
+    const applyGlobalConfig = (config) => {
+        if (config.currency_symbol) setCurrencySymbol(config.currency_symbol);
+        if (config.dark_mode === 'true') setTheme('dark');
+        else if (config.dark_mode === 'false') setTheme('light');
+        applyDisplayPrefs(config);
+    };
+
     const loadSettings = useCallback(async () => {
         try {
             setLoading(true);
             const data = await settingsAPI.getAllSettings();
             setSettings(data);
             localStorage.setItem('pos_settings', JSON.stringify(data));
-
-            // Apply Global Configurations
             applyGlobalConfig(data);
         } catch (err) {
             console.error("Failed to load settings:", err);
             setError(err.message);
-            // Fallback to local storage or defaults if API fails?
         } finally {
             setLoading(false);
         }
     }, [setTheme]);
 
-    const applyGlobalConfig = (config) => {
-        // 1. Currency
-        if (config.currency_symbol) {
-            setCurrencySymbol(config.currency_symbol);
-        }
-
-        // 2. Theme
-        // If config.dark_mode is explicitly set, enforce it.
-        // Otherwise, leave it to ThemeContext's default (system/localstorage)
-        if (config.dark_mode === 'true') {
-            setTheme('dark');
-        } else if (config.dark_mode === 'false') {
-            setTheme('light');
-        }
-    };
-
-    // Update a single setting or multiple
     const updateSettings = async (newSettings) => {
         try {
-            // newSettings can be { key: value } or [{key, value, group}]
-            // Standardize to array for API
-            let apiPayload = [];
-
-            // Optimistic Update
             const updatedState = { ...settings };
-
+            let apiPayload;
             if (Array.isArray(newSettings)) {
                 apiPayload = newSettings;
-                newSettings.forEach(s => updatedState[s.key] = s.value);
+                newSettings.forEach(s => (updatedState[s.key] = s.value));
             } else {
-                // Formatting for API: convert object to array of objects
-                // We need to know the group... but maybe API handles it or we default 'app'
-                // The API updateSettings handles dict {key:value} by defaulting to 'general' or existing group
-                // Let's use the dict format for the API call if supported, or convert manually.
-                // Looking at the API code: it supports dict.
                 apiPayload = newSettings;
                 Object.assign(updatedState, newSettings);
             }
-
             setSettings(updatedState);
-            localStorage.setItem('pos_settings', JSON.stringify(updatedState)); // Cache updates
-            applyGlobalConfig(updatedState); // Apply immediately
-
+            localStorage.setItem('pos_settings', JSON.stringify(updatedState));
+            applyGlobalConfig(updatedState);
             await settingsAPI.updateSettings(apiPayload);
-
             return true;
         } catch (err) {
             console.error("Failed to update settings:", err);
-            // Revert state?
-            // For now, just reload to be safe or show error
             loadSettings();
             throw err;
         }
@@ -108,16 +126,8 @@ export const SettingsProvider = ({ children }) => {
         loadSettings();
     }, [loadSettings]);
 
-    const value = {
-        settings,
-        loading,
-        error,
-        updateSettings,
-        refreshSettings: loadSettings
-    };
-
     return (
-        <SettingsContext.Provider value={value}>
+        <SettingsContext.Provider value={{ settings, loading, error, updateSettings, refreshSettings: loadSettings }}>
             {children}
         </SettingsContext.Provider>
     );

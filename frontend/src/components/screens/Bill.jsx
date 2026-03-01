@@ -314,7 +314,7 @@ const WorkingPOSInterface = ({ onBillCreated }) => {
   };
 
   const leftSidebarStyle = {
-    width: '240px', // Slightly wider for better text fit
+    width: 'var(--pos-sidebar-width)', // Dynamic width
     backgroundColor: isDark ? currentTheme.colors.surface : currentTheme.colors.surface,
     borderRight: `1px solid ${currentTheme.colors.border}`,
     display: 'flex',
@@ -333,7 +333,7 @@ const WorkingPOSInterface = ({ onBillCreated }) => {
 
   // rightSectionStyle is unused now as we inlined it to fix nesting, but keeping for safety if referenced elsewhere or cleanup later.
   const rightSectionStyle = {
-    width: '400px',
+    width: 'var(--pos-cart-width)',
     backgroundColor: currentTheme.colors.surface,
     borderLeft: `1px solid ${currentTheme.colors.border}`,
     display: 'flex',
@@ -501,7 +501,7 @@ const WorkingPOSInterface = ({ onBillCreated }) => {
               transition={{ duration: 0.35, staggerChildren: 0.05 }}
               style={{
                 display: 'grid',
-                gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))',
+                gridTemplateColumns: 'repeat(auto-fill, minmax(calc(200px * var(--ui-scale)), 1fr))',
                 gap: currentTheme.spacing[4],
                 paddingBottom: currentTheme.spacing[8],
               }}
@@ -581,7 +581,7 @@ const WorkingPOSInterface = ({ onBillCreated }) => {
                           whileHover={{ scale: 1.1 }}
                           whileTap={{ scale: 0.9 }}
                           style={{
-                            width: '32px', height: '32px',
+                            width: 'var(--pos-button-size-sm)', height: 'var(--pos-button-size-sm)',
                             backgroundColor: '#FF6A00',
                             borderRadius: '50%',
                             display: 'flex', alignItems: 'center', justifyContent: 'center',
@@ -604,7 +604,7 @@ const WorkingPOSInterface = ({ onBillCreated }) => {
       </div>
 
       <div style={{
-        width: '400px',
+        width: 'var(--pos-cart-width)',
         backgroundColor: isDark ? '#15161A' : '#FFFFFF', // Secondary Surface
         borderLeft: `1px solid ${currentTheme.colors.border}`,
         display: 'flex',
@@ -721,14 +721,14 @@ const WorkingPOSInterface = ({ onBillCreated }) => {
                 }}>
                   <div>
                     <div style={{
-                      fontSize: currentTheme.typography.fontSize.sm,
-                      fontWeight: currentTheme.typography.fontWeight.medium,
+                      fontSize: currentTheme.typography.fontSize.base, // Increased for readability
+                      fontWeight: currentTheme.typography.fontWeight.semibold,
                       color: currentTheme.colors.text.primary,
                     }}>
                       {item.name}
                     </div>
                     <div style={{
-                      fontSize: currentTheme.typography.fontSize.xs,
+                      fontSize: currentTheme.typography.fontSize.sm, // Increased for readability
                       color: currentTheme.colors.text.secondary,
                     }}>
                       {formatCurrency(item.price)} each

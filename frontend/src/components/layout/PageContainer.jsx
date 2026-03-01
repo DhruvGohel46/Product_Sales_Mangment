@@ -13,15 +13,15 @@ const PageContainer = ({ children, className, style }) => {
             variants={pageVariants}
             transition={pageTransition}
             style={{
-                paddingTop: '28px', // Global Rhythm: Page Padding Top
-                paddingLeft: '32px', // Standard horizontal padding
-                paddingRight: '32px',
-                paddingBottom: '32px',
+                paddingTop: 'var(--page-padding-top)',
+                paddingLeft: 'var(--page-padding-x)',
+                paddingRight: 'var(--page-padding-x)',
+                paddingBottom: 'var(--page-padding-bottom)',
                 height: '100%',
                 overflowY: 'auto',
                 display: 'flex',
                 flexDirection: 'column',
-                gap: '24px', // Global Rhythm: Section Gap
+                gap: 'var(--page-section-gap)',
                 ...style
             }}
             className={className}

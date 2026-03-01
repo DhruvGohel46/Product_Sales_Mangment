@@ -1,5 +1,59 @@
 /* Global Styles - Unified Theme System for POS Application */
 
+/* ==========================================================================
+   DYNAMIC SCALE SYSTEM
+   --ui-scale     : layout/spacing multiplier (controlled by Screen Size setting)
+   --ui-font-scale: text size multiplier     (controlled by Font Size setting)
+
+   Small  = 0.80 | Medium = 1.00 | Large = 1.15
+   These are set on :root via JS in SettingsContext.applyDisplayPrefs()
+   All universal layout values (header, sidebar, padding, gap) use
+   calc(base * var(--ui-scale)) so they scale without affecting the frame.
+   ========================================================================== */
+:root {
+  --ui-scale: 1;
+  --ui-font-scale: 1;
+
+  /* Header */
+  --header-height: calc(64px * var(--ui-scale));
+  --header-padding-x: calc(24px * var(--ui-scale));
+
+  /* Sidebar */
+  --sidebar-width-expanded: calc(260px * var(--ui-scale));
+  --sidebar-width-collapsed: calc(80px * var(--ui-scale));
+  --sidebar-logo-height: calc(80px * var(--ui-scale));
+  --sidebar-nav-padding: calc(12px * var(--ui-scale));
+  --sidebar-item-padding-y: calc(10px * var(--ui-scale));
+  --sidebar-item-padding-x: calc(14px * var(--ui-scale));
+  --sidebar-item-gap: calc(8px * var(--ui-scale));
+
+  /* Page Content */
+  --page-padding-top: calc(28px * var(--ui-scale));
+  --page-padding-x: calc(32px * var(--ui-scale));
+  --page-padding-bottom: calc(32px * var(--ui-scale));
+  --page-section-gap: calc(24px * var(--ui-scale));
+
+  /* Typography (universal) */
+  --font-size-ui-base: calc(14px * var(--ui-font-scale));
+  --font-size-ui-lg: calc(20px * var(--ui-font-scale));
+  --font-size-ui-xl: calc(22px * var(--ui-font-scale));
+
+  /* POS / Management specific */
+  --pos-sidebar-width: calc(240px * var(--ui-scale));
+  --pos-cart-width: calc(400px * var(--ui-scale));
+  --pos-grid-gap: calc(16px * var(--ui-scale));
+  --pos-card-padding: calc(14px * var(--ui-scale));
+  --pos-input-height: calc(42px * var(--ui-scale));
+  --pos-button-size-sm: calc(32px * var(--ui-scale));
+
+  /* Typography Scale (Additional) */
+  --font-size-ui-xs: calc(12px * var(--ui-font-scale));
+  --font-size-ui-sm: calc(14px * var(--ui-font-scale));
+  --font-size-ui-2xl: calc(20px * var(--ui-font-scale));
+  --font-size-ui-3xl: calc(24px * var(--ui-font-scale));
+  --font-size-ui-4xl: calc(30px * var(--ui-font-scale));
+}
+
 /* CSS Reset and Base Styles */
 * {
   margin: 0;
@@ -8,6 +62,8 @@
 }
 
 html {
+  /* font-size is overridden by SettingsContext when a font size is saved.    */
+  /* Default 16px (medium) — all rem sizes scale from this automatically.     */
   font-size: 16px;
   scroll-behavior: smooth;
 }

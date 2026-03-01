@@ -301,11 +301,11 @@ function AppContent() {
           transition={{ duration: 0.35, ease: "easeOut" }}
           whileHover={{ filter: 'brightness(1.05)' }}
           style={{
-            height: '64px',
+            height: 'var(--header-height)',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'space-between',
-            padding: '0 24px',
+            padding: '0 var(--header-padding-x)',
             borderBottom: isDark ? '1px solid rgba(255,255,255,0.06)' : '1px solid rgba(0,0,0,0.06)',
             backgroundColor: isDark ? 'rgba(11,11,12,0.72)' : 'rgba(255,255,255,0.75)',
             backdropFilter: 'blur(14px)',
@@ -330,14 +330,14 @@ function AppContent() {
                 navigate('/');
               }}
               style={{
-                background: '#F97316', // Orange identity
-                boxShadow: '0 4px 12px rgba(249,115,22,0.35), inset 0 1px 0 rgba(255,255,255,0.2)', // Depth
+                background: '#F97316',
+                boxShadow: '0 4px 12px rgba(249,115,22,0.35), inset 0 1px 0 rgba(255,255,255,0.2)',
                 border: 'none',
-                borderRadius: '8px', // Standard radius
-                padding: '8px 16px',
+                borderRadius: '8px',
+                padding: 'calc(8px * var(--ui-scale)) calc(16px * var(--ui-scale))',
                 color: 'white',
                 fontWeight: 600,
-                fontSize: '14px',
+                fontSize: 'var(--font-size-ui-base)',
                 cursor: 'pointer',
                 display: 'inline-flex',
                 alignItems: 'center',
@@ -358,11 +358,11 @@ function AppContent() {
           }}>
             <h1
               style={{
-                fontSize: '22px',
+                fontSize: 'var(--font-size-ui-xl)',
                 fontWeight: 600,
                 letterSpacing: '0.3px',
                 color: '#F97316',
-                textShadow: '0 0 12px rgba(249,115,22,0.25)', // Glow
+                textShadow: '0 0 12px rgba(249,115,22,0.25)',
                 margin: 0,
                 cursor: 'default',
                 transition: 'opacity 200ms ease',

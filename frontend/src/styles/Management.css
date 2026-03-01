@@ -2,7 +2,7 @@
   width: 100%;
   max-width: 100%;
   margin: 0 auto;
-  padding: 22px;
+  padding: calc(22px * var(--ui-scale));
   height: 100%;
   overflow-y: auto;
 }
@@ -10,7 +10,7 @@
 .pmPage {
   display: flex;
   flex-direction: column;
-  gap: 18px;
+  gap: calc(18px * var(--ui-scale));
 }
 
 /* Header */
@@ -19,10 +19,10 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 12px;
-  padding: 20px;
+  gap: calc(12px * var(--ui-scale));
+  padding: calc(20px * var(--ui-scale));
   border: 1px solid var(--glass-border);
-  border-radius: 20px;
+  border-radius: calc(20px * var(--ui-scale));
   background: var(--glass-header);
   backdrop-filter: var(--glass-blur);
   -webkit-backdrop-filter: var(--glass-blur);
@@ -45,12 +45,12 @@
 .pmTitleRow {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: calc(10px * var(--ui-scale));
   min-width: 0;
 }
 
 .pmTitle {
-  font-size: 30px;
+  font-size: calc(30px * var(--ui-font-scale));
   line-height: 1.2;
   letter-spacing: -0.01em;
   font-weight: 650;
@@ -61,22 +61,22 @@
 .pmHeaderActions {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: calc(10px * var(--ui-scale));
 }
 
 .pmPrimaryCta {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 8px;
-  padding: 15px;
-  min-height: 38px;
-  border-radius: 10px;
+  gap: calc(8px * var(--ui-scale));
+  padding: calc(15px * var(--ui-scale));
+  min-height: calc(38px * var(--ui-scale));
+  border-radius: calc(10px * var(--ui-scale));
   border: 1px solid color-mix(in srgb, var(--accent) 55%, var(--border-subtle));
   background: var(--accent);
   color: white;
   font-weight: 650;
-  font-size: 14px;
+  font-size: calc(14px * var(--ui-font-scale));
   box-shadow: 0 8px 18px rgba(0, 0, 0, 0.10);
 }
 
@@ -98,14 +98,14 @@
 /* Section panels (unique POS layout treatment) */
 .pmPanel {
   border: 1px solid var(--glass-border);
-  border-radius: 16px;
+  border-radius: calc(16px * var(--ui-scale));
   background: var(--glass-card);
   backdrop-filter: var(--glass-blur);
   -webkit-backdrop-filter: var(--glass-blur);
   box-shadow: var(--shadow-card);
-  padding: 20px;
+  padding: calc(20px * var(--ui-scale));
   transition: all 0.2s ease;
-  margin: 10px 0px;
+  margin: calc(10px * var(--ui-scale)) 0px;
 }
 
 .pmPanel:hover {
@@ -114,27 +114,27 @@
 }
 
 .pmPanelTight {
-  padding: 20px;
-  margin: 10px 0;
+  padding: calc(20px * var(--ui-scale));
+  margin: calc(10px * var(--ui-scale)) 0;
 }
 
 /* Controls */
 .pmControls {
   display: grid;
   grid-template-columns: 1.4fr 0.8fr 0.8fr auto;
-  gap: 12px;
+  gap: calc(12px * var(--ui-scale));
   align-items: end;
 }
 
 .pmField {
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: calc(6px * var(--ui-scale));
   min-width: 0;
 }
 
 .pmLabel {
-  font-size: 13px;
+  font-size: calc(13px * var(--ui-font-scale));
   font-weight: 650;
   color: var(--text-secondary);
   letter-spacing: 0.01em;
@@ -143,14 +143,14 @@
 .pmInput,
 .pmSelect {
   width: 100%;
-  padding: 10px 12px;
-  border-radius: 10px;
+  padding: calc(10px * var(--ui-scale)) calc(12px * var(--ui-scale));
+  border-radius: calc(10px * var(--ui-scale));
   border: 1px solid var(--glass-border);
   background: var(--glass-input);
   backdrop-filter: var(--glass-blur);
   -webkit-backdrop-filter: var(--glass-blur);
   color: var(--text-primary);
-  font-size: 14px;
+  font-size: calc(14px * var(--ui-font-scale));
   transition: all 0.2s ease;
 }
 
@@ -174,17 +174,17 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 8px;
-  padding: 10px 12px;
-  min-height: 38px;
-  border-radius: 10px;
+  gap: calc(8px * var(--ui-scale));
+  padding: calc(10px * var(--ui-scale)) calc(12px * var(--ui-scale));
+  min-height: calc(38px * var(--ui-scale));
+  border-radius: calc(10px * var(--ui-scale));
   border: 1px solid var(--glass-border);
   background: var(--glass-input);
   backdrop-filter: var(--glass-blur);
   -webkit-backdrop-filter: var(--glass-blur);
   color: var(--text-primary);
   font-weight: 600;
-  font-size: 14px;
+  font-size: calc(14px * var(--ui-font-scale));
   transition: all 0.2s ease;
 }
 
@@ -204,44 +204,44 @@
   display: flex;
   align-items: baseline;
   justify-content: space-between;
-  gap: 10px;
-  margin-bottom: 10px;
+  gap: calc(10px * var(--ui-scale));
+  margin-bottom: calc(10px * var(--ui-scale));
 }
 
 .pmGridTitle {
-  font-size: 30px;
+  font-size: calc(30px * var(--ui-font-scale));
   font-weight: 700;
   color: var(--text-primary);
   letter-spacing: -0.01em;
-  margin: 10px;
+  margin: calc(10px * var(--ui-scale));
 }
 
 .pmGridHint {
-  font-size: 18px;
+  font-size: calc(18px * var(--ui-font-scale));
   color: var(--text-muted);
   white-space: nowrap;
 }
 
 .pmGrid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-  gap: 20px;
-  padding: 8px;
+  grid-template-columns: repeat(auto-fit, minmax(calc(300px * var(--ui-scale)), 1fr));
+  gap: calc(20px * var(--ui-scale));
+  padding: calc(8px * var(--ui-scale));
 }
 
 /* Product card */
 .pmCard {
   position: relative;
-  border-radius: 16px;
+  border-radius: calc(16px * var(--ui-scale));
   border: 1px solid var(--border-primary);
   background: var(--surface);
   display: flex;
   flex-direction: column;
   overflow: hidden;
-  padding: 20px;
+  padding: calc(20px * var(--ui-scale));
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  min-height: 180px;
+  min-height: calc(180px * var(--ui-scale));
 }
 
 .pmCard:hover {
@@ -279,13 +279,13 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: 12px;
-  padding-bottom: 12px;
+  margin-bottom: calc(12px * var(--ui-scale));
+  padding-bottom: calc(12px * var(--ui-scale));
   border-bottom: 1px solid var(--border-primary);
 }
 
 .pmCardTop .pmName {
-  font-size: 18px;
+  font-size: calc(18px * var(--ui-font-scale));
   font-weight: 700;
   color: var(--text-primary);
   margin: 0;
@@ -295,7 +295,7 @@
 .pmCard .pmMetaRow {
   justify-content: flex-start;
   text-align: left;
-  margin-bottom: 8px;
+  margin-bottom: calc(8px * var(--ui-scale));
 }
 
 .pmCard .pmActions {
@@ -306,7 +306,7 @@
 /* Image Container */
 .pmCardImageContainer {
   width: 100%;
-  height: 160px;
+  height: calc(160px * var(--ui-scale));
   background: var(--bg-secondary);
   display: flex;
   align-items: center;
@@ -319,7 +319,7 @@
   width: 100%;
   height: 100%;
   object-fit: contain;
-  padding: 12px;
+  padding: calc(12px * var(--ui-scale));
   transition: transform 0.3s ease;
 }
 
@@ -331,17 +331,17 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 8px;
+  gap: calc(8px * var(--ui-scale));
   color: var(--text-tertiary);
   font-size: 13px;
 }
 
 /* Content Area */
 .pmCardContent {
-  padding: 16px;
+  padding: calc(16px * var(--ui-scale));
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: calc(12px * var(--ui-scale));
   flex: 1;
   text-align: center;
   align-items: center;
@@ -350,13 +350,13 @@
 .pmCardHeader {
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: calc(6px * var(--ui-scale));
   width: 100%;
   align-items: center;
 }
 
 .pmName {
-  font-size: 16px;
+  font-size: calc(16px * var(--ui-font-scale));
   line-height: 1.3;
   font-weight: 700;
   color: var(--text-primary);
@@ -378,7 +378,7 @@
 }
 
 .pmPrice {
-  font-size: 17px;
+  font-size: calc(17px * var(--ui-font-scale));
   font-weight: 800;
   color: var(--primary);
   letter-spacing: -0.01em;
@@ -392,21 +392,21 @@
 }
 
 .pmId {
-  font-size: 11px;
+  font-size: calc(11px * var(--ui-font-scale));
   color: var(--text-muted);
   background: var(--bg-secondary);
-  padding: 4px 8px;
-  border-radius: 4px;
+  padding: calc(4px * var(--ui-scale)) calc(8px * var(--ui-scale));
+  border-radius: calc(4px * var(--ui-scale));
   font-family: 'Roboto Mono', monospace;
 }
 
 .pmBadge {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
-  padding: 6px 10px;
+  gap: calc(6px * var(--ui-scale));
+  padding: calc(6px * var(--ui-scale)) calc(10px * var(--ui-scale));
   border-radius: 999px;
-  font-size: 13px;
+  font-size: calc(13px * var(--ui-font-scale));
   font-weight: 650;
   line-height: 1;
   border: 1px solid var(--border-primary);
@@ -442,15 +442,15 @@
 .pmStatusRow {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: calc(8px * var(--ui-scale));
   font-size: 13px;
   font-weight: 650;
   color: var(--text-secondary);
 }
 
 .pmStatusDot {
-  width: 8px;
-  height: 8px;
+  width: calc(8px * var(--ui-scale));
+  height: calc(8px * var(--ui-scale));
   border-radius: 999px;
   flex: 0 0 auto;
   transition: background-color 220ms ease, box-shadow 220ms ease, transform 220ms ease;
@@ -482,23 +482,23 @@
   margin-top: auto;
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: calc(10px * var(--ui-scale));
   width: 100%;
 }
 
 .pmActionsWithBorder {
   border-top: 1px solid var(--border-subtle);
-  padding-top: 12px;
+  padding-top: calc(12px * var(--ui-scale));
 }
 
 .pmStockRow {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  font-size: 13px;
+  font-size: calc(13px * var(--ui-font-scale));
   background: var(--bg-tertiary);
-  padding: 6px 10px;
-  border-radius: 8px;
+  padding: calc(6px * var(--ui-scale)) calc(10px * var(--ui-scale));
+  border-radius: calc(8px * var(--ui-scale));
   width: 100%;
 }
 
@@ -514,7 +514,7 @@
 .pmButtonGrid {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 8px;
+  gap: calc(8px * var(--ui-scale));
   width: 100%;
 }
 
@@ -523,13 +523,13 @@
   align-items: center;
   justify-content: center;
   gap: 8px;
-  padding: 8px 10px;
-  border-radius: 10px;
+  padding: calc(8px * var(--ui-scale)) calc(10px * var(--ui-scale));
+  border-radius: calc(10px * var(--ui-scale));
   border: 1px solid var(--border-primary);
   background: color-mix(in srgb, var(--surface) 92%, var(--bg-secondary));
   color: var(--text-primary);
   font-weight: 700;
-  font-size: 13px;
+  font-size: calc(13px * var(--ui-font-scale));
   transition: all 0.2s ease;
 }
 
@@ -561,18 +561,18 @@
 /* Empty/Error */
 .pmEmpty {
   border: 1px dashed var(--border-subtle);
-  border-radius: 14px;
+  border-radius: calc(14px * var(--ui-scale));
   background: color-mix(in srgb, var(--surface) 90%, var(--bg-secondary));
-  padding: 18px;
+  padding: calc(18px * var(--ui-scale));
   color: var(--text-secondary);
   font-size: 14px;
 }
 
 .pmError {
   border: 1px solid color-mix(in srgb, #ef4444 22%, var(--border-subtle));
-  border-radius: 14px;
+  border-radius: calc(14px * var(--ui-scale));
   background: color-mix(in srgb, #ef4444 10%, var(--surface));
-  padding: 12px 14px;
+  padding: calc(12px * var(--ui-scale)) calc(14px * var(--ui-scale));
   color: color-mix(in srgb, #ef4444 78%, var(--text-primary));
   font-weight: 650;
   font-size: 14px;
@@ -581,10 +581,10 @@
 /* Add/Edit form */
 .pmFormWrap {
   border: 1px solid var(--border-primary);
-  border-radius: 16px;
+  border-radius: calc(16px * var(--ui-scale));
   background: var(--surface);
   box-shadow: 0 8px 22px rgba(0, 0, 0, 0.08);
-  padding: 14px;
+  padding: calc(14px * var(--ui-scale));
   transition: all 0.2s ease;
 }
 
@@ -597,28 +597,28 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 10px;
+  gap: calc(10px * var(--ui-scale));
 }
 
 .pmFormTitle {
-  font-size: 14px;
+  font-size: calc(14px * var(--ui-font-scale));
   font-weight: 800;
   color: var(--text-primary);
   letter-spacing: -0.01em;
 }
 
 .pmFormGrid {
-  margin-top: 10px;
+  margin-top: calc(10px * var(--ui-scale));
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 10px;
+  gap: calc(10px * var(--ui-scale));
 }
 
 .pmFormActions {
-  margin-top: 12px;
+  margin-top: calc(12px * var(--ui-scale));
   display: flex;
   justify-content: flex-end;
-  gap: 10px;
+  gap: calc(10px * var(--ui-scale));
 }
 
 .pmSecondaryBtn {
@@ -626,14 +626,14 @@
   align-items: center;
   justify-content: center;
   gap: 8px;
-  padding: 10px 12px;
-  min-height: 38px;
-  border-radius: 10px;
+  padding: calc(10px * var(--ui-scale)) calc(12px * var(--ui-scale));
+  min-height: calc(38px * var(--ui-scale));
+  border-radius: calc(10px * var(--ui-scale));
   border: 1px solid var(--border-primary);
   background: color-mix(in srgb, var(--surface) 92%, var(--bg-secondary));
   color: var(--text-primary);
   font-weight: 750;
-  font-size: 13px;
+  font-size: calc(13px * var(--ui-font-scale));
   transition: all 0.2s ease;
 }
 
@@ -676,13 +676,13 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 20px;
+  padding: calc(20px * var(--ui-scale));
   z-index: 9999;
 }
 
 .pmDialog {
-  width: min(400px, 92%);
-  border-radius: 16px;
+  width: min(calc(400px * var(--ui-scale)), 92%);
+  border-radius: calc(16px * var(--ui-scale));
   border: 1px solid var(--glass-border);
   background: var(--glass-modal);
   backdrop-filter: var(--glass-blur);
@@ -690,7 +690,7 @@
   box-shadow:
     0 20px 25px -5px rgba(0, 0, 0, 0.1),
     0 10px 10px -5px rgba(0, 0, 0, 0.04);
-  padding: 24px;
+  padding: calc(24px * var(--ui-scale));
   transition: all 0.2s ease;
   position: relative;
   overflow: hidden;
@@ -707,13 +707,13 @@
 }
 
 .pmDialogTitle {
-  font-size: 18px;
+  font-size: calc(18px * var(--ui-font-scale));
   font-weight: 600;
   color: var(--text-primary);
-  margin-bottom: 12px;
+  margin-bottom: calc(12px * var(--ui-scale));
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: calc(12px * var(--ui-scale));
 }
 
 .pmDialogTitle svg {
@@ -721,9 +721,9 @@
 }
 
 .pmDialogBody {
-  margin: 0 0 24px 0;
+  margin: 0 0 calc(24px * var(--ui-scale)) 0;
   color: var(--text-secondary);
-  font-size: 14px;
+  font-size: calc(14px * var(--ui-font-scale));
   line-height: 1.6;
   padding: 0;
   background: transparent;
@@ -732,24 +732,24 @@
 }
 
 .pmDialogActions {
-  margin-top: 24px;
+  margin-top: calc(24px * var(--ui-scale));
   display: flex;
   justify-content: flex-end;
-  gap: 12px;
+  gap: calc(12px * var(--ui-scale));
 }
 
 .pmDialogBtn {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  padding: 10px 16px;
-  min-height: 36px;
-  border-radius: 8px;
+  padding: calc(10px * var(--ui-scale)) calc(16px * var(--ui-scale));
+  min-height: calc(36px * var(--ui-scale));
+  border-radius: calc(8px * var(--ui-scale));
   border: 1px solid var(--border-primary);
   background: var(--surface);
   color: var(--text-primary);
   font-weight: 500;
-  font-size: 14px;
+  font-size: calc(14px * var(--ui-font-scale));
   transition: all 0.2s ease;
   position: relative;
   overflow: hidden;
@@ -817,13 +817,13 @@
 .pmActionBtn {
   display: flex;
   align-items: center;
-  gap: 6px;
-  padding: 8px 12px;
+  gap: calc(6px * var(--ui-scale));
+  padding: calc(8px * var(--ui-scale)) calc(12px * var(--ui-scale));
   border: 1px solid var(--border-subtle);
-  border-radius: 8px;
+  border-radius: calc(8px * var(--ui-scale));
   background: var(--surface);
   color: var(--text-secondary);
-  font-size: 13px;
+  font-size: calc(13px * var(--ui-font-scale));
   font-weight: 500;
   cursor: pointer;
   transition: all 0.15s ease;
@@ -913,11 +913,11 @@
 }
 
 .pmDeletedNote {
-  padding: 8px 12px;
+  padding: calc(8px * var(--ui-scale)) calc(12px * var(--ui-scale));
   background: #FEE2E2;
   color: #EF4444;
-  border-radius: 6px;
-  font-size: 12px;
+  border-radius: calc(6px * var(--ui-scale));
+  font-size: calc(12px * var(--ui-font-scale));
   font-weight: 500;
   text-align: center;
   border: 1px solid #EF4444;
@@ -954,9 +954,9 @@
 /* Modal Dialog */
 .pmDialog {
   background: #ffffff;
-  border-radius: 16px;
-  padding: 24px;
-  max-width: 450px;
+  border-radius: calc(16px * var(--ui-scale));
+  padding: calc(24px * var(--ui-scale));
+  max-width: calc(450px * var(--ui-scale));
   width: 90%;
   border: 1px solid #e2e8f0;
   box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
@@ -972,11 +972,11 @@
 .pmDialogTitle {
   display: flex;
   align-items: center;
-  gap: 12px;
-  font-size: 1.25rem;
+  gap: calc(12px * var(--ui-scale));
+  font-size: calc(1.25rem * var(--ui-font-scale));
   font-weight: 600;
   color: #1e293b;
-  margin-bottom: 16px;
+  margin-bottom: calc(16px * var(--ui-scale));
 }
 
 [data-theme="dark"] .pmDialogTitle {
@@ -990,10 +990,10 @@
 
 /* Modal Dialog Body */
 .pmDialogBody {
-  font-size: 0.9375rem;
+  font-size: calc(0.9375rem * var(--ui-font-scale));
   color: #475569;
   line-height: 1.6;
-  margin-bottom: 24px;
+  margin-bottom: calc(24px * var(--ui-scale));
 }
 
 [data-theme="dark"] .pmDialogBody {
@@ -1003,15 +1003,15 @@
 /* Modal Dialog Actions */
 .pmDialogActions {
   display: flex;
-  gap: 12px;
+  gap: calc(12px * var(--ui-scale));
   justify-content: flex-end;
 }
 
 /* Modal Dialog Buttons */
 .pmDialogBtn {
-  padding: 10px 20px;
-  border-radius: 10px;
-  font-size: 0.9375rem;
+  padding: calc(10px * var(--ui-scale)) calc(20px * var(--ui-scale));
+  border-radius: calc(10px * var(--ui-scale));
+  font-size: calc(0.9375rem * var(--ui-font-scale));
   font-weight: 500;
   border: 1px solid #e2e8f0;
   background: #f8fafc;
@@ -1049,12 +1049,12 @@
 
 /* Password Input */
 .pmInput {
-  padding: 12px 16px;
-  border-radius: 10px;
+  padding: calc(12px * var(--ui-scale)) calc(16px * var(--ui-scale));
+  border-radius: calc(10px * var(--ui-scale));
   border: 1px solid #cbd5e1;
   background: #ffffff;
   color: #1e293b;
-  font-size: 0.9375rem;
+  font-size: calc(0.9375rem * var(--ui-font-scale));
   outline: none;
   transition: all 0.2s ease;
 }
@@ -1105,9 +1105,9 @@
 .pm-back-btn {
   display: flex;
   align-items: center;
-  gap: 8px;
-  padding: 8px 12px;
-  border-radius: 8px;
+  gap: calc(8px * var(--ui-scale));
+  padding: calc(8px * var(--ui-scale)) calc(12px * var(--ui-scale));
+  border-radius: calc(8px * var(--ui-scale));
   border: 1px solid var(--border-light);
   background: var(--surface-primary);
   color: var(--text-secondary);

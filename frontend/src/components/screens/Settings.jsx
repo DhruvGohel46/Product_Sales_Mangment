@@ -57,6 +57,8 @@ const Settings = () => {
         show_product_images: 'true',
         dark_mode: 'false',
         sound_enabled: 'true',
+        screen_size: 'medium',
+        font_size: 'medium',
 
         // Workers
         salary_day: '1'
@@ -431,6 +433,58 @@ const Settings = () => {
                                             />
                                             <span className="stSlider"></span>
                                         </label>
+                                    </div>
+
+                                    {/* Screen Size */}
+                                    <div className="stFormGroup">
+                                        <div className="stLabel">
+                                            <span className="stLabelTitle">Screen Size</span>
+                                            <span className="stLabelDesc">Adjust the overall UI density and layout scale</span>
+                                        </div>
+                                        <div className="stSizePicker">
+                                            {['small', 'medium', 'large'].map(size => (
+                                                <button
+                                                    key={size}
+                                                    type="button"
+                                                    className={`stSizeOption ${(formSettings.screen_size || 'medium') === size ? 'stSizeOptionActive' : ''
+                                                        }`}
+                                                    onClick={() => handleChange('screen_size', size)}
+                                                >
+                                                    <span className="stSizeOptionIcon">
+                                                        {size === 'small' ? 'S' : size === 'medium' ? 'M' : 'L'}
+                                                    </span>
+                                                    <span className="stSizeOptionLabel">
+                                                        {size.charAt(0).toUpperCase() + size.slice(1)}
+                                                    </span>
+                                                </button>
+                                            ))}
+                                        </div>
+                                    </div>
+
+                                    {/* Font Size */}
+                                    <div className="stFormGroup">
+                                        <div className="stLabel">
+                                            <span className="stLabelTitle">Font Size</span>
+                                            <span className="stLabelDesc">Adjust text size across the entire application</span>
+                                        </div>
+                                        <div className="stSizePicker">
+                                            {['small', 'medium', 'large'].map(size => (
+                                                <button
+                                                    key={size}
+                                                    type="button"
+                                                    className={`stSizeOption ${(formSettings.font_size || 'medium') === size ? 'stSizeOptionActive' : ''
+                                                        }`}
+                                                    onClick={() => handleChange('font_size', size)}
+                                                >
+                                                    <span className="stSizeOptionIcon" style={{
+                                                        fontSize: size === 'small' ? '11px' : size === 'medium' ? '14px' : '17px'
+                                                    }}>A</span>
+                                                    <span className="stSizeOptionLabel">
+                                                        {size.charAt(0).toUpperCase() + size.slice(1)}
+                                                    </span>
+                                                </button>
+                                            ))}
+                                        </div>
                                     </div>
                                 </div>
                             </>

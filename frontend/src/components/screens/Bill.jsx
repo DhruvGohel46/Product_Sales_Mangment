@@ -58,7 +58,7 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useTheme } from '../../context/ThemeContext';
 import { useSettings } from '../../context/SettingsContext';
-import { useToast } from '../../context/ToastContext';
+import { useAlert } from '../../context/AlertContext';
 import { productsAPI, billingAPI, categoriesAPI } from '../../utils/api';
 import { handleAPIError, formatCurrency } from '../../utils/api';
 import { CATEGORY_COLORS } from '../../utils/constants';
@@ -82,7 +82,7 @@ const WorkingPOSInterface = ({ onBillCreated }) => {
   const { currentTheme, isDark } = useTheme();
   const { settings } = useSettings();
   const showImages = settings?.show_product_images !== 'false';
-  const { showSuccess } = useToast();
+  const { showSuccess } = useAlert();
 
   const [products, setProducts] = useState([]);
   const [categories, setCategories] = useState([{ id: 'all', name: 'All Items' }]);
@@ -220,7 +220,7 @@ const WorkingPOSInterface = ({ onBillCreated }) => {
 
       if (editingBill) {
         await billingAPI.updateBill(editingBill.bill_no, billData);
-        showSuccess ? showSuccess('Bill updated successfully') : alert('Bill updated successfully');
+        showSuccess('Bill updated successfully');
         navigate('/analytics');
       } else {
         const response = await billingAPI.createBill(billData);
@@ -268,7 +268,7 @@ const WorkingPOSInterface = ({ onBillCreated }) => {
 
         await billingAPI.printBill(editingBill.bill_no); // Call print explicitly
 
-        showSuccess ? showSuccess('Bill updated and printed') : alert('Bill updated and printed');
+        showSuccess('Bill updated and printed');
         navigate('/analytics');
       } else {
         const response = await billingAPI.createBill(billData);

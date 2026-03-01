@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useTheme } from '../../context/ThemeContext';
+import { useAlert } from '../../context/AlertContext';
 import { useSettings } from '../../context/SettingsContext';
 import Button from '../ui/Button';
 import Card from '../ui/Card';
@@ -8,6 +9,7 @@ import { IoCalendar, IoSave } from 'react-icons/io5';
 
 const SalaryManager = () => {
     const { currentTheme, isDark } = useTheme();
+    const { showSuccess, showError } = useAlert();
     const { settings, updateSettings, loading } = useSettings();
     const [salaryDate, setSalaryDate] = useState('1');
     const [saving, setSaving] = useState(false);
@@ -28,9 +30,9 @@ const SalaryManager = () => {
             if (day > 31) day = 31;
 
             await updateSettings({ salary_day: day.toString() });
-            alert('Salary date updated successfully!');
+            showSuccess('Salary date updated successfully!');
         } catch (error) {
-            alert('Failed to update settings');
+            showError('Failed to update settings');
         } finally {
             setSaving(false);
         }

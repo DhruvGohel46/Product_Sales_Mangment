@@ -38,7 +38,8 @@ const GlobalDatePicker = ({
     type = 'date', // 'date' | 'month'
     placeholder = 'Select date',
     disabled = false,
-    className = ''
+    className = '',
+    forceDown = false
 }) => {
     const [isOpen, setIsOpen] = useState(false);
     const containerRef = useRef(null);
@@ -61,11 +62,31 @@ const GlobalDatePicker = ({
         if (isOpen && containerRef.current) {
             const updatePosition = () => {
                 const rect = containerRef.current.getBoundingClientRect();
-                setDropdownPos({
-                    top: rect.top + window.scrollY - 8, // Align with top of input, -8px gap
-                    left: rect.left + window.scrollX,
-                    width: rect.width
-                });
+                const viewportHeight = window.innerHeight;
+
+                // Fixed height for the dropdown panel
+                const dropdownHeight = 350; // Approximate height of the calendar panel
+
+                // Determine if we should open upwards (if no space below AND space above)
+                // Unless forceDown is explicitly true
+                const spaceBelow = viewportHeight - rect.bottom;
+                const shouldOpenUp = !forceDown && spaceBelow < dropdownHeight && rect.top > dropdownHeight;
+
+                if (shouldOpenUp) {
+                    setDropdownPos({
+                        top: rect.top + window.scrollY - dropdownHeight - 8,
+                        left: rect.left + window.scrollX,
+                        width: rect.width,
+                        transformOrigin: 'bottom center'
+                    });
+                } else {
+                    setDropdownPos({
+                        top: rect.bottom + window.scrollY + 8, // Open below, +8px gap
+                        left: rect.left + window.scrollX,
+                        width: rect.width,
+                        transformOrigin: 'top center'
+                    });
+                }
             };
 
             updatePosition();
@@ -77,7 +98,7 @@ const GlobalDatePicker = ({
                 window.removeEventListener('scroll', updatePosition, true);
             };
         }
-    }, [isOpen]);
+    }, [isOpen, forceDown]);
 
     // Close when clicking outside
     useEffect(() => {
@@ -282,9 +303,9 @@ const GlobalDatePicker = ({
                         {isOpen && (
                             <motion.div
                                 id={`datepicker-dropdown-${label || 'global'}`}
-                                initial={{ opacity: 0, y: "-95%", scale: 0.98 }}
-                                animate={{ opacity: 1, y: "-100%", scale: 1 }}
-                                exit={{ opacity: 0, y: "-95%", scale: 0.98 }}
+                                initial={{ opacity: 0, scale: 0.98, y: dropdownPos.transformOrigin === 'bottom center' ? 10 : -10 }}
+                                animate={{ opacity: 1, scale: 1, y: 0 }}
+                                exit={{ opacity: 0, scale: 0.98, y: dropdownPos.transformOrigin === 'bottom center' ? 10 : -10 }}
                                 transition={{ duration: 0.15, ease: "easeOut" }}
                                 style={{
                                     position: 'absolute',
@@ -292,7 +313,7 @@ const GlobalDatePicker = ({
                                     left: dropdownPos.left,
                                     width: dropdownPos.width,
                                     zIndex: 99999,
-                                    transformOrigin: 'bottom center',
+                                    transformOrigin: dropdownPos.transformOrigin,
                                     background: 'var(--surface-primary)',
                                     border: '1px solid var(--border-primary)',
                                     borderRadius: '12px',

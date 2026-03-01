@@ -1,0 +1,545 @@
+/* =============================================================================
+   REBILL ALERT SYSTEM — Premium Notifications, Modals & Banners
+   ============================================================================= */
+
+/* ─── Toast Container ─── */
+.rb-toast-container {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  z-index: 9999;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  pointer-events: none;
+  max-height: calc(100vh - 40px);
+  overflow: hidden;
+  font-family: var(--font-primary), inherit;
+}
+
+/* ─── Individual Toast ─── */
+.rb-toast {
+  pointer-events: auto;
+  position: relative;
+  max-width: 360px;
+  min-width: 300px;
+  padding: 16px 18px;
+  border-radius: var(--radius-xl);
+  overflow: hidden;
+  cursor: default;
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  font-family: var(--font-primary), inherit;
+}
+
+/* Dark theme toast */
+[data-theme="dark"] .rb-toast {
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border-primary);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+  color: var(--text-primary);
+}
+
+/* Light theme toast */
+[data-theme="light"] .rb-toast {
+  background: var(--surface-primary);
+  border: 1px solid var(--border-primary);
+  box-shadow: 0 6px 18px rgba(16, 24, 40, 0.08);
+  color: var(--text-primary);
+}
+
+/* ─── Toast Type Tints ─── */
+[data-theme="dark"] .rb-toast--success {
+  background: linear-gradient(135deg, rgba(34, 197, 94, 0.08), var(--bg-tertiary) 60%);
+}
+
+[data-theme="dark"] .rb-toast--error {
+  background: linear-gradient(135deg, rgba(239, 68, 68, 0.08), var(--bg-tertiary) 60%);
+}
+
+[data-theme="dark"] .rb-toast--warning {
+  background: linear-gradient(135deg, rgba(245, 158, 11, 0.08), var(--bg-tertiary) 60%);
+}
+
+[data-theme="dark"] .rb-toast--info {
+  background: linear-gradient(135deg, rgba(14, 165, 233, 0.08), var(--bg-tertiary) 60%);
+}
+
+[data-theme="light"] .rb-toast--success {
+  background: linear-gradient(135deg, rgba(34, 197, 94, 0.06), var(--surface-primary) 60%);
+}
+
+[data-theme="light"] .rb-toast--error {
+  background: linear-gradient(135deg, rgba(239, 68, 68, 0.06), var(--surface-primary) 60%);
+}
+
+[data-theme="light"] .rb-toast--warning {
+  background: linear-gradient(135deg, rgba(245, 158, 11, 0.06), var(--surface-primary) 60%);
+}
+
+[data-theme="light"] .rb-toast--info {
+  background: linear-gradient(135deg, rgba(14, 165, 233, 0.06), var(--surface-primary) 60%);
+}
+
+/* ─── Toast Icon Container ─── */
+.rb-toast__icon {
+  width: 20px;
+  height: 20px;
+  flex-shrink: 0;
+  margin-top: 2px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.rb-toast__icon--success {
+  color: var(--success-500);
+}
+
+.rb-toast__icon--error {
+  color: var(--error-500);
+}
+
+.rb-toast__icon--warning {
+  color: var(--warning-500);
+}
+
+.rb-toast__icon--info {
+  color: var(--info-500);
+}
+
+/* ─── Toast Content ─── */
+.rb-toast__content {
+  flex: 1;
+  min-width: 0;
+}
+
+.rb-toast__title {
+  font-size: 0.875rem;
+  /* 14px */
+  font-weight: 600;
+  line-height: 1.4;
+  margin: 0 0 4px 0;
+  color: var(--text-primary);
+}
+
+.rb-toast__description {
+  font-size: 0.8125rem;
+  /* 13px */
+  font-weight: 400;
+  line-height: 1.5;
+  margin: 0;
+  color: var(--text-secondary);
+}
+
+/* ─── Toast Action Button ─── */
+.rb-toast__action {
+  display: inline-flex;
+  align-items: center;
+  margin-top: 10px;
+  padding: 6px 12px;
+  font-size: 0.75rem;
+  /* 12px */
+  font-weight: 600;
+  border-radius: var(--radius-base);
+  border: none;
+  cursor: pointer;
+  font-family: var(--font-primary), inherit;
+  transition: all 0.15s ease;
+}
+
+.rb-toast__action:active {
+  transform: scale(0.97);
+}
+
+.rb-toast__action--success {
+  background: rgba(34, 197, 94, 0.12);
+  color: var(--success-600);
+}
+
+.rb-toast__action--success:hover {
+  background: rgba(34, 197, 94, 0.2);
+}
+
+.rb-toast__action--error {
+  background: rgba(239, 68, 68, 0.12);
+  color: var(--error-600);
+}
+
+.rb-toast__action--error:hover {
+  background: rgba(239, 68, 68, 0.2);
+}
+
+.rb-toast__action--warning {
+  background: rgba(245, 158, 11, 0.12);
+  color: var(--warning-600);
+}
+
+.rb-toast__action--warning:hover {
+  background: rgba(245, 158, 11, 0.2);
+}
+
+.rb-toast__action--info {
+  background: rgba(14, 165, 233, 0.12);
+  color: var(--info-600);
+}
+
+.rb-toast__action--info:hover {
+  background: rgba(14, 165, 233, 0.2);
+}
+
+/* ─── Toast Close Button ─── */
+.rb-toast__close {
+  width: 24px;
+  height: 24px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  padding: 0;
+  color: var(--text-muted);
+  transition: all 0.15s ease;
+}
+
+.rb-toast__close:hover {
+  background: var(--bg-tertiary);
+  color: var(--text-primary);
+}
+
+/* ─── Toast Progress Bar ─── */
+.rb-toast__progress {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  height: 3px;
+  border-radius: 0 0 var(--radius-xl) var(--radius-xl);
+  transform-origin: left;
+}
+
+.rb-toast__progress--success {
+  background: var(--success-500);
+}
+
+.rb-toast__progress--error {
+  background: var(--error-500);
+}
+
+.rb-toast__progress--warning {
+  background: var(--warning-500);
+}
+
+.rb-toast__progress--info {
+  background: var(--info-500);
+}
+
+
+/* =============================================================================
+   CONFIRMATION MODAL
+   ============================================================================= */
+
+.rb-confirm-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 10000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.6);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+}
+
+.rb-confirm-card {
+  position: relative;
+  width: 90%;
+  max-width: 440px;
+  padding: 32px;
+  border-radius: var(--radius-2xl);
+  overflow: hidden;
+  font-family: var(--font-primary), inherit;
+}
+
+[data-theme="dark"] .rb-confirm-card {
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border-primary);
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+}
+
+[data-theme="light"] .rb-confirm-card {
+  background: var(--surface-primary);
+  border: 1px solid var(--border-primary);
+  box-shadow: 0 20px 60px rgba(16, 24, 40, 0.15);
+}
+
+.rb-confirm__icon {
+  width: 48px;
+  height: 48px;
+  border-radius: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 20px;
+}
+
+.rb-confirm__icon--danger {
+  background: rgba(239, 68, 68, 0.1);
+  color: var(--error-500);
+}
+
+.rb-confirm__icon--warning {
+  background: rgba(245, 158, 11, 0.1);
+  color: var(--warning-500);
+}
+
+.rb-confirm__icon--info {
+  background: rgba(14, 165, 233, 0.1);
+  color: var(--info-500);
+}
+
+.rb-confirm__title {
+  font-size: 1.25rem;
+  /* 20px */
+  font-weight: 600;
+  line-height: 1.4;
+  margin: 0 0 10px 0;
+  color: var(--text-primary);
+}
+
+.rb-confirm__description {
+  font-size: 0.9375rem;
+  /* 15px */
+  line-height: 1.6;
+  margin: 0 0 28px 0;
+  color: var(--text-secondary);
+}
+
+.rb-confirm__actions {
+  display: flex;
+  gap: 12px;
+  justify-content: flex-end;
+}
+
+.rb-confirm__btn {
+  padding: 10px 22px;
+  font-size: 0.875rem;
+  /* 14px */
+  font-weight: 600;
+  border-radius: var(--radius-lg);
+  border: none;
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  font-family: var(--font-primary), inherit;
+}
+
+.rb-confirm__btn:active {
+  transform: scale(0.98);
+}
+
+.rb-confirm__btn--cancel {
+  background: var(--bg-tertiary);
+  color: var(--text-secondary);
+  border: 1px solid var(--border-primary);
+}
+
+.rb-confirm__btn--cancel:hover {
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  border-color: var(--border-secondary);
+}
+
+.rb-confirm__btn--danger {
+  background: var(--error-500);
+  color: white;
+}
+
+.rb-confirm__btn--danger:hover {
+  background: var(--error-600);
+  box-shadow: 0 4px 12px rgba(239, 68, 68, 0.25);
+}
+
+.rb-confirm__btn--warning {
+  background: var(--warning-500);
+  color: white;
+}
+
+.rb-confirm__btn--warning:hover {
+  background: var(--warning-600);
+  box-shadow: 0 4px 12px rgba(245, 158, 11, 0.25);
+}
+
+.rb-confirm__btn--primary {
+  background: var(--primary-500);
+  color: white;
+}
+
+.rb-confirm__btn--primary:hover {
+  background: var(--primary-600);
+  box-shadow: 0 4px 12px rgba(255, 106, 0, 0.25);
+}
+
+.rb-confirm__btn--info {
+  background: var(--info-500);
+  color: white;
+}
+
+.rb-confirm__btn--info:hover {
+  background: var(--info-600);
+  box-shadow: 0 4px 12px rgba(14, 165, 233, 0.25);
+}
+
+
+/* =============================================================================
+   INLINE ALERT BANNER
+   ============================================================================= */
+
+.rb-inline-alert {
+  position: relative;
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  padding: 14px 18px;
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  font-size: 0.875rem;
+  /* 14px */
+  line-height: 1.5;
+  font-family: var(--font-primary), inherit;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-primary);
+}
+
+/* Left accent bar */
+.rb-inline-alert::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 4px;
+  height: 100%;
+}
+
+/* Success */
+.rb-inline-alert--success {
+  background: var(--success-50);
+  border-color: rgba(34, 197, 94, 0.1);
+}
+
+[data-theme="dark"] .rb-inline-alert--success {
+  background: rgba(34, 197, 94, 0.06);
+}
+
+.rb-inline-alert--success::before {
+  background: var(--success-500);
+}
+
+.rb-inline-alert--success .rb-inline-alert__icon {
+  color: var(--success-500);
+}
+
+/* Error */
+.rb-inline-alert--error {
+  background: var(--error-50);
+  border-color: rgba(239, 68, 68, 0.1);
+}
+
+[data-theme="dark"] .rb-inline-alert--error {
+  background: rgba(239, 68, 68, 0.06);
+}
+
+.rb-inline-alert--error::before {
+  background: var(--error-500);
+}
+
+.rb-inline-alert--error .rb-inline-alert__icon {
+  color: var(--error-500);
+}
+
+/* Warning */
+.rb-inline-alert--warning {
+  background: var(--warning-50);
+  border-color: rgba(245, 158, 11, 0.1);
+}
+
+[data-theme="dark"] .rb-inline-alert--warning {
+  background: rgba(245, 158, 11, 0.06);
+}
+
+.rb-inline-alert--warning::before {
+  background: var(--warning-500);
+}
+
+.rb-inline-alert--warning .rb-inline-alert__icon {
+  color: var(--warning-500);
+}
+
+/* Info */
+.rb-inline-alert--info {
+  background: var(--info-50);
+  border-color: rgba(14, 165, 233, 0.1);
+}
+
+[data-theme="dark"] .rb-inline-alert--info {
+  background: rgba(14, 165, 233, 0.06);
+}
+
+.rb-inline-alert--info::before {
+  background: var(--info-500);
+}
+
+.rb-inline-alert--info .rb-inline-alert__icon {
+  color: var(--info-500);
+}
+
+.rb-inline-alert__icon {
+  flex-shrink: 0;
+  width: 18px;
+  height: 18px;
+  margin-top: 2px;
+}
+
+.rb-inline-alert__content {
+  flex: 1;
+  min-width: 0;
+}
+
+.rb-inline-alert__title {
+  font-weight: 600;
+  font-size: 0.875rem;
+  margin: 0 0 4px 0;
+  color: var(--text-primary);
+}
+
+.rb-inline-alert__message {
+  margin: 0;
+  color: var(--text-secondary);
+}
+
+.rb-inline-alert__dismiss {
+  width: 22px;
+  height: 22px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  padding: 0;
+  color: var(--text-muted);
+  transition: all 0.15s ease;
+}
+
+.rb-inline-alert__dismiss:hover {
+  background: rgba(0, 0, 0, 0.06);
+  color: var(--text-primary);
+}
+
+[data-theme="dark"] .rb-inline-alert__dismiss:hover {
+  background: rgba(255, 255, 255, 0.06);
+}

@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { inventoryAPI, productsAPI, handleAPIError } from '../../api/api';
-import { useToast } from '../../context/ToastContext';
+import { useAlert } from '../../context/AlertContext';
 import { useTheme } from '../../context/ThemeContext';
 import GlobalSelect from '../ui/GlobalSelect';
 import SearchBar from '../ui/SearchBar';
@@ -39,8 +39,38 @@ const TrashIcon = () => (
     </svg>
 );
 
+const InventoryStats = ({ metrics }) => {
+    const { isDark } = useTheme();
+
+    const items = [
+        { label: 'Total Products', value: metrics.totalItems, color: '#3B82F6' },
+        { label: 'Low Stock', value: metrics.lowStock, color: metrics.lowStock > 0 ? '#F59E0B' : '#10B981' },
+        { label: 'Inventory Value', value: `₹${metrics.totalValue.toLocaleString()}`, color: '#10B981' },
+    ];
+
+    return (
+        <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.4 }}
+            className="invStatsBar"
+        >
+            {items.map((item, i) => (
+                <React.Fragment key={item.label}>
+                    {i > 0 && <div className="invStatDivider" />}
+                    <div className="invStatItem">
+                        <div className="invStatDot" style={{ backgroundColor: item.color }} />
+                        <span className="invStatLabel">{item.label}</span>
+                        <span className="invStatValue">{item.value}</span>
+                    </div>
+                </React.Fragment>
+            ))}
+        </motion.div>
+    );
+};
+
 const Inventory = () => {
-    const { showSuccess, showError, showWarning } = useToast();
+    const { showSuccess, showError, showWarning, showConfirm } = useAlert();
     const { isDark } = useTheme();
 
     const [items, setItems] = useState([]);
@@ -157,7 +187,14 @@ const Inventory = () => {
 
     const handleDelete = async (e, id) => {
         e.stopPropagation();
-        if (!window.confirm("Delete this inventory item?")) return;
+        const confirmed = await showConfirm({
+            title: 'Delete Inventory Item',
+            description: 'This item will be permanently removed from your inventory.',
+            confirmLabel: 'Delete',
+            cancelLabel: 'Cancel',
+            variant: 'danger',
+        });
+        if (!confirmed) return;
         try {
             await inventoryAPI.deleteInventory(id);
             showSuccess('Item deleted');
@@ -218,42 +255,6 @@ const Inventory = () => {
                 {/* Note: In standard layout, header might be global, but for this contained module feel we put title here */}
                 {/* If App.jsx has a header, we can hide this or integrate it. Assuming standalone feel for now. */}
 
-                {/* 2. Stats Grid */}
-                <div className="invSummaryGrid">
-                    <motion.div
-                        className="invSummaryCard"
-                        initial={{ opacity: 0, y: 10 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ delay: 0.1 }}
-                    >
-                        <span className="invSummaryLabel">Total Products</span>
-                        <span className="invSummaryValue">{metrics.totalItems}</span>
-                    </motion.div>
-
-                    <motion.div
-                        className="invSummaryCard"
-                        initial={{ opacity: 0, y: 10 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ delay: 0.2 }}
-                    >
-                        <span className="invSummaryLabel">Low Stock</span>
-                        <span className="invSummaryValue" style={{ color: metrics.lowStock > 0 ? '#f59e0b' : 'inherit' }}>
-                            {metrics.lowStock}
-                        </span>
-                    </motion.div>
-
-                    <motion.div
-                        className="invSummaryCard"
-                        initial={{ opacity: 0, y: 10 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ delay: 0.3 }}
-                    >
-                        <span className="invSummaryLabel">Inventory Value</span>
-                        <span className="invSummaryValue" style={{ color: '#10b981' }}>
-                            ₹{metrics.totalValue.toLocaleString()}
-                        </span>
-                    </motion.div>
-                </div>
 
                 {/* 3. Main Container */}
                 <motion.div
@@ -283,6 +284,9 @@ const Inventory = () => {
                             </button>
                         </div>
                     </div>
+
+                    {/* Stats Bar Integrated */}
+                    <InventoryStats metrics={metrics} />
 
                     {/* Table */}
                     <div className="invTableWrapper">

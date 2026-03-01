@@ -23,7 +23,8 @@ const GlobalTimePicker = ({
     onChange,
     placeholder = 'Select time',
     disabled = false,
-    className = ''
+    className = '',
+    forceDown = false
 }) => {
     const [isOpen, setIsOpen] = useState(false);
     const containerRef = useRef(null);
@@ -34,11 +35,28 @@ const GlobalTimePicker = ({
         if (isOpen && containerRef.current) {
             const updatePosition = () => {
                 const rect = containerRef.current.getBoundingClientRect();
-                setDropdownPos({
-                    top: rect.top + window.scrollY - 8, // Align with top of input, -8px gap
-                    left: rect.left + window.scrollX,
-                    width: rect.width
-                });
+                const viewportHeight = window.innerHeight;
+
+                const dropdownHeight = 240 + 24; // 240px container + padding
+
+                const spaceBelow = viewportHeight - rect.bottom;
+                const shouldOpenUp = !forceDown && spaceBelow < dropdownHeight && rect.top > dropdownHeight;
+
+                if (shouldOpenUp) {
+                    setDropdownPos({
+                        top: rect.top + window.scrollY - dropdownHeight - 8,
+                        left: rect.left + window.scrollX,
+                        width: rect.width,
+                        transformOrigin: 'bottom center'
+                    });
+                } else {
+                    setDropdownPos({
+                        top: rect.bottom + window.scrollY + 8,
+                        left: rect.left + window.scrollX,
+                        width: rect.width,
+                        transformOrigin: 'top center'
+                    });
+                }
             };
 
             updatePosition();
@@ -50,7 +68,7 @@ const GlobalTimePicker = ({
                 window.removeEventListener('scroll', updatePosition, true);
             };
         }
-    }, [isOpen]);
+    }, [isOpen, forceDown]);
 
     // Internal state for 12-hour format
     const [hour, setHour] = useState('12');
@@ -59,10 +77,10 @@ const GlobalTimePicker = ({
 
     // Sync internal state with external value
     useEffect(() => {
-        if (value) {
+        if (value && value.includes(':')) {
             const [h, m] = value.split(':');
             let hourInt = parseInt(h);
-            const minuteStr = m;
+            const minuteStr = m || '00';
 
             let p = 'AM';
             if (hourInt >= 12) {
@@ -89,18 +107,9 @@ const GlobalTimePicker = ({
     }, []);
 
     const handleSelection = (type, val) => {
-        let newHour = hour;
-        let newMinute = minute;
-        let newPeriod = period;
-
-        if (type === 'hour') newHour = val;
-        if (type === 'minute') newMinute = val;
-        if (type === 'period') newPeriod = val;
-
-        // Update internal state immediately for UI response
-        setHour(newHour);
-        setMinute(newMinute);
-        setPeriod(newPeriod);
+        let newHour = type === 'hour' ? val : hour;
+        let newMinute = type === 'minute' ? val : minute;
+        let newPeriod = type === 'period' ? val : period;
 
         // Convert to 24-hour format for parent
         let h = parseInt(newHour);
@@ -108,6 +117,13 @@ const GlobalTimePicker = ({
         if (newPeriod === 'AM' && h === 12) h = 0;
 
         const timeStr = `${String(h).padStart(2, '0')}:${newMinute}`;
+
+        // Update internal state immediately for UI response
+        setHour(newHour);
+        setMinute(newMinute);
+        setPeriod(newPeriod);
+
+        // Notify parent
         onChange(timeStr);
     };
 
@@ -117,6 +133,7 @@ const GlobalTimePicker = ({
 
     const getDisplayValue = () => {
         if (!value) return placeholder;
+        // Always derive from value if possible, else use internal
         return `${hour}:${minute} ${period}`;
     };
 
@@ -185,9 +202,9 @@ const GlobalTimePicker = ({
                         {isOpen && (
                             <motion.div
                                 id={`timepicker-dropdown-${label || 'global'}`}
-                                initial={{ opacity: 0, y: "-95%", scale: 0.98 }}
-                                animate={{ opacity: 1, y: "-100%", scale: 1 }}
-                                exit={{ opacity: 0, y: "-95%", scale: 0.98 }}
+                                initial={{ opacity: 0, scale: 0.98, y: dropdownPos.transformOrigin === 'bottom center' ? 10 : -10 }}
+                                animate={{ opacity: 1, scale: 1, y: 0 }}
+                                exit={{ opacity: 0, scale: 0.98, y: dropdownPos.transformOrigin === 'bottom center' ? 10 : -10 }}
                                 transition={{ duration: 0.15, ease: "easeOut" }}
                                 style={{
                                     position: 'absolute',
@@ -195,7 +212,7 @@ const GlobalTimePicker = ({
                                     left: dropdownPos.left,
                                     width: dropdownPos.width,
                                     zIndex: 99999,
-                                    transformOrigin: 'bottom center',
+                                    transformOrigin: dropdownPos.transformOrigin,
                                     background: 'var(--surface-primary)',
                                     border: '1px solid var(--border-primary)',
                                     borderRadius: '12px',

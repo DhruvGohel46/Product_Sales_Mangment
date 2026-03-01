@@ -38,73 +38,86 @@
         #0f1115;
 }
 
-/* --- Stats Cards Row --- */
-.invSummaryGrid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-    gap: 20px;
+/* --- Integrated Metrics Bar --- */
+.invStatsBar {
+    display: flex;
+    align-items: center;
+    gap: 0;
+    padding: 0 4px;
+    height: 48px;
+    transition: all 0.3s ease;
+    width: 100%;
+    /* Remove external borders and background to blend into main card */
+    background: transparent;
+    border: none;
+    border-top: 1px solid var(--border-primary);
+    border-bottom: 1px solid var(--border-primary);
+}
+
+[data-theme="dark"] .invStatsBar {
+    border-top-color: rgba(255, 255, 255, 0.05);
+    border-bottom-color: rgba(255, 255, 255, 0.05);
+}
+
+[data-theme="light"] .invStatsBar {
+    border-top-color: rgba(0, 0, 0, 0.04);
+    border-bottom-color: rgba(0, 0, 0, 0.04);
+}
+
+.invStatItem {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    padding: 0 16px;
+    min-width: 0;
+}
+
+.invStatDivider {
+    width: 1px;
+    height: 24px;
     flex-shrink: 0;
 }
 
-.invSummaryCard {
-    /* Base specs */
-    height: 80px;
-    padding: 0 24px;
-    /* Slightly more padding for breathability */
-    border-radius: 16px;
-    background: #ffffff;
-    border: 1px solid #e4e7ec;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.02);
-
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-
-    cursor: pointer;
-    transition: all 0.2s ease;
-    /* Smooth transition everywhere */
-    position: relative;
+[data-theme="dark"] .invStatDivider {
+    background: rgba(255, 255, 255, 0.08);
 }
 
-/* Dark Theme Stats Card */
-[data-theme="dark"] .invSummaryCard {
-    background: #161a20;
-    border: 1px solid rgba(255, 255, 255, 0.06);
-    box-shadow: none;
+[data-theme="light"] .invStatDivider {
+    background: rgba(0, 0, 0, 0.08);
 }
 
-/* Hover Effect: Lift 3px & Glow */
-.invSummaryCard:hover {
-    transform: translateY(-3px);
-    box-shadow: 0 12px 24px rgba(0, 0, 0, 0.06);
-}
-
-[data-theme="dark"] .invSummaryCard:hover {
-    border-color: rgba(255, 122, 24, 0.3);
-    /* Orange glow */
-    box-shadow: 0 12px 24px rgba(0, 0, 0, 0.2);
-}
-
-.invSummaryLabel {
-    font-size: 14px;
-    font-weight: 500;
+.invStatLabel {
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
     color: #6b7280;
-    /* Secondary text */
+    white-space: nowrap;
 }
 
-[data-theme="dark"] .invSummaryLabel {
+[data-theme="dark"] .invStatLabel {
     color: #8b949e;
 }
 
-.invSummaryValue {
-    font-size: 28px;
-    font-weight: 600;
+.invStatValue {
+    font-size: 16px;
+    font-weight: 700;
     color: #111827;
-    /* Primary Black */
+    white-space: nowrap;
+    font-variant-numeric: tabular-nums;
 }
 
-[data-theme="dark"] .invSummaryValue {
+[data-theme="dark"] .invStatValue {
     color: #ffffff;
+}
+
+.invStatDot {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    flex-shrink: 0;
 }
 
 /* --- Main Inventory Container --- */

@@ -247,6 +247,16 @@ export const formatCurrency = (amount) => {
   return `${currentCurrencySymbol}${Number(amount).toFixed(2)}`;
 };
 
+/**
+ * Returns current local date in YYYY-MM-DD format
+ * Robust replacement for toISOString().split('T')[0] which returns UTC
+ */
+export const getLocalDateString = (dateObj = new Date()) => {
+  const offset = dateObj.getTimezoneOffset();
+  const localDate = new Date(dateObj.getTime() - (offset * 60 * 1000));
+  return localDate.toISOString().split('T')[0];
+};
+
 // Inventory APIs
 export const inventoryAPI = {
   // Get all inventory

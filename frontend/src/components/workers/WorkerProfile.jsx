@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useTheme } from '../../context/ThemeContext';
+import { useAlert } from '../../context/AlertContext';
 import { workerAPI } from '../../api/workers';
 import Button from '../ui/Button';
 import Card from '../ui/Card';
@@ -15,12 +16,13 @@ const WorkerProfile = () => {
     const { id } = useParams();
     const navigate = useNavigate();
     const { currentTheme, isDark } = useTheme();
+    const { showSuccess, showError, showConfirm } = useAlert();
 
     const [worker, setWorker] = useState(null);
     const [advances, setAdvances] = useState([]);
     const [salaryHistory, setSalaryHistory] = useState([]);
     const [attendance, setAttendance] = useState([]);
-    const [activeTab, setActiveTab] = useState('overview');
+    const [activeTab, setActiveTab] = useState('attendance');
     const [loading, setLoading] = useState(true);
 
     // Advance Form
@@ -61,31 +63,45 @@ const WorkerProfile = () => {
             setAdvanceReason('');
             loadData();
         } catch (error) {
-            alert("Failed to add advance");
+            showError('Failed to add advance');
         } finally {
             setSubmittingAdvance(false);
         }
     };
 
     const handleGenerateSalary = async () => {
-        if (!window.confirm('Generate salary for the current month?')) return;
+        const confirmed = await showConfirm({
+            title: 'Mark Salary as Paid?',
+            description: 'Generate and mark the salary for the current month as paid? This will deduct any advances and consider attendance.',
+            confirmLabel: 'Mark Paid',
+            cancelLabel: 'Cancel',
+            variant: 'primary',
+        });
+        if (!confirmed) return;
         try {
             const date = new Date();
             await workerAPI.generateSalary(id, date.getMonth() + 1, date.getFullYear());
             loadData();
-            alert("Salary generated successfully");
+            showSuccess('Salary generated successfully');
         } catch (error) {
-            alert("Failed to generate salary: " + error.response?.data?.error || error.message);
+            showError('Failed to generate salary: ' + (error.response?.data?.error || error.message));
         }
     };
 
     const handleDeleteWorker = async () => {
-        if (window.confirm('Are you sure you want to delete this worker? This action cannot be undone.')) {
+        const confirmed = await showConfirm({
+            title: 'Delete Worker',
+            description: 'Are you sure you want to delete this worker? This action cannot be undone.',
+            confirmLabel: 'Delete',
+            cancelLabel: 'Cancel',
+            variant: 'danger',
+        });
+        if (confirmed) {
             try {
                 await workerAPI.deleteWorker(worker.worker_id);
                 navigate('/workers');
             } catch (e) {
-                alert('Failed to delete worker');
+                showError('Failed to delete worker');
             }
         }
     }
@@ -214,6 +230,62 @@ const WorkerProfile = () => {
                             Joined {new Date(worker.join_date || worker.joinDate).toLocaleDateString()}
                         </div>
                     </div>
+
+                    {/* Stats Info Bar — merged from Overview tab */}
+                    {(() => {
+                        const presentDays = attendance.filter(a => a.status === 'Present').length;
+                        const totalAdvance = advances.reduce((acc, curr) => acc + curr.amount, 0);
+                        const netPay = worker.salary - totalAdvance;
+                        const hasAdvance = totalAdvance > 0;
+                        const items = [
+                            { label: 'Attendance', value: `${presentDays} Days`, color: '#3B82F6' },
+                            { label: 'Daily Wage', value: formatCurrency(worker.salary / 30), color: '#10B981' },
+                            { label: 'Advances', value: formatCurrency(totalAdvance), color: hasAdvance ? '#EF4444' : '#71717A' },
+                            { label: 'Est. Net Pay', value: formatCurrency(netPay), color: '#F97316' },
+                        ];
+                        return (
+                            <div style={{
+                                display: 'flex', alignItems: 'center', gap: 0,
+                                padding: '0 4px', height: 38, marginTop: 16,
+                                background: 'transparent',
+                                borderTop: `1px solid ${isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.06)'}`,
+                            }}>
+                                {items.map((item, i) => (
+                                    <React.Fragment key={item.label}>
+                                        {i > 0 && (
+                                            <div style={{
+                                                width: 1, height: 18, flexShrink: 0,
+                                                background: isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.08)',
+                                            }} />
+                                        )}
+                                        <div style={{
+                                            flex: 1, display: 'flex', alignItems: 'center',
+                                            justifyContent: 'center', gap: 6, padding: '0 10px', minWidth: 0,
+                                        }}>
+                                            <span style={{
+                                                width: 5, height: 5, borderRadius: '50%',
+                                                background: item.color, display: 'inline-block', flexShrink: 0,
+                                            }} />
+                                            <span style={{
+                                                fontSize: 11, fontWeight: 500, whiteSpace: 'nowrap',
+                                                color: isDark ? '#71717A' : '#6B7280',
+                                            }}>
+                                                {item.label}
+                                            </span>
+                                            <span style={{
+                                                fontSize: 12, fontWeight: 600, whiteSpace: 'nowrap',
+                                                fontVariantNumeric: 'tabular-nums',
+                                                color: item.label === 'Advances' && hasAdvance
+                                                    ? '#EF4444' : (isDark ? '#FAFAFA' : '#111827'),
+                                            }}>
+                                                {item.value}
+                                            </span>
+                                        </div>
+                                    </React.Fragment>
+                                ))}
+                            </div>
+                        );
+                    })()}
                 </div>
             </div>
 
@@ -224,7 +296,7 @@ const WorkerProfile = () => {
                 display: 'flex',
                 gap: '8px'
             }}>
-                <TabButton id="overview" label="Overview" icon={IoBriefcase} />
+
                 <TabButton id="attendance" label="Attendance" icon={IoTime} />
                 <TabButton id="advances" label="Advances" icon={IoWarning} />
                 <TabButton id="salary" label="Salary History" icon={IoCash} />
@@ -239,85 +311,6 @@ const WorkerProfile = () => {
                     exit={{ opacity: 0, y: -10 }}
                     transition={{ duration: 0.2 }}
                 >
-                    {activeTab === 'overview' && (
-                        <div className="wpStatsGrid">
-                            {/* Days Present */}
-                            <motion.div
-                                className="wpStatCard"
-                                whileHover={{ y: -4, transition: { duration: 0.2 } }}
-                            >
-                                <div className="wpStatHeader">
-                                    <IoCalendar size={18} />
-                                    <span>Attendance</span>
-                                </div>
-                                <div className="wpStatValue">
-                                    {attendance.filter(a => a.status === 'Present').length} <span style={{ fontSize: '1rem', fontWeight: 500, color: 'var(--text-secondary)' }}>Days</span>
-                                </div>
-                                <div className="wpStatSub">
-                                    Present this month
-                                </div>
-                                <IoCalendar size={48} className="wpStatIcon" />
-                            </motion.div>
-
-                            {/* Daily Wage */}
-                            <motion.div
-                                className="wpStatCard"
-                                whileHover={{ y: -4, transition: { duration: 0.2 } }}
-                            >
-                                <div className="wpStatHeader">
-                                    <IoCash size={18} />
-                                    <span>Daily Wage</span>
-                                </div>
-                                <div className="wpStatValue">
-                                    {formatCurrency(worker.salary / 30)}
-                                </div>
-                                <div className="wpStatSub">
-                                    Calculated from monthly
-                                </div>
-                                <IoCash size={48} className="wpStatIcon" />
-                            </motion.div>
-
-                            {/* Outstanding Advances */}
-                            <motion.div
-                                className="wpStatCard"
-                                whileHover={{ y: -4, transition: { duration: 0.2 } }}
-                                style={{ borderColor: advances.length > 0 ? 'rgba(239, 68, 68, 0.3)' : 'var(--border-primary)' }}
-                            >
-                                <div className="wpStatHeader" style={{ color: advances.length > 0 ? '#EF4444' : 'inherit' }}>
-                                    <IoWarning size={18} />
-                                    <span>Outstanding Advances</span>
-                                </div>
-                                <div className="wpStatValue" style={{ color: advances.length > 0 ? '#EF4444' : 'inherit' }}>
-                                    {formatCurrency(advances.reduce((acc, curr) => acc + curr.amount, 0))}
-                                </div>
-                                <div className="wpStatSub">
-                                    To be deducted
-                                </div>
-                                <IoWarning size={48} className="wpStatIcon" style={{ color: advances.length > 0 ? '#EF4444' : 'inherit' }} />
-                            </motion.div>
-
-                            {/* Net Payable Projection (New) */}
-                            <motion.div
-                                className="wpStatCard"
-                                whileHover={{ y: -4, transition: { duration: 0.2 } }}
-                                style={{ background: 'var(--bg-secondary)', borderStyle: 'dashed' }}
-                            >
-                                <div className="wpStatHeader">
-                                    <IoBriefcase size={18} />
-                                    <span>Est. Net Pay</span>
-                                </div>
-                                <div className="wpStatValue" style={{ color: 'var(--accent)' }}>
-                                    {formatCurrency(
-                                        (worker.salary) - (advances.reduce((acc, curr) => acc + curr.amount, 0))
-                                    )}
-                                </div>
-                                <div className="wpStatSub">
-                                    Base Salary - Advances
-                                </div>
-                                <IoBriefcase size={48} className="wpStatIcon" style={{ color: 'var(--accent)' }} />
-                            </motion.div>
-                        </div>
-                    )}
 
                     {activeTab === 'attendance' && (
                         <Card title="Attendance Log" style={{ overflow: 'hidden' }}>
@@ -482,7 +475,7 @@ const WorkerProfile = () => {
                                                         onClick={handleGenerateSalary}
                                                         style={{ background: '#10B981', border: 'none', color: 'white' }}
                                                     >
-                                                        Finalize & Pay
+                                                        Mark Paid
                                                     </Button>
                                                 </td>
                                             </tr>
@@ -516,7 +509,7 @@ const WorkerProfile = () => {
                                                                 try {
                                                                     await workerAPI.markPaid(pay.payment_id);
                                                                     loadData();
-                                                                } catch (e) { alert('Failed to mark paid'); }
+                                                                } catch (e) { showError('Failed to mark paid'); }
                                                             }}
                                                             style={{ background: '#10B981', border: 'none', color: 'white' }}
                                                         >

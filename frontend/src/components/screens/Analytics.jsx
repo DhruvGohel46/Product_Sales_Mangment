@@ -63,7 +63,7 @@ import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useTheme } from '../../context/ThemeContext';
 import { useAnimation } from '../../hooks/useAnimation';
-import api, { summaryAPI, reportsAPI, billingAPI } from '../../utils/api';
+import api, { summaryAPI, reportsAPI, billingAPI, getLocalDateString } from '../../utils/api';
 import { formatCurrency, handleAPIError, downloadFile } from '../../utils/api';
 import { CATEGORY_COLORS, CATEGORY_NAMES, ANIMATION_DURATIONS, EASINGS } from '../../utils/constants';
 import Button from '../ui/Button';
@@ -72,6 +72,11 @@ import Skeleton from '../ui/Skeleton';
 import AnimatedList from '../ui/AnimatedList';
 import GlobalDatePicker from '../ui/GlobalDatePicker';
 import PageContainer from '../layout/PageContainer';
+import {
+  IoBarChartOutline,
+  IoReceiptOutline,
+  IoDocumentTextOutline
+} from 'react-icons/io5';
 import '../../styles/Analytics.css';
 
 // ... other imports ...
@@ -128,13 +133,43 @@ const RefreshIcon = ({ color }) => (
   </svg>
 );
 
-const Reports = () => {
+const AnalyticsStats = ({ stats }) => {
+  const { currentTheme, isDark } = useTheme();
+
+  const items = [
+    { label: 'Net Sales', value: formatCurrency(stats.total_sales || 0), color: '#10B981', icon: <TrendingUpIcon /> },
+    { label: 'Total Orders', value: stats.total_bills || 0, color: '#3B82F6', icon: <ReceiptIcon /> },
+    { label: 'Avg. Value', value: formatCurrency(stats.average_bill_value || 0), color: '#F59E0B', icon: <DollarSignIcon /> },
+  ];
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 10 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.5, delay: 0.2 }}
+      className="analytics-stats-bar"
+    >
+      {items.map((item, i) => (
+        <React.Fragment key={item.label}>
+          {i > 0 && <div className="analytics-stat-divider" />}
+          <div className="analytics-stat-item">
+            <div className="analytics-stat-dot" style={{ backgroundColor: item.color }} />
+            <span className="analytics-stat-label">{item.label}</span>
+            <span className="analytics-stat-value">{item.value}</span>
+          </div>
+        </React.Fragment>
+      ))}
+    </motion.div>
+  );
+};
+
+const Analytics = () => {
   const { currentTheme, isDark } = useTheme();
   const { cardVariants, staggerContainer, staggerItem } = useAnimation();
 
   // Summary state
   const [summary, setSummary] = useState(null);
-  const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
+  const [selectedDate, setSelectedDate] = useState(getLocalDateString());
   const [loading, setLoading] = useState(true);
   const [currentDate] = useState(new Date().toLocaleDateString('en-US', {
     weekday: 'long',
@@ -162,10 +197,10 @@ const Reports = () => {
   const [exportYear, setExportYear] = useState(new Date().getFullYear());
 
   // Weekly Export state
-  const [exportWeekDate, setExportWeekDate] = useState(new Date().toISOString().split('T')[0]);
+  const [exportWeekDate, setExportWeekDate] = useState(getLocalDateString());
 
   // Daily Report state
-  const [dailyReportDate, setDailyReportDate] = useState(new Date().toISOString().split('T')[0]);
+  const [dailyReportDate, setDailyReportDate] = useState(getLocalDateString());
 
   // Bill Management State
   const navigate = useNavigate();
@@ -175,7 +210,7 @@ const Reports = () => {
   const [selectedBill, setSelectedBill] = useState(null);
 
   // Date filter for Bills (defaults to today)
-  const [selectedBillDate, setSelectedBillDate] = useState(new Date().toISOString().split('T')[0]);
+  const [selectedBillDate, setSelectedBillDate] = useState(getLocalDateString());
 
   // Safeguard so we never read properties from null
   const safeSummary = summary || {};
@@ -183,6 +218,15 @@ const Reports = () => {
   /* State for Pie Chart Interaction */
   const [hoveredProduct, setHoveredProduct] = useState(null);
   const [selectedProduct, setSelectedProduct] = useState(null); // New: Persistent selection
+
+  // Sub-tabs state
+  const [activeTab, setActiveTab] = useState('overview');
+
+  const tabs = [
+    { id: 'overview', label: 'Overview', icon: IoBarChartOutline },
+    { id: 'transactions', label: 'Transactions', icon: IoReceiptOutline },
+    { id: 'reports', label: 'Reports', icon: IoDocumentTextOutline }
+  ];
 
   // Load data when date changes
   useEffect(() => {
@@ -423,15 +467,14 @@ const Reports = () => {
     }
   };
 
-  // Format time for display (handles UTC to Local conversion)
+  // Format time for display (handles UTC to Local conversion as needed)
   const formatTime = (timestamp) => {
     if (!timestamp) return 'N/A';
     try {
-      // SQLite TIMESTAMP is stored in UTC.
-      // We append 'Z' or use Date.UTC to ensure JavaScript parses it as UTC.
-      // Format: YYYY-MM-DD HH:MM:SS
-      const utcDate = new Date(timestamp.replace(' ', 'T') + 'Z');
-      return utcDate.toLocaleTimeString([], {
+      // The backend stores timestamps in local system time.
+      // We parse as a local date string to avoid UTC conversion shifts.
+      const localDate = new Date(timestamp.replace(' ', 'T'));
+      return localDate.toLocaleTimeString([], {
         hour: 'numeric',
         minute: '2-digit',
         hour12: true
@@ -442,12 +485,12 @@ const Reports = () => {
     }
   };
 
-  // Format date for display (handles UTC to Local conversion)
+  // Format date for display
   const formatDate = (timestamp) => {
     if (!timestamp) return 'N/A';
     try {
-      const utcDate = new Date(timestamp.replace(' ', 'T') + 'Z');
-      return utcDate.toLocaleDateString();
+      const localDate = new Date(timestamp.replace(' ', 'T'));
+      return localDate.toLocaleDateString();
     } catch (err) {
       return timestamp.split(' ')[0];
     }
@@ -612,911 +655,836 @@ const Reports = () => {
         transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
         className="analytics-header-container"
       >
-        {/* Management-style Header */}
-        <motion.div
-          initial={{ opacity: 0, y: -20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
-          className="analytics-header-card"
-        >
-          <div className="analytics-title-wrapper">
-            <div className="analytics-title">
-              Analytics
-            </div>
-          </div>
+        <div className="analytics-header-card" style={{ flexDirection: 'column', alignItems: 'stretch', gap: '20px' }}>
+          <div className="analytics-header-top">
+            <div className="analytics-header-left">
+              <div className="analytics-title-wrapper">
+                <div className="analytics-title">Analytics</div>
+              </div>
 
+              {/* Integrated Navigation Tabs */}
+              <div className="analytics-tabs">
+                <div className="analytics-tab-list">
+                  {tabs.map((tab) => (
+                    <button
+                      key={tab.id}
+                      className={`analytics-tab-button ${activeTab === tab.id ? 'analytics-tab-active' : ''}`}
+                      onClick={() => setActiveTab(tab.id)}
+                    >
+                      <tab.icon size={18} />
+                      {tab.label}
+                    </button>
+                  ))}
 
-          <div className="analytics-btn-group">
-            {/* Clear Data Button */}
-            <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
-              <Button onClick={() => setShowClearConfirm(true)} variant="error" size="lg"
-                className="analytics-action-btn"
-                style={{
-                  background: `linear-gradient(135deg, ${isDark ? (currentTheme.colors.error?.[600] || '#DC2626') : (currentTheme.colors.error?.[500] || '#EF4444')}, ${isDark ? (currentTheme.colors.error?.[700] || '#B91C1C') : (currentTheme.colors.error?.[600] || '#DC2626')})`,
-                  boxShadow: isDark ? '0 4px 12px rgba(220, 38, 38, 0.2)' : '0 4px 12px rgba(239, 68, 68, 0.15)',
-                }}
-              >
-                <div style={{ width: '20px', height: '20px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                  <TrashIcon color="#ffffff" />
-                </div>
-                Clear Data
-              </Button>
-            </motion.div>
-
-            {/* Refresh Data Button */}
-            <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
-              <Button onClick={() => { loadSummary(); loadAvailableReports(); }} variant="primary" size="lg"
-                className="analytics-action-btn"
-                style={{
-                  background: `linear-gradient(135deg, ${isDark ? currentTheme.colors.primary[600] : currentTheme.colors.primary[500]}, ${isDark ? currentTheme.colors.primary[700] : currentTheme.colors.primary[600]})`,
-                  boxShadow: isDark ? '0 4px 12px rgba(14, 165, 233, 0.2)' : '0 4px 12px rgba(59, 130, 246, 0.15)',
-                }}
-              >
-                <div style={{ width: '20px', height: '20px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                  <RefreshIcon color="#ffffff" />
-                </div>
-                Refresh Data
-              </Button>
-            </motion.div>
-          </div>
-        </motion.div>
-      </motion.div>
-
-      {/* KPI Cards Section */}
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.6, delay: 0.1, ease: [0.16, 1, 0.3, 1] }}
-        className="analytics-kpi-grid"
-      >
-        {/* Total Sales Card */}
-        <Card
-          hover={true}
-          style={{
-            background: isDark ? 'linear-gradient(145deg, #1e293b, #0f172a)' : 'linear-gradient(145deg, #ffffff, #f8fafc)',
-            border: isDark ? '1px solid rgba(255,255,255,0.05)' : '1px solid rgba(226, 232, 240, 0.8)',
-            boxShadow: isDark ? '0 10px 15px -3px rgba(0, 0, 0, 0.3)' : '0 10px 15px -3px rgba(0, 0, 0, 0.05)',
-          }}
-          whileHover={{ y: -5, boxShadow: isDark ? '0 20px 25px -5px rgba(0, 0, 0, 0.4)' : '0 20px 25px -5px rgba(0, 0, 0, 0.1)' }}
-        >
-          <div className="kpi-card-header">
-            <div>
-              <p className="kpi-label" style={{ fontSize: '0.875rem', fontWeight: 600, color: currentTheme.colors.text.secondary, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-                Net Sales
-              </p>
-              <h3 className="kpi-value" style={{ 
-                fontSize: '2rem', 
-                fontWeight: 800, 
-                marginTop: '8px',
-                transition: 'color 0.3s ease'
-              }}>
-                {formatCurrency(safeSummary.total_sales || 0)}
-              </h3>
-            </div>
-            <div className="kpi-icon-wrapper" style={{
-              background: isDark ? 'rgba(16, 185, 129, 0.1)' : '#ecfdf5',
-              borderRadius: '16px',
-              padding: '12px',
-              boxShadow: '0 4px 6px -1px rgba(16, 185, 129, 0.1)'
-            }}>
-              <TrendingUpIcon color={isDark ? '#34d399' : '#059669'} />
-            </div>
-          </div>
-          <div className="kpi-subtext" style={{ marginTop: '16px', fontSize: '0.875rem', color: isDark ? '#94a3b8' : '#64748b' }}>
-            <span>
-              Total revenue for today
-            </span>
-          </div>
-        </Card>
-
-        {/* Total Orders Card */}
-        <Card
-          hover={true}
-          style={{
-            background: isDark ? 'linear-gradient(145deg, #1e293b, #0f172a)' : 'linear-gradient(145deg, #ffffff, #f8fafc)',
-            border: isDark ? '1px solid rgba(255,255,255,0.05)' : '1px solid rgba(226, 232, 240, 0.8)',
-            boxShadow: isDark ? '0 10px 15px -3px rgba(0, 0, 0, 0.3)' : '0 10px 15px -3px rgba(0, 0, 0, 0.05)',
-          }}
-          whileHover={{ y: -5, boxShadow: isDark ? '0 20px 25px -5px rgba(0, 0, 0, 0.4)' : '0 20px 25px -5px rgba(0, 0, 0, 0.1)' }}
-        >
-          <div className="kpi-card-header">
-            <div>
-              <p className="kpi-label" style={{ fontSize: '0.875rem', fontWeight: 600, color: currentTheme.colors.text.secondary, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-                Total Orders
-              </p>
-              <h3 className="kpi-value" style={{ 
-                fontSize: '2rem', 
-                fontWeight: 800, 
-                marginTop: '8px',
-                transition: 'color 0.3s ease'
-              }}>
-                {safeSummary.total_bills || 0}
-              </h3>
-            </div>
-            <div className="kpi-icon-wrapper" style={{
-              background: isDark ? 'rgba(59, 130, 246, 0.1)' : '#eff6ff',
-              borderRadius: '16px',
-              padding: '12px',
-              boxShadow: '0 4px 6px -1px rgba(59, 130, 246, 0.1)'
-            }}>
-              <ReceiptIcon color={isDark ? '#60a5fa' : '#2563eb'} />
-            </div>
-          </div>
-          <div className="kpi-subtext" style={{ marginTop: '16px', fontSize: '0.875rem', color: isDark ? '#94a3b8' : '#64748b' }}>
-            <span>
-              Bills generated today
-            </span>
-          </div>
-        </Card>
-
-        {/* Average Order Value Card */}
-        <Card
-          hover={true}
-          style={{
-            background: isDark ? 'linear-gradient(145deg, #1e293b, #0f172a)' : 'linear-gradient(145deg, #ffffff, #f8fafc)',
-            border: isDark ? '1px solid rgba(255,255,255,0.05)' : '1px solid rgba(226, 232, 240, 0.8)',
-            boxShadow: isDark ? '0 10px 15px -3px rgba(0, 0, 0, 0.3)' : '0 10px 15px -3px rgba(0, 0, 0, 0.05)',
-          }}
-          whileHover={{ y: -5, boxShadow: isDark ? '0 20px 25px -5px rgba(0, 0, 0, 0.4)' : '0 20px 25px -5px rgba(0, 0, 0, 0.1)' }}
-        >
-          <div className="kpi-card-header">
-            <div>
-              <p className="kpi-label" style={{ fontSize: '0.875rem', fontWeight: 600, color: currentTheme.colors.text.secondary, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-                Avg. Order Value
-              </p>
-              <h3 className="kpi-value" style={{ 
-                fontSize: '2rem', 
-                fontWeight: 800, 
-                marginTop: '8px',
-                transition: 'color 0.3s ease'
-              }}>
-                {formatCurrency(safeSummary.average_bill_value || 0)}
-              </h3>
-            </div>
-            <div className="kpi-icon-wrapper" style={{
-              background: isDark ? 'rgba(245, 158, 11, 0.1)' : '#fffbeb',
-              borderRadius: '16px',
-              padding: '12px',
-              boxShadow: '0 4px 6px -1px rgba(245, 158, 11, 0.1)'
-            }}>
-              <DollarSignIcon color={isDark ? '#fbbf24' : '#d97706'} />
-            </div>
-          </div>
-          <div className="kpi-subtext" style={{ marginTop: '16px', fontSize: '0.875rem', color: isDark ? '#94a3b8' : '#64748b' }}>
-            <span>
-              Per transaction average
-            </span>
-          </div>
-        </Card>
-      </motion.div>
-
-      {/* Product Sales Breakdown Section */}
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.6, delay: 0.2, ease: [0.16, 1, 0.3, 1] }}
-        style={{
-          marginBottom: currentTheme.spacing[8],
-        }}
-      >
-        <Card>
-          {/* ... (Header remains same) ... */}
-          <div className="analytics-header-container" style={{ marginBottom: currentTheme.spacing[6] }}>
-            <div style={{
-              position: 'relative',
-              paddingLeft: currentTheme.spacing[4],
-            }}>
-              <div style={{
-                position: 'absolute',
-                left: 0,
-                top: '50%',
-                transform: 'translateY(-50%)',
-                width: '4px',
-                height: '24px',
-                background: `linear-gradient(to bottom, ${currentTheme.colors.primary[500]}, ${currentTheme.colors.primary[600]})`,
-                borderRadius: '2px',
-              }} />
-              <h2 style={{
-                fontSize: '1.25rem',
-                fontWeight: 600,
-                color: isDark ? '#f1f5f9' : '#1e293b',
-                margin: 0,
-                textTransform: 'uppercase',
-                letterSpacing: '0.1em',
-                position: 'relative',
-                zIndex: 1,
-              }}>
-                Product Sales Breakdown
-              </h2>
-            </div>
-          </div>
-
-          {/* Pie Chart and Products Grid */}
-          {productSales.length > 0 ? (
-            <div className="analytics-chart-grid">
-              {/* Pie Chart */}
-              <div
-                className="chart-card"
-                style={{ height: 'auto', alignItems: 'center', justifyContent: 'center' }}
-              >
-                <div
-                  style={{
-                    position: 'relative',
-                    width: '320px',
-                    height: '320px',
-                    marginBottom: currentTheme.spacing[4],
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center'
-                  }}
-                  onMouseLeave={() => setHoveredProduct(null)}
-                >
-                  <svg
-                    width="320"
-                    height="320"
-                    viewBox="0 0 320 320"
-                    style={{
-                      transform: 'rotate(-90deg)',
-                      overflow: 'visible',
+                  {/* Sliding Indicator */}
+                  <motion.div
+                    className="analytics-tab-indicator"
+                    layoutId="analyticsTabIndicator"
+                    animate={{
+                      left: tabs.findIndex(t => t.id === activeTab) * (100 / tabs.length) + '%',
+                      width: (100 / tabs.length) + '%'
                     }}
-                  >
-                    {/* Background Circle/Track */}
-                    <circle
-                      cx="160"
-                      cy="160"
-                      r="120"
-                      fill="none"
-                      stroke={isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.05)'}
-                      strokeWidth="35"
-                    />
+                    transition={{ type: "spring", bounce: 0.2, duration: 0.5 }}
+                  />
+                </div>
+              </div>
+            </div>
 
-                    {(() => {
-                      // Sort products by total_amount desc to make the chart look better
-                      const sortedProductSales = [...productSales].sort((a, b) => Number(b.total_amount) - Number(a.total_amount));
-                      const totalRevenue = sortedProductSales.reduce((sum, p) => sum + Number(p.total_amount), 0);
+            <div className="analytics-btn-group">
+              <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
+                <Button onClick={() => setShowClearConfirm(true)} variant="error" size="lg"
+                  className="analytics-action-btn"
+                  style={{
+                    background: `linear-gradient(135deg, ${isDark ? (currentTheme.colors.error?.[600] || '#DC2626') : (currentTheme.colors.error?.[500] || '#EF4444')}, ${isDark ? (currentTheme.colors.error?.[700] || '#B91C1C') : (currentTheme.colors.error?.[600] || '#DC2626')})`,
+                    boxShadow: isDark ? '0 4px 12px rgba(220, 38, 38, 0.2)' : '0 4px 12px rgba(239, 68, 68, 0.15)',
+                  }}
+                >
+                  <div style={{ width: '20px', height: '20px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    <TrashIcon color="#ffffff" />
+                  </div>
+                  Clear Data
+                </Button>
+              </motion.div>
 
-                      return sortedProductSales.map((product, index) => {
-                        const productAmount = Number(product.total_amount);
-                        const percentage = totalRevenue > 0 ? (productAmount / totalRevenue) * 100 : 0;
+              <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
+                <Button onClick={() => { loadSummary(selectedDate); loadAvailableReports(); }} variant="primary" size="lg"
+                  className="analytics-action-btn"
+                  style={{
+                    background: `linear-gradient(135deg, ${isDark ? currentTheme.colors.primary[600] : currentTheme.colors.primary[500]}, ${isDark ? currentTheme.colors.primary[700] : currentTheme.colors.primary[600]})`,
+                    boxShadow: isDark ? '0 4px 12px rgba(14, 165, 233, 0.2)' : '0 4px 12px rgba(59, 130, 246, 0.15)',
+                  }}
+                >
+                  <div style={{ width: '20px', height: '20px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    <RefreshIcon color="#ffffff" />
+                  </div>
+                  Refresh Data
+                </Button>
+              </motion.div>
+            </div>
+          </div>
 
-                        // Calculate accumulation for start position based on SORTED list
-                        const previousAmount = sortedProductSales.slice(0, index).reduce((sum, p) => sum + Number(p.total_amount), 0);
-                        const previousPercentage = totalRevenue > 0 ? (previousAmount / totalRevenue) * 100 : 0;
+          <AnalyticsStats stats={safeSummary} />
+        </div>
+      </motion.div>
 
-                        const radius = 120;
-                        const circumference = 2 * Math.PI * radius;
 
-                        // Calculate Dash Array
-                        const gapSize = 4;
-                        const strokeLength = ((percentage / 100) * circumference) - gapSize;
-                        const validStrokeLength = Math.max(0, strokeLength);
-                        const dashArray = `${validStrokeLength} ${circumference - validStrokeLength}`;
 
-                        // Calculate Rotation
-                        const rotationAngle = (previousPercentage / 100) * 360;
-
-                        // Consistent colors (using original index might be better for consistency if list changes, but index is fine here)
-                        const segmentColor = COLORS[index % COLORS.length];
-
-                        const isHovered = hoveredProduct === index;
-                        const isSelected = selectedProduct === index;
-                        const isActive = isHovered || isSelected;
-
-                        return (
-                          <g
-                            key={product.product_id}
-                            transform={`rotate(${rotationAngle}, 160, 160)`}
-                          >
-                            {/* Visible Segment */}
-                            <motion.circle
-                              cx="160"
-                              cy="160"
-                              r={radius}
-                              fill="none"
-                              stroke={segmentColor}
-                              strokeWidth={35}
-                              strokeDashoffset={-2}
-                              strokeLinecap="round"
-                              initial={{ opacity: 0, strokeDasharray: `0 ${circumference}` }}
-                              animate={{
-                                opacity: (hoveredProduct !== null || selectedProduct !== null) && !isActive ? 0.3 : 1,
-                                strokeDasharray: dashArray,
-                                scale: isActive ? 1.05 : 1
-                              }}
-                              transition={{
-                                duration: 0.8,
-                                ease: "easeOut",
-                                scale: { duration: 0.2 }
-                              }}
-                              style={{
-                                // originX: "160px",
-                                // originY: "160px"
-                              }}
-                            />
-
-                            {/* Invisible Interaction Layer */}
-                            <circle
-                              cx="160"
-                              cy="160"
-                              r={radius}
-                              fill="none"
-                              stroke="transparent"
-                              strokeWidth={50}
-                              strokeDasharray={dashArray}
-                              strokeDashoffset={-2}
-                              strokeLinecap="round"
-                              style={{ cursor: 'pointer' }}
-                              onMouseEnter={() => setHoveredProduct(index)}
-                              onMouseLeave={() => setHoveredProduct(null)}
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                setSelectedProduct(isSelected ? null : index);
-                              }}
-                            />
-                          </g>
-                        );
-                      });
-                    })()}
-                  </svg>
-
-                  {/* Center Text Information */}
+      <AnimatePresence mode="wait">
+        {activeTab === 'overview' && (
+          <motion.div
+            key="overview"
+            initial={{ opacity: 0, x: -10 }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: 10 }}
+            transition={{ duration: 0.3 }}
+          >
+            {/* Product Sales Breakdown Section */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6, delay: 0.2, ease: [0.16, 1, 0.3, 1] }}
+              style={{
+                marginBottom: currentTheme.spacing[8],
+              }}
+            >
+              <Card>
+                {/* ... (Header remains same) ... */}
+                <div className="analytics-header-container" style={{ marginBottom: currentTheme.spacing[6] }}>
                   <div style={{
-                    position: 'absolute',
-                    top: '50%',
-                    left: '50%',
-                    transform: 'translate(-50%, -50%)',
-                    textAlign: 'center',
-                    pointerEvents: 'none',
-                    zIndex: 10
+                    position: 'relative',
+                    paddingLeft: currentTheme.spacing[4],
                   }}>
-                    <AnimatePresence mode="wait">
-                      {(hoveredProduct !== null || selectedProduct !== null) ? (
-                        (() => {
-                          // Determine which product to show
-                          const sortedProductSales = [...productSales].sort((a, b) => Number(b.total_amount) - Number(a.total_amount));
-                          const targetIndex = hoveredProduct !== null ? hoveredProduct : selectedProduct;
-                          const targetProduct = sortedProductSales[targetIndex]; // Use sorted list
-
-                          if (!targetProduct) return null;
-
-                          const totalRevenue = sortedProductSales.reduce((sum, p) => sum + Number(p.total_amount), 0);
-                          const percent = totalRevenue > 0 ? ((Number(targetProduct.total_amount) / totalRevenue) * 100).toFixed(1) : 0;
-
-                          return (
-                            <motion.div
-                              key="active-info"
-                              initial={{ opacity: 0, y: 5 }}
-                              animate={{ opacity: 1, y: 0 }}
-                              exit={{ opacity: 0, y: -5 }}
-                              transition={{ duration: 0.2 }}
-                            >
-                              <div style={{
-                                fontSize: '0.875rem',
-                                fontWeight: 600,
-                                color: currentTheme.colors.text.secondary,
-                                textTransform: 'uppercase',
-                                marginBottom: '4px'
-                              }}>
-                                {targetProduct.name}
-                              </div>
-                              <div style={{
-                                fontSize: '2rem',
-                                fontWeight: 800,
-                                color: currentTheme.colors.text.primary,
-                                lineHeight: 1
-                              }}>
-                                {percent}%
-                              </div>
-                              <div style={{
-                                fontSize: '0.875rem',
-                                color: currentTheme.colors.text.tertiary,
-                                marginTop: '4px'
-                              }}>
-                                {formatCurrency(targetProduct.total_amount)}
-                              </div>
-                            </motion.div>
-                          )
-                        })()
-                      ) : (
-                        <motion.div
-                          key="default-info"
-                          initial={{ opacity: 0 }}
-                          animate={{ opacity: 1 }}
-                          exit={{ opacity: 0 }}
-                        >
-                          <div style={{
-                            fontSize: '2.5rem',
-                            fontWeight: 800,
-                            color: currentTheme.colors.text.primary,
-                            lineHeight: 1,
-                            marginBottom: '4px'
-                          }}>
-                            {productSales.length}
-                          </div>
-                          <div style={{
-                            fontSize: '0.875rem',
-                            fontWeight: 600,
-                            color: currentTheme.colors.text.secondary,
-                            textTransform: 'uppercase'
-                          }}>
-                            Categories
-                          </div>
-                        </motion.div>
-                      )}
-                    </AnimatePresence>
+                    <div style={{
+                      position: 'absolute',
+                      left: 0,
+                      top: '50%',
+                      transform: 'translateY(-50%)',
+                      width: '4px',
+                      height: '24px',
+                      background: `linear-gradient(to bottom, ${currentTheme.colors.primary[500]}, ${currentTheme.colors.primary[600]})`,
+                      borderRadius: '2px',
+                    }} />
+                    <h2 style={{
+                      fontSize: '1.25rem',
+                      fontWeight: 600,
+                      color: isDark ? '#f1f5f9' : '#1e293b',
+                      margin: 0,
+                      textTransform: 'uppercase',
+                      letterSpacing: '0.1em',
+                      position: 'relative',
+                      zIndex: 1,
+                    }}>
+                      Product Sales Breakdown
+                    </h2>
                   </div>
                 </div>
 
-                {/* Legend / Key */}
-                <div style={{
-                  display: 'flex',
-                  flexWrap: 'wrap',
-                  gap: currentTheme.spacing[2],
-                  justifyContent: 'center',
-                  marginTop: currentTheme.spacing[2],
-                  padding: `0 ${currentTheme.spacing[4]}`
-                }}>
-                  {(() => {
-                    const sortedProductSales = [...productSales].sort((a, b) => Number(b.total_amount) - Number(a.total_amount));
-                    const totalRevenue = sortedProductSales.reduce((sum, p) => sum + Number(p.total_amount), 0);
-
-                    return sortedProductSales.map((product, index) => {
-                      const percentage = totalRevenue > 0 ? ((Number(product.total_amount) / totalRevenue) * 100).toFixed(1) : 0;
-                      const color = COLORS[index % COLORS.length];
-                      const isActive = hoveredProduct === index || selectedProduct === index;
-
-                      return (
-                        <div
-                          key={product.product_id}
-                          onClick={() => setSelectedProduct(selectedProduct === index ? null : index)}
-                          onMouseEnter={() => setHoveredProduct(index)}
-                          onMouseLeave={() => setHoveredProduct(null)}
+                {/* Pie Chart and Products Grid */}
+                {productSales.length > 0 ? (
+                  <div className="analytics-chart-grid">
+                    {/* Pie Chart */}
+                    <div
+                      className="chart-card"
+                      style={{ height: 'auto', alignItems: 'center', justifyContent: 'center' }}
+                    >
+                      <div
+                        style={{
+                          position: 'relative',
+                          width: '320px',
+                          height: '320px',
+                          marginBottom: currentTheme.spacing[4],
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center'
+                        }}
+                        onMouseLeave={() => setHoveredProduct(null)}
+                      >
+                        <svg
+                          width="320"
+                          height="320"
+                          viewBox="0 0 320 320"
                           style={{
-                            display: 'flex',
-                            alignItems: 'center',
-                            padding: '6px 10px',
-                            borderRadius: '8px',
-                            backgroundColor: isActive ? (isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.05)') : 'transparent',
-                            cursor: 'pointer',
-                            transition: 'all 0.2s',
-                            opacity: (hoveredProduct !== null || selectedProduct !== null) && !isActive ? 0.5 : 1,
-                            transform: isActive ? 'scale(1.05)' : 'scale(1)'
+                            transform: 'rotate(-90deg)',
+                            overflow: 'visible',
                           }}
                         >
-                          <div style={{
-                            width: '10px',
-                            height: '10px',
-                            borderRadius: '50%',
-                            backgroundColor: color,
-                            marginRight: '8px',
-                            boxShadow: isActive ? `0 0 8px ${color}` : 'none'
-                          }} />
-                          <span style={{
-                            fontSize: '0.8rem',
-                            color: currentTheme.colors.text.secondary,
-                            fontWeight: 500,
-                            marginRight: '4px'
-                          }}>
-                            {product.name}
-                          </span>
-                          <span style={{
-                            fontSize: '0.8rem',
-                            color: currentTheme.colors.text.primary,
-                            fontWeight: 700
-                          }}>
-                            {percentage}%
-                          </span>
-                        </div>
-                      );
-                    });
-                  })()}
-                </div>
-              </div>
+                          {/* Background Circle/Track */}
+                          <circle
+                            cx="160"
+                            cy="160"
+                            r="120"
+                            fill="none"
+                            stroke={isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.05)'}
+                            strokeWidth="35"
+                          />
 
+                          {(() => {
+                            // Sort products by total_amount desc to make the chart look better
+                            const sortedProductSales = [...productSales].sort((a, b) => Number(b.total_amount) - Number(a.total_amount));
+                            const totalRevenue = sortedProductSales.reduce((sum, p) => sum + Number(p.total_amount), 0);
 
-              {/* Product Cards Grid */}
-              <AnimatedList
-                items={[...productSales].sort((a, b) => Number(b.total_amount) - Number(a.total_amount))} // Pass sorted list
-                onItemSelect={(product, index) => {
-                  console.log('Selected product:', product, index);
-                }}
-                showGradients={false}
-                displayScrollbar={false}
-                enableArrowNavigation
-                className="product-list"
-                itemClassName="product-item"
-              >
-                {(product, index) => {
-                  const totalRevenue = productSales.reduce((sum, p) => sum + Number(p.total_amount), 0);
-                  const percentage = totalRevenue > 0 ? ((Number(product.total_amount) / totalRevenue) * 100).toFixed(1) : 0;
-                  return (
-                    <div className="ranking-item">
-                      <div className="ranking-info" style={{ flex: 1, minWidth: 0 }}>
-                        <div className="ranking-badge" style={{ background: COLORS[index % COLORS.length], border: 'none', color: '#ffffff' }}>
-                          {index + 1}
-                        </div>
+                            return sortedProductSales.map((product, index) => {
+                              const productAmount = Number(product.total_amount);
+                              const percentage = totalRevenue > 0 ? (productAmount / totalRevenue) * 100 : 0;
 
-                        <div style={{ minWidth: 0 }}>
-                          <h3 className="ranking-name">
-                            {product.name}
-                          </h3>
-                          <div className="ranking-qty">
-                            {product.quantity} units
-                          </div>
+                              // Calculate accumulation for start position based on SORTED list
+                              const previousAmount = sortedProductSales.slice(0, index).reduce((sum, p) => sum + Number(p.total_amount), 0);
+                              const previousPercentage = totalRevenue > 0 ? (previousAmount / totalRevenue) * 100 : 0;
+
+                              const radius = 120;
+                              const circumference = 2 * Math.PI * radius;
+
+                              // Calculate Dash Array
+                              const gapSize = 4;
+                              const strokeLength = ((percentage / 100) * circumference) - gapSize;
+                              const validStrokeLength = Math.max(0, strokeLength);
+                              const dashArray = `${validStrokeLength} ${circumference - validStrokeLength}`;
+
+                              // Calculate Rotation
+                              const rotationAngle = (previousPercentage / 100) * 360;
+
+                              // Consistent colors (using original index might be better for consistency if list changes, but index is fine here)
+                              const segmentColor = COLORS[index % COLORS.length];
+
+                              const isHovered = hoveredProduct === index;
+                              const isSelected = selectedProduct === index;
+                              const isActive = isHovered || isSelected;
+
+                              return (
+                                <g
+                                  key={product.product_id}
+                                  transform={`rotate(${rotationAngle}, 160, 160)`}
+                                >
+                                  {/* Visible Segment */}
+                                  <motion.circle
+                                    cx="160"
+                                    cy="160"
+                                    r={radius}
+                                    fill="none"
+                                    stroke={segmentColor}
+                                    strokeWidth={35}
+                                    strokeDashoffset={-2}
+                                    strokeLinecap="round"
+                                    initial={{ opacity: 0, strokeDasharray: `0 ${circumference}` }}
+                                    animate={{
+                                      opacity: (hoveredProduct !== null || selectedProduct !== null) && !isActive ? 0.3 : 1,
+                                      strokeDasharray: dashArray,
+                                      scale: isActive ? 1.05 : 1
+                                    }}
+                                    transition={{
+                                      duration: 0.8,
+                                      ease: "easeOut",
+                                      scale: { duration: 0.2 }
+                                    }}
+                                    style={{
+                                      // originX: "160px",
+                                      // originY: "160px"
+                                    }}
+                                  />
+
+                                  {/* Invisible Interaction Layer */}
+                                  <circle
+                                    cx="160"
+                                    cy="160"
+                                    r={radius}
+                                    fill="none"
+                                    stroke="transparent"
+                                    strokeWidth={50}
+                                    strokeDasharray={dashArray}
+                                    strokeDashoffset={-2}
+                                    strokeLinecap="round"
+                                    style={{ cursor: 'pointer' }}
+                                    onMouseEnter={() => setHoveredProduct(index)}
+                                    onMouseLeave={() => setHoveredProduct(null)}
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      setSelectedProduct(isSelected ? null : index);
+                                    }}
+                                  />
+                                </g>
+                              );
+                            });
+                          })()}
+                        </svg>
+
+                        {/* Center Text Information */}
+                        <div style={{
+                          position: 'absolute',
+                          top: '50%',
+                          left: '50%',
+                          transform: 'translate(-50%, -50%)',
+                          textAlign: 'center',
+                          pointerEvents: 'none',
+                          zIndex: 10
+                        }}>
+                          <AnimatePresence mode="wait">
+                            {(hoveredProduct !== null || selectedProduct !== null) ? (
+                              (() => {
+                                // Determine which product to show
+                                const sortedProductSales = [...productSales].sort((a, b) => Number(b.total_amount) - Number(a.total_amount));
+                                const targetIndex = hoveredProduct !== null ? hoveredProduct : selectedProduct;
+                                const targetProduct = sortedProductSales[targetIndex]; // Use sorted list
+
+                                if (!targetProduct) return null;
+
+                                const totalRevenue = sortedProductSales.reduce((sum, p) => sum + Number(p.total_amount), 0);
+                                const percent = totalRevenue > 0 ? ((Number(targetProduct.total_amount) / totalRevenue) * 100).toFixed(1) : 0;
+
+                                return (
+                                  <motion.div
+                                    key="active-info"
+                                    initial={{ opacity: 0, y: 5 }}
+                                    animate={{ opacity: 1, y: 0 }}
+                                    exit={{ opacity: 0, y: -5 }}
+                                    transition={{ duration: 0.2 }}
+                                  >
+                                    <div style={{
+                                      fontSize: '0.875rem',
+                                      fontWeight: 600,
+                                      color: currentTheme.colors.text.secondary,
+                                      textTransform: 'uppercase',
+                                      marginBottom: '4px'
+                                    }}>
+                                      {targetProduct.name}
+                                    </div>
+                                    <div style={{
+                                      fontSize: '2rem',
+                                      fontWeight: 800,
+                                      color: currentTheme.colors.text.primary,
+                                      lineHeight: 1
+                                    }}>
+                                      {percent}%
+                                    </div>
+                                    <div style={{
+                                      fontSize: '0.875rem',
+                                      color: currentTheme.colors.text.tertiary,
+                                      marginTop: '4px'
+                                    }}>
+                                      {formatCurrency(targetProduct.total_amount)}
+                                    </div>
+                                  </motion.div>
+                                )
+                              })()
+                            ) : (
+                              <motion.div
+                                key="default-info"
+                                initial={{ opacity: 0 }}
+                                animate={{ opacity: 1 }}
+                                exit={{ opacity: 0 }}
+                              >
+                                <div style={{
+                                  fontSize: '2.5rem',
+                                  fontWeight: 800,
+                                  color: currentTheme.colors.text.primary,
+                                  lineHeight: 1,
+                                  marginBottom: '4px'
+                                }}>
+                                  {productSales.length}
+                                </div>
+                                <div style={{
+                                  fontSize: '0.875rem',
+                                  fontWeight: 600,
+                                  color: currentTheme.colors.text.secondary,
+                                  textTransform: 'uppercase'
+                                }}>
+                                  Categories
+                                </div>
+                              </motion.div>
+                            )}
+                          </AnimatePresence>
                         </div>
                       </div>
 
-                      <div className="ranking-meta">
-                        <div className="ranking-amount">
-                          {formatCurrency(product.total_amount)}
-                        </div>
-                        <div className="ranking-qty">
-                          {percentage}%
-                        </div>
+                      {/* Legend / Key */}
+                      <div style={{
+                        display: 'flex',
+                        flexWrap: 'wrap',
+                        gap: currentTheme.spacing[2],
+                        justifyContent: 'center',
+                        marginTop: currentTheme.spacing[2],
+                        padding: `0 ${currentTheme.spacing[4]}`
+                      }}>
+                        {(() => {
+                          const sortedProductSales = [...productSales].sort((a, b) => Number(b.total_amount) - Number(a.total_amount));
+                          const totalRevenue = sortedProductSales.reduce((sum, p) => sum + Number(p.total_amount), 0);
+
+                          return sortedProductSales.map((product, index) => {
+                            const percentage = totalRevenue > 0 ? ((Number(product.total_amount) / totalRevenue) * 100).toFixed(1) : 0;
+                            const color = COLORS[index % COLORS.length];
+                            const isActive = hoveredProduct === index || selectedProduct === index;
+
+                            return (
+                              <div
+                                key={product.product_id}
+                                onClick={() => setSelectedProduct(selectedProduct === index ? null : index)}
+                                onMouseEnter={() => setHoveredProduct(index)}
+                                onMouseLeave={() => setHoveredProduct(null)}
+                                style={{
+                                  display: 'flex',
+                                  alignItems: 'center',
+                                  padding: '6px 10px',
+                                  borderRadius: '8px',
+                                  backgroundColor: isActive ? (isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.05)') : 'transparent',
+                                  cursor: 'pointer',
+                                  transition: 'all 0.2s',
+                                  opacity: (hoveredProduct !== null || selectedProduct !== null) && !isActive ? 0.5 : 1,
+                                  transform: isActive ? 'scale(1.05)' : 'scale(1)'
+                                }}
+                              >
+                                <div style={{
+                                  width: '10px',
+                                  height: '10px',
+                                  borderRadius: '50%',
+                                  backgroundColor: color,
+                                  marginRight: '8px',
+                                  boxShadow: isActive ? `0 0 8px ${color}` : 'none'
+                                }} />
+                                <span style={{
+                                  fontSize: '0.8rem',
+                                  color: currentTheme.colors.text.secondary,
+                                  fontWeight: 500,
+                                  marginRight: '4px'
+                                }}>
+                                  {product.name}
+                                </span>
+                                <span style={{
+                                  fontSize: '0.8rem',
+                                  color: currentTheme.colors.text.primary,
+                                  fontWeight: 700
+                                }}>
+                                  {percentage}%
+                                </span>
+                              </div>
+                            );
+                          });
+                        })()}
                       </div>
                     </div>
-                  );
-                }}
-              </AnimatedList>
-            </div >
-          ) : (
-            <div style={{
-              textAlign: 'center',
-              padding: currentTheme.spacing[8],
-              color: isDark ? '#94a3b8' : '#64748b',
-            }}>
-              <div style={{
-                fontSize: '3rem',
-                marginBottom: currentTheme.spacing[4],
-                opacity: 0.5,
-              }}>
-                📊
-              </div>
-              <h3 style={{
-                fontSize: '1.125rem',
-                fontWeight: 600,
-                color: isDark ? '#f1f5f9' : '#1e293b',
-                marginBottom: currentTheme.spacing[2],
-              }}>
-                No Product Sales Data
-              </h3>
-              <p style={{
-                fontSize: '0.875rem',
-                margin: 0,
-                lineHeight: 1.6,
-              }}>
-                Start creating bills to see product sales breakdown here.
-                The pie chart and product list will appear once you have sales data.
-              </p>
-            </div>
-          )
-          }
-        </Card >
-      </motion.div >
 
 
-
-      {/* Bill Management Section */}
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.6, delay: 0.3, ease: [0.16, 1, 0.3, 1] }}
-        style={{
-          marginBottom: currentTheme.spacing[8],
-          marginTop: currentTheme.spacing[8],
-        }}
-      >
-        <Card>
-          <div className="bill-management-header">
-            <div className="bill-header-left">
-              <div className="bill-header-accent" />
-              <h2 className="bill-header-title">
-                Bill Management
-                <span className="bill-header-badge">
-                  Showing: {selectedBillDate === new Date().toISOString().split('T')[0] ? 'Today' : selectedBillDate}
-                </span>
-              </h2>
-            </div>
-
-            <div className="bill-header-controls">
-              {/* Today Button */}
-              <button
-                onClick={() => setSelectedBillDate(new Date().toISOString().split('T')[0])}
-                className={`bill-control-btn ghost ${selectedBillDate === new Date().toISOString().split('T')[0] ? 'active' : ''}`}
-              >
-                Today
-              </button>
-
-              {/* Date Picker */}
-              <input
-                type="date"
-                value={selectedBillDate}
-                onChange={(e) => setSelectedBillDate(e.target.value)}
-                className="bill-date-input"
-              />
-
-              {/* Refresh Button */}
-              <button
-                onClick={() => loadBills(selectedBillDate)}
-                className="bill-control-btn secondary"
-                disabled={loadingBills}
-              >
-                <div style={{
-                  display: 'flex',
-                  animation: loadingBills ? 'spin 1s linear infinite' : 'none'
-                }}>
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M4 12a8 8 0 018-8c4.418 0 8 3.582 8 8s-3.582 8-8 8V12" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                  </svg>
-                </div>
-                Refresh
-              </button>
-            </div>
-          </div>
-
-          <div style={{
-            marginTop: currentTheme.spacing[4],
-            position: 'relative',
-          }}>
-            {bills.length > 0 ? (
-              <AnimatedList
-                key={`bill-list-${loadingBills ? 'loading' : 'ready'}`}
-                items={bills}
-                className="bill-list-animated"
-                showGradients={false}
-                displayScrollbar={false}
-              >
-                {(bill, index) => {
-                  const isCancelled = bill.status === 'CANCELLED';
-                  const statusText = (!bill.status || bill.status === 'ACTIVE') ? 'CONFIRMED' : bill.status;
-
-                  return (
-                    <div
-                      key={bill.bill_no}
-                      onClick={() => !isCancelled && handleEditBill(bill)}
-                      className={`bill-item ${isCancelled ? 'cancelled' : ''}`}
-                      style={{
-                        position: 'relative',
-                        overflow: 'hidden',
-                        opacity: isCancelled ? 0.6 : 1,
-                        cursor: isCancelled ? 'default' : 'pointer'
+                    {/* Product Cards Grid */}
+                    <AnimatedList
+                      items={[...productSales].sort((a, b) => Number(b.total_amount) - Number(a.total_amount))} // Pass sorted list
+                      onItemSelect={(product, index) => {
+                        console.log('Selected product:', product, index);
                       }}
+                      showGradients={false}
+                      displayScrollbar={false}
+                      enableArrowNavigation
+                      className="product-list"
+                      itemClassName="product-item"
                     >
+                      {(product, index) => {
+                        const totalRevenue = productSales.reduce((sum, p) => sum + Number(p.total_amount), 0);
+                        const percentage = totalRevenue > 0 ? ((Number(product.total_amount) / totalRevenue) * 100).toFixed(1) : 0;
+                        return (
+                          <div className="ranking-item">
+                            <div className="ranking-info" style={{ flex: 1, minWidth: 0 }}>
+                              <div className="ranking-badge" style={{ background: COLORS[index % COLORS.length], border: 'none', color: '#ffffff' }}>
+                                {index + 1}
+                              </div>
 
+                              <div style={{ minWidth: 0 }}>
+                                <h3 className="ranking-name">
+                                  {product.name}
+                                </h3>
+                                <div className="ranking-qty">
+                                  {product.quantity} units
+                                </div>
+                              </div>
+                            </div>
 
-                      {/* Bill Info */}
-                      <div className="bill-info-left" style={{ flex: '1', minWidth: '150px' }}>
-                        <div className="bill-id">
-                          <span style={{ fontSize: '1rem', fontWeight: 700 }}>{bill.bill_no}</span>
-                          <div className="bill-status-badge" style={{
-                            backgroundColor: isCancelled ? (isDark ? 'rgba(239, 68, 68, 0.15)' : '#fee2e2') : (isDark ? 'rgba(34, 197, 94, 0.15)' : '#dcfce7'),
-                            color: isCancelled ? (isDark ? '#fca5a5' : '#ef4444') : (isDark ? '#86efac' : '#16a34a'),
-                            border: `1px solid ${isCancelled ? (isDark ? 'rgba(239, 68, 68, 0.2)' : '#fca5a5') : (isDark ? 'rgba(34, 197, 94, 0.2)' : '#86efac')}`
-                          }}>
-                            {statusText}
+                            <div className="ranking-meta">
+                              <div className="ranking-amount">
+                                {formatCurrency(product.total_amount)}
+                              </div>
+                              <div className="ranking-qty">
+                                {percentage}%
+                              </div>
+                            </div>
                           </div>
-                        </div>
+                        );
+                      }}
+                    </AnimatedList>
+                  </div >
+                ) : (
+                  <div style={{
+                    textAlign: 'center',
+                    padding: currentTheme.spacing[8],
+                    color: isDark ? '#94a3b8' : '#64748b',
+                  }}>
+                    <div style={{
+                      fontSize: '3rem',
+                      marginBottom: currentTheme.spacing[4],
+                      opacity: 0.5,
+                    }}>
+                      📊
+                    </div>
+                    <h3 style={{
+                      fontSize: '1.125rem',
+                      fontWeight: 600,
+                      color: isDark ? '#f1f5f9' : '#1e293b',
+                      marginBottom: currentTheme.spacing[2],
+                    }}>
+                      No Product Sales Data
+                    </h3>
+                    <p style={{
+                      fontSize: '0.875rem',
+                      margin: 0,
+                      lineHeight: 1.6,
+                    }}>
+                      Start creating bills to see product sales breakdown here.
+                      The pie chart and product list will appear once you have sales data.
+                    </p>
+                  </div>
+                )
+                }
+              </Card>
+            </motion.div>
+          </motion.div>
+        )}
 
-                        <div className="bill-meta">
-                          <ClockIcon color={isDark ? currentTheme.colors.primary[500] : currentTheme.colors.primary[600]} size={14} />
-                          {formatDate(bill.created_at)} • {formatTime(bill.created_at)} • <span>{bill.items?.length || 0} items</span>
-                        </div>
+        {activeTab === 'transactions' && (
+          <motion.div
+            key="transactions"
+            initial={{ opacity: 0, x: -10 }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: 10 }}
+            transition={{ duration: 0.3 }}
+          >
+            {/* Bill Management Section */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6, delay: 0.3, ease: [0.16, 1, 0.3, 1] }}
+              style={{
+                marginBottom: currentTheme.spacing[8],
+                marginTop: currentTheme.spacing[8],
+              }}
+            >
+              <Card>
+                <div className="bill-management-header">
+                  <div className="bill-header-left">
+                    <div className="bill-header-accent" />
+                    <h2 className="bill-header-title">
+                      Bill Management
+                      <span className="bill-header-badge">
+                        Showing: {selectedBillDate === new Date().toISOString().split('T')[0] ? 'Today' : selectedBillDate}
+                      </span>
+                    </h2>
+                  </div>
+
+                  <div className="bill-header-controls">
+                    {/* Today Button */}
+                    <button
+                      onClick={() => setSelectedBillDate(new Date().toISOString().split('T')[0])}
+                      className={`bill-control-btn ghost ${selectedBillDate === new Date().toISOString().split('T')[0] ? 'active' : ''}`}
+                    >
+                      Today
+                    </button>
+
+                    {/* Date Picker */}
+                    <input
+                      type="date"
+                      value={selectedBillDate}
+                      onChange={(e) => setSelectedBillDate(e.target.value)}
+                      className="bill-date-input"
+                    />
+
+                    {/* Refresh Button */}
+                    <button
+                      onClick={() => loadBills(selectedBillDate)}
+                      className="bill-control-btn secondary"
+                      disabled={loadingBills}
+                    >
+                      <div style={{
+                        display: 'flex',
+                        animation: loadingBills ? 'spin 1s linear infinite' : 'none'
+                      }}>
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                          <path d="M4 12a8 8 0 018-8c4.418 0 8 3.582 8 8s-3.582 8-8 8V12" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                        </svg>
                       </div>
+                      Refresh
+                    </button>
+                  </div>
+                </div>
 
-                      <div className="bill-info-right">
-                        <div className="bill-total">
-                          {formatCurrency(bill.total_amount)}
-                        </div>
+                <div style={{
+                  marginTop: currentTheme.spacing[4],
+                  position: 'relative',
+                }}>
+                  {bills.length > 0 ? (
+                    <AnimatedList
+                      key={`bill-list-${loadingBills ? 'loading' : 'ready'}`}
+                      items={bills}
+                      className="bill-list-animated"
+                      showGradients={false}
+                      displayScrollbar={false}
+                    >
+                      {(bill, index) => {
+                        const isCancelled = bill.status === 'CANCELLED';
+                        const statusText = (!bill.status || bill.status === 'ACTIVE') ? 'CONFIRMED' : bill.status;
 
-                        <div className="bill-actions">
-                          <button
-                            className="bill-action-btn edit"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              handleEditBill(bill);
+                        return (
+                          <div
+                            key={bill.bill_no}
+                            onClick={() => !isCancelled && handleEditBill(bill)}
+                            className={`bill-item ${isCancelled ? 'cancelled' : ''}`}
+                            style={{
+                              position: 'relative',
+                              overflow: 'hidden',
+                              opacity: isCancelled ? 0.6 : 1,
+                              cursor: isCancelled ? 'default' : 'pointer'
                             }}
-                            disabled={isCancelled}
-                            title="Edit Bill"
                           >
-                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                              <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
-                              <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
-                            </svg>
-                            Edit
-                          </button>
-                          <button
-                            className="bill-action-btn delete"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              setSelectedBill(bill);
-                              setShowCancelConfirm(true);
-                            }}
-                            disabled={isCancelled}
-                            title="Cancel Bill"
-                          >
-                            <TrashIcon color="currentColor" size={14} />
-                            Delete
-                          </button>
-                        </div>
+
+
+                            {/* Bill Info */}
+                            <div className="bill-info-left" style={{ flex: '1', minWidth: '150px' }}>
+                              <div className="bill-id">
+                                <span style={{ fontSize: '1rem', fontWeight: 700 }}>{bill.bill_no}</span>
+                                <div className="bill-status-badge" style={{
+                                  backgroundColor: isCancelled ? (isDark ? 'rgba(239, 68, 68, 0.15)' : '#fee2e2') : (isDark ? 'rgba(34, 197, 94, 0.15)' : '#dcfce7'),
+                                  color: isCancelled ? (isDark ? '#fca5a5' : '#ef4444') : (isDark ? '#86efac' : '#16a34a'),
+                                  border: `1px solid ${isCancelled ? (isDark ? 'rgba(239, 68, 68, 0.2)' : '#fca5a5') : (isDark ? 'rgba(34, 197, 94, 0.2)' : '#86efac')}`
+                                }}>
+                                  {statusText}
+                                </div>
+                              </div>
+
+                              <div className="bill-meta">
+                                <ClockIcon color={isDark ? currentTheme.colors.primary[500] : currentTheme.colors.primary[600]} size={14} />
+                                {formatDate(bill.created_at)} • {formatTime(bill.created_at)} • <span>{bill.items?.length || 0} items</span>
+                              </div>
+                            </div>
+
+                            <div className="bill-info-right">
+                              <div className="bill-total">
+                                {formatCurrency(bill.total_amount)}
+                              </div>
+
+                              <div className="bill-actions">
+                                <button
+                                  className="bill-action-btn edit"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    handleEditBill(bill);
+                                  }}
+                                  disabled={isCancelled}
+                                  title="Edit Bill"
+                                >
+                                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                    <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+                                    <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+                                  </svg>
+                                  Edit
+                                </button>
+                                <button
+                                  className="bill-action-btn delete"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    setSelectedBill(bill);
+                                    setShowCancelConfirm(true);
+                                  }}
+                                  disabled={isCancelled}
+                                  title="Cancel Bill"
+                                >
+                                  <TrashIcon color="currentColor" size={14} />
+                                  Delete
+                                </button>
+                              </div>
+                            </div>
+                          </div>
+                        );
+                      }}
+                    </AnimatedList>
+                  ) : (
+                    <div className="empty-bills">
+                      <div style={{ marginBottom: currentTheme.spacing[4], opacity: 0.5 }}>
+                        <ReceiptIcon color="currentColor" />
+                      </div>
+                      <h3 style={{ margin: 0, fontSize: '1rem', fontWeight: 600 }}>
+                        {loadingBills ? 'Loading transaction records...' : `No bills found for ${selectedBillDate === new Date().toISOString().split('T')[0] ? 'today' : selectedBillDate}`}
+                      </h3>
+                      <p style={{ margin: `${currentTheme.spacing[2]} 0 0`, fontSize: '0.875rem' }}>
+                        {loadingBills ? 'Please wait while we fetch the latest data.' : 'Your transaction history will appear here once orders are processed.'}
+                      </p>
+                    </div>
+                  )}
+                </div>
+              </Card>
+            </motion.div>
+          </motion.div>
+        )}
+
+        {activeTab === 'reports' && (
+          <motion.div
+            key="reports"
+            initial={{ opacity: 0, x: -10 }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: 10 }}
+            transition={{ duration: 0.3 }}
+          >
+            {/* Reports Section */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6, delay: 0.4, ease: [0.16, 1, 0.3, 1] }}
+            >
+              <Card>
+                <div className="analytics-header-container" style={{ marginBottom: currentTheme.spacing[6] }}>
+                  <div style={{
+                    position: 'relative',
+                    paddingLeft: currentTheme.spacing[4],
+                  }}>
+                    <div style={{
+                      position: 'absolute',
+                      left: 0,
+                      top: '50%',
+                      transform: 'translateY(-50%)',
+                      width: '4px',
+                      height: '24px',
+                      background: `linear-gradient(to bottom, ${currentTheme.colors.primary[500]}, ${currentTheme.colors.primary[600]})`,
+                      borderRadius: '2px',
+                    }} />
+                    <h2 style={{
+                      fontSize: '1.25rem',
+                      fontWeight: 600,
+                      color: currentTheme.colors.text.primary,
+                      margin: 0,
+                      textTransform: 'uppercase',
+                      letterSpacing: '0.1em',
+                      position: 'relative',
+                      zIndex: 1,
+                    }}>
+                      Sales Reports
+                    </h2>
+                  </div>
+                </div>
+
+                <div className="analytics-report-grid">
+                  {/* Daily Report Section */}
+                  <div className="report-card-content">
+                    <div className="report-header">
+                      <div className="report-icon-box">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                          <path d="M8 2v3M16 2v3M3.5 9.09h17M21 8.5V17c0 3-1.5 5-5 5H8c-3.5 0-5-2-5-5V8.5c0-3 1.5-5 5-5h8c3.5 0 5 2 5 5z" stroke="currentColor" strokeWidth="1.5" strokeMiterlimit="10" strokeLinecap="round" strokeLinejoin="round" />
+                          <path d="M15.695 13.7h.009M15.695 16.7h.009M11.995 13.7h.01M11.995 16.7h.01M8.294 13.7h.01M8.294 16.7h.01" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                        </svg>
+                      </div>
+                      <div className="report-title-group">
+                        <h3 className="report-title">Daily Report</h3>
+                        <p className="report-desc">Sales summary for selected date</p>
                       </div>
                     </div>
-                  );
-                }}
-              </AnimatedList>
-            ) : (
-              <div className="empty-bills">
-                <div style={{ marginBottom: currentTheme.spacing[4], opacity: 0.5 }}>
-                  <ReceiptIcon color="currentColor" />
+
+                    {/* Date Selection */}
+                    <div className="report-controls">
+                      <label className="report-label">Select Date</label>
+                      <GlobalDatePicker
+                        value={dailyReportDate}
+                        onChange={(val) => setDailyReportDate(val)}
+                        placeholder="Select Date"
+                        className="report-select-override"
+                      />
+                    </div>
+
+                    <div className="report-actions">
+                      <button
+                        className="report-btn report-btn-primary"
+                        onClick={() => handleDownload('excel', 'detailed', `sales_report_${dailyReportDate}.xlsx`, dailyReportDate)}
+                        disabled={downloading.excel}
+                      >
+                        <DownloadIcon color="#ffffff" />
+                        {downloading.excel ? 'Downloading...' : 'Download Report'}
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Monthly Report Section */}
+                  <div className="report-card-content">
+                    <div className="report-header">
+                      <div className="report-icon-box">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                          <path d="M8 2v3M16 2v3M3.5 9.09h17M21 8.5V17c0 3-1.5 5-5 5H8c-3.5 0-5-2-5-5V8.5c0-3 1.5-5 5-5h8c3.5 0 5 2 5 5z" stroke="currentColor" strokeWidth="1.5" strokeMiterlimit="10" strokeLinecap="round" strokeLinejoin="round" />
+                          <path d="M15.695 13.7h.009M15.695 16.7h.009M11.995 13.7h.01" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                        </svg>
+                      </div>
+                      <div className="report-title-group">
+                        <h3 className="report-title">Monthly Report</h3>
+                        <p className="report-desc">Full month sales analysis</p>
+                      </div>
+                    </div>
+
+                    <div className="report-controls">
+                      <label className="report-label">Select Month</label>
+                      <GlobalDatePicker
+                        type="month"
+                        value={exportMonth}
+                        onChange={(val) => setExportMonth(val)}
+                        placeholder="Select Month"
+                        className="report-select-override"
+                      />
+                    </div>
+
+                    <div className="report-actions">
+                      <button
+                        className="report-btn report-btn-primary"
+                        onClick={() => handleDownload('excel', 'monthly', `monthly_sales_${exportMonth}.xlsx`, exportMonth)}
+                        disabled={downloading.monthly}
+                      >
+                        <DownloadIcon color="#ffffff" />
+                        {downloading.monthly ? 'Downloading...' : 'Download Monthly Report'}
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Weekly Report Section */}
+                  <div className="report-card-content">
+                    <div className="report-header">
+                      <div className="report-icon-box">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                          <path d="M8 2v3M16 2v3M3.5 9.09h17M21 8.5V17c0 3-1.5 5-5 5H8c-3.5 0-5-2-5-5V8.5c0-3 1.5-5 5-5h8c3.5 0 5 2 5 5z" stroke="currentColor" strokeWidth="1.5" strokeMiterlimit="10" strokeLinecap="round" strokeLinejoin="round" />
+                          <path d="M15.695 13.7h.009M15.695 16.7h.009M11.995 13.7h.01" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                        </svg>
+                      </div>
+                      <div className="report-title-group">
+                        <h3 className="report-title">Weekly Report</h3>
+                        <p className="report-desc">Select reference date</p>
+                      </div>
+                    </div>
+
+                    <div className="report-controls">
+                      <label className="report-label">Select Reference Date</label>
+                      <GlobalDatePicker
+                        value={exportWeekDate}
+                        onChange={(val) => setExportWeekDate(val)}
+                        placeholder="Select Date"
+                        className="report-select-override"
+                      />
+                    </div>
+
+                    <div className="report-actions">
+                      <button
+                        className="report-btn report-btn-primary"
+                        onClick={handleWeeklyExport}
+                        disabled={downloading.weekly}
+                      >
+                        <DownloadIcon color="#ffffff" />
+                        {downloading.weekly ? 'Downloading...' : 'Download Weekly Report'}
+                      </button>
+                    </div>
+                  </div>
                 </div>
-                <h3 style={{ margin: 0, fontSize: '1rem', fontWeight: 600 }}>
-                  {loadingBills ? 'Loading transaction records...' : `No bills found for ${selectedBillDate === new Date().toISOString().split('T')[0] ? 'today' : selectedBillDate}`}
-                </h3>
-                <p style={{ margin: `${currentTheme.spacing[2]} 0 0`, fontSize: '0.875rem' }}>
-                  {loadingBills ? 'Please wait while we fetch the latest data.' : 'Your transaction history will appear here once orders are processed.'}
-                </p>
-              </div>
-            )}
-          </div>
-        </Card >
-      </motion.div >
-      {/* Reports Section */}
-      < motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.6, delay: 0.4, ease: [0.16, 1, 0.3, 1] }}
-      >
-        <Card>
-          <div className="analytics-header-container" style={{ marginBottom: currentTheme.spacing[6] }}>
-            <div style={{
-              position: 'relative',
-              paddingLeft: currentTheme.spacing[4],
-            }}>
-              <div style={{
-                position: 'absolute',
-                left: 0,
-                top: '50%',
-                transform: 'translateY(-50%)',
-                width: '4px',
-                height: '24px',
-                background: `linear-gradient(to bottom, ${currentTheme.colors.primary[500]}, ${currentTheme.colors.primary[600]})`,
-                borderRadius: '2px',
-              }} />
-              <h2 style={{
-                fontSize: '1.25rem',
-                fontWeight: 600,
-                color: isDark ? currentTheme.colors.text.primary : currentTheme.colors.text.primary,
-                margin: 0,
-                textTransform: 'uppercase',
-                letterSpacing: '0.1em',
-                position: 'relative',
-                zIndex: 1,
-              }}>
-                Sales Reports
-              </h2>
-            </div>
-          </div>
+              </Card>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
-          <div className="analytics-report-grid">
-            {/* Daily Report Section */}
-            <div className="report-card-content">
-              <div className="report-header">
-                <div className="report-icon-box">
-                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M8 2v3M16 2v3M3.5 9.09h17M21 8.5V17c0 3-1.5 5-5 5H8c-3.5 0-5-2-5-5V8.5c0-3 1.5-5 5-5h8c3.5 0 5 2 5 5z" stroke="currentColor" strokeWidth="1.5" strokeMiterlimit="10" strokeLinecap="round" strokeLinejoin="round" />
-                    <path d="M15.695 13.7h.009M15.695 16.7h.009M11.995 13.7h.01M11.995 16.7h.01M8.294 13.7h.01M8.294 16.7h.01" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                  </svg>
-                </div>
-                <div className="report-title-group">
-                  <h3 className="report-title">Daily Report</h3>
-                  <p className="report-desc">Sales summary for selected date</p>
-                </div>
-              </div>
-
-              {/* Date Selection */}
-              <div className="report-controls">
-                <label className="report-label">Select Date</label>
-                <GlobalDatePicker
-                  value={dailyReportDate}
-                  onChange={(val) => setDailyReportDate(val)}
-                  placeholder="Select Date"
-                  className="report-select-override"
-                />
-              </div>
-
-              <div className="report-actions">
-                <button
-                  className="report-btn report-btn-primary"
-                  onClick={() => handleDownload('excel', 'detailed', `sales_report_${dailyReportDate}.xlsx`, dailyReportDate)}
-                  disabled={downloading.excel}
-                >
-                  <DownloadIcon color="#ffffff" />
-                  {downloading.excel ? 'Downloading...' : 'Download Report'}
-                </button>
-              </div>
-            </div>
-
-            {/* Monthly Report Section */}
-            <div className="report-card-content">
-              <div className="report-header">
-                <div className="report-icon-box">
-                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M8 2v3M16 2v3M3.5 9.09h17M21 8.5V17c0 3-1.5 5-5 5H8c-3.5 0-5-2-5-5V8.5c0-3 1.5-5 5-5h8c3.5 0 5 2 5 5z" stroke="currentColor" strokeWidth="1.5" strokeMiterlimit="10" strokeLinecap="round" strokeLinejoin="round" />
-                    <path d="M15.695 13.7h.009M15.695 16.7h.009M11.995 13.7h.01" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                  </svg>
-                </div>
-                <div className="report-title-group">
-                  <h3 className="report-title">Monthly Report</h3>
-                  <p className="report-desc">Full month sales analysis</p>
-                </div>
-              </div>
-
-              <div className="report-controls">
-                <label className="report-label">Select Month</label>
-                <GlobalDatePicker
-                  type="month"
-                  value={exportMonth}
-                  onChange={(val) => setExportMonth(val)}
-                  placeholder="Select Month"
-                  className="report-select-override"
-                />
-              </div>
-
-              <div className="report-actions">
-                <button
-                  className="report-btn report-btn-primary"
-                  onClick={() => handleDownload('excel', 'monthly', `monthly_sales_${exportMonth}.xlsx`, exportMonth)}
-                  disabled={downloading.monthly}
-                >
-                  <DownloadIcon color="#ffffff" />
-                  {downloading.monthly ? 'Downloading...' : 'Download Monthly Report'}
-                </button>
-              </div>
-            </div>
-
-            {/* Weekly Report Section */}
-            <div className="report-card-content">
-              <div className="report-header">
-                <div className="report-icon-box">
-                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M8 2v3M16 2v3M3.5 9.09h17M21 8.5V17c0 3-1.5 5-5 5H8c-3.5 0-5-2-5-5V8.5c0-3 1.5-5 5-5h8c3.5 0 5 2 5 5z" stroke="currentColor" strokeWidth="1.5" strokeMiterlimit="10" strokeLinecap="round" strokeLinejoin="round" />
-                    <path d="M15.695 13.7h.009M15.695 16.7h.009M11.995 13.7h.01" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                  </svg>
-                </div>
-                <div className="report-title-group">
-                  <h3 className="report-title">Weekly Report</h3>
-                  <p className="report-desc">Select reference date</p>
-                </div>
-              </div>
-
-              <div className="report-controls">
-                <label className="report-label">
-                  Select Reference Date
-                </label>
-                <GlobalDatePicker
-                  value={exportWeekDate}
-                  onChange={(val) => setExportWeekDate(val)}
-                  placeholder="Select Date"
-                  className="report-select-override"
-                />
-              </div>
-
-              <div className="report-actions">
-                <button
-                  className="report-btn report-btn-primary"
-                  onClick={handleWeeklyExport}
-                  disabled={downloading.weekly}
-                >
-                  <DownloadIcon color="#ffffff" />
-                  {downloading.weekly ? 'Downloading...' : 'Download Weekly Report'}
-                </button>
-              </div>
-            </div>
-          </div>
-        </Card>
-
-      </motion.div >
       {/* Clear Data Confirmation Modal */}
-      < AnimatePresence >
+      <AnimatePresence>
         {showClearConfirm && (
           <motion.div
             className="pmOverlay"
@@ -1601,10 +1569,10 @@ const Reports = () => {
             </motion.div>
           </motion.div>
         )}
-      </AnimatePresence >
+      </AnimatePresence>
 
       {/* Cancel Bill Confirmation Modal */}
-      < AnimatePresence >
+      <AnimatePresence>
         {showCancelConfirm && (
           <motion.div
             initial={{ opacity: 0 }}
@@ -1740,9 +1708,9 @@ const Reports = () => {
             </motion.div>
           </motion.div>
         )}
-      </AnimatePresence >
+      </AnimatePresence>
     </PageContainer>
   );
 };
 
-export default Reports;
+export default Analytics;

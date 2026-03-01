@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useTheme } from '../../context/ThemeContext';
+import { useAlert } from '../../context/AlertContext';
 import { workerAPI } from '../../api/workers';
 import Button from '../../components/ui/Button';
 import Card from '../../components/ui/Card';
@@ -7,6 +8,7 @@ import { motion } from 'framer-motion';
 
 const Attendance = () => {
     const { currentTheme, isDark } = useTheme();
+    const { showSuccess, showError, showConfirm } = useAlert();
     const [workers, setWorkers] = useState([]);
     const [loading, setLoading] = useState(true);
 
@@ -28,21 +30,28 @@ const Attendance = () => {
 
     const markIndividual = async (id, status) => {
         try {
-            await workerAPI.markAttendance(id, { status, check_in: '09:00' }); // Default 9 AM for now
-            loadData(); // Reload to update status
+            await workerAPI.markAttendance(id, { status, check_in: '09:00' });
+            loadData();
         } catch (e) {
-            alert("Error marking attendance");
+            showError('Error marking attendance');
         }
     };
 
     const markAllPresent = async () => {
-        if (!window.confirm("Mark ALL active workers as PRESENT for today?")) return;
+        const confirmed = await showConfirm({
+            title: 'Mark All Present',
+            description: 'Mark ALL active workers as PRESENT for today?',
+            confirmLabel: 'Mark All Present',
+            cancelLabel: 'Cancel',
+            variant: 'primary',
+        });
+        if (!confirmed) return;
         try {
             await workerAPI.bulkMarkPresent();
             loadData();
-            alert("All workers marked Present!");
+            showSuccess('All workers marked Present!');
         } catch (e) {
-            alert("Error in bulk action");
+            showError('Error in bulk action');
         }
     };
 

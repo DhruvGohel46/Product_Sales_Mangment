@@ -6,7 +6,9 @@ import Input from '../ui/Input';
 import GlobalSelect from '../ui/GlobalSelect';
 import GlobalDatePicker from '../ui/GlobalDatePicker';
 import { useTheme } from '../../context/ThemeContext';
+import { useAlert } from '../../context/AlertContext';
 import { workerService } from '../../services/workerService';
+import { getLocalDateString } from '../../utils/api';
 
 // Helper to convert file to base64
 const fileToBase64 = (file) => new Promise((resolve, reject) => {
@@ -32,6 +34,7 @@ const statusOptions = [
 
 const AddWorkerModal = ({ open, onClose, onSaved, initialData = null }) => {
   const { currentTheme, isDark } = useTheme();
+  const { showError } = useAlert();
   const [saving, setSaving] = useState(false);
   const [photoFile, setPhotoFile] = useState(null);
   const [photoPreview, setPhotoPreview] = useState(null);
@@ -42,7 +45,7 @@ const AddWorkerModal = ({ open, onClose, onSaved, initialData = null }) => {
     phone: '',
     role: '',
     salary: '',
-    join_date: new Date().toISOString().split('T')[0],
+    join_date: getLocalDateString(),
     status: 'active',
     photo: null
   });
@@ -55,7 +58,7 @@ const AddWorkerModal = ({ open, onClose, onSaved, initialData = null }) => {
           phone: initialData.phone || '',
           role: initialData.role || '',
           salary: initialData.salary || '',
-          join_date: initialData.join_date || initialData.joinDate || new Date().toISOString().split('T')[0],
+          join_date: initialData.join_date || initialData.joinDate || getLocalDateString(),
           status: initialData.status || 'active',
           photo: initialData.photo || null
         });
@@ -67,7 +70,7 @@ const AddWorkerModal = ({ open, onClose, onSaved, initialData = null }) => {
           phone: '',
           role: '',
           salary: '',
-          join_date: new Date().toISOString().split('T')[0],
+          join_date: getLocalDateString(),
           status: 'active',
           photo: null
         });
@@ -107,7 +110,7 @@ const AddWorkerModal = ({ open, onClose, onSaved, initialData = null }) => {
       onClose();
     } catch (err) {
       console.error('Failed to save worker', err);
-      alert('Failed to save worker: ' + (err.message || err));
+      showError('Failed to save worker: ' + (err.message || err));
     } finally {
       setSaving(false);
     }

@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAnimation } from '../../hooks/useAnimation';
 import { productsAPI, categoriesAPI, handleAPIError, formatCurrency } from '../../utils/api';
-import { useToast } from '../../context/ToastContext';
+import { useAlert as useToast } from '../../context/AlertContext';
 import CategoryManagement from './CategoryManagement';
 import '../../styles/Management.css';
 import { useSettings } from '../../context/SettingsContext';

@@ -3,16 +3,18 @@ import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { IoAdd, IoSearch } from 'react-icons/io5';
 import { useTheme } from '../../context/ThemeContext';
+import { useAlert } from '../../context/AlertContext';
 import { workerService } from '../../services/workerService';
 import Button from '../../components/ui/Button';
-import Input from '../../components/ui/Input';
 import WorkerStats from './WorkerStats';
 import WorkerTable from './WorkerTable';
 import WorkerEmpty from './WorkerEmpty';
 import AddWorkerModal from './AddWorkerModal';
+import PageContainer from '../layout/PageContainer';
 
 const WorkersPage = () => {
     const { currentTheme, isDark } = useTheme();
+    const { showConfirm, showError } = useAlert();
     const navigate = useNavigate();
 
     const [stats, setStats] = useState({});
@@ -22,10 +24,7 @@ const WorkersPage = () => {
     const [editingWorker, setEditingWorker] = useState(null);
     const [searchQuery, setSearchQuery] = useState('');
 
-    // Initial Data Load
-    useEffect(() => {
-        loadData();
-    }, []);
+    useEffect(() => { loadData(); }, []);
 
     const loadData = async () => {
         setLoading(true);
@@ -43,72 +42,94 @@ const WorkersPage = () => {
         }
     };
 
-    // Handlers
-    const handleAddClick = () => {
-        setEditingWorker(null);
-        setShowAddModal(true);
-    };
-
-    const handleEditClick = (worker) => {
-        setEditingWorker(worker);
-        setShowAddModal(true);
-    };
-
-    const handleViewClick = (worker) => {
-        navigate(`/workers/${worker.worker_id}`);
-    };
+    const handleAddClick = () => { setEditingWorker(null); setShowAddModal(true); };
+    const handleEditClick = (worker) => { setEditingWorker(worker); setShowAddModal(true); };
+    const handleViewClick = (worker) => { navigate(`/workers/${worker.worker_id}`); };
 
     const handleDeleteClick = async (worker) => {
-        if (window.confirm(`Are you sure you want to delete ${worker.name}?`)) {
+        const confirmed = await showConfirm({
+            title: `Delete ${worker.name}?`,
+            description: 'This worker will be permanently removed. This action cannot be undone.',
+            confirmLabel: 'Delete',
+            cancelLabel: 'Cancel',
+            variant: 'danger',
+        });
+        if (confirmed) {
             try {
                 await workerService.deleteWorker(worker.worker_id);
-                await loadData(); // Reload to reflect changes
+                await loadData();
             } catch (err) {
-                alert('Failed to delete worker');
+                showError('Failed to delete worker');
             }
         }
     };
 
-    const handleModalSave = async () => {
-        await loadData();
-        setShowAddModal(false);
-    };
+    const handleModalSave = async () => { await loadData(); setShowAddModal(false); };
 
-    // Filtering
     const filteredWorkers = workers.filter(w =>
         w.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
         w.role.toLowerCase().includes(searchQuery.toLowerCase()) ||
         (w.phone && w.phone.includes(searchQuery))
     );
 
+    // Skeleton loader for premium feel
+    const SkeletonRows = () => (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 2, marginTop: 12 }}>
+            {[...Array(4)].map((_, i) => (
+                <div key={i} style={{
+                    display: 'flex', alignItems: 'center', gap: 16,
+                    padding: '14px 16px',
+                    opacity: 1 - (i * 0.15),
+                }}>
+                    <div style={{
+                        width: 42, height: 42, borderRadius: 12,
+                        background: isDark ? 'rgba(255,255,255,0.04)' : 'rgba(0,0,0,0.04)',
+                        animation: 'pulse 1.5s ease-in-out infinite',
+                    }} />
+                    <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 6 }}>
+                        <div style={{
+                            width: 120 + (i * 20), height: 12, borderRadius: 4,
+                            background: isDark ? 'rgba(255,255,255,0.04)' : 'rgba(0,0,0,0.04)',
+                            animation: 'pulse 1.5s ease-in-out infinite',
+                        }} />
+                        <div style={{
+                            width: 80, height: 10, borderRadius: 4,
+                            background: isDark ? 'rgba(255,255,255,0.03)' : 'rgba(0,0,0,0.03)',
+                            animation: 'pulse 1.5s ease-in-out infinite',
+                        }} />
+                    </div>
+                </div>
+            ))}
+        </div>
+    );
+
     return (
         <PageContainer>
-            {/* Header Section */}
+            {/* ─── Header ─── */}
             <div style={{
                 display: 'flex',
                 justifyContent: 'space-between',
-                alignItems: 'center',
-                // marginBottom: '32px' // PageContainer has gap: 24, so we might not need big margin here or can reduce it
+                alignItems: 'flex-start',
             }}>
                 <motion.div
-                    initial={{ opacity: 0, y: 8 }}
+                    initial={{ opacity: 0, y: 6 }}
                     animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
+                    transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
                 >
                     <h1 style={{
-                        fontSize: '32px',
-                        fontWeight: 600, // Reduced from 700 for premium feel
-                        margin: '0 0 4px 0',
+                        fontSize: 28,
+                        fontWeight: 600,
+                        margin: '0 0 2px 0',
                         color: isDark ? '#FFFFFF' : '#111827',
-                        letterSpacing: '-0.02em'
+                        letterSpacing: '-0.02em',
                     }}>
                         Workers
                     </h1>
                     <p style={{
                         margin: 0,
-                        color: isDark ? '#A1A1AA' : '#52525B',
-                        fontSize: '14px',
-                        fontWeight: 400
+                        color: isDark ? '#71717A' : '#6B7280',
+                        fontSize: 13,
+                        fontWeight: 400,
                     }}>
                         Manage your staff, attendance and salary
                     </p>
@@ -117,7 +138,7 @@ const WorkersPage = () => {
                 <motion.div
                     initial={{ opacity: 0, scale: 0.96 }}
                     animate={{ opacity: 1, scale: 1 }}
-                    transition={{ duration: 0.4, delay: 0.1 }}
+                    transition={{ duration: 0.3, delay: 0.08 }}
                 >
                     <Button
                         variant="primary"
@@ -125,106 +146,104 @@ const WorkersPage = () => {
                         style={{
                             background: '#F97316',
                             border: 'none',
-                            borderRadius: '10px', // More modern
-                            padding: '10px 20px',
-                            fontSize: '14px',
-                            fontWeight: 500,
+                            borderRadius: 10,
+                            padding: '9px 18px',
+                            fontSize: 13,
+                            fontWeight: 600,
                             display: 'flex',
                             alignItems: 'center',
-                            gap: '8px',
-                            boxShadow: '0 4px 12px rgba(249, 115, 22, 0.25)',
-                            position: 'relative',
-                            overflow: 'hidden'
-                        }}
-                        // Breathing animation
-                        animate={{
-                            boxShadow: [
-                                '0 4px 12px rgba(249, 115, 22, 0.25)',
-                                '0 4px 20px rgba(249, 115, 22, 0.4)',
-                                '0 4px 12px rgba(249, 115, 22, 0.25)'
-                            ]
-                        }}
-                        transition={{
-                            duration: 3,
-                            repeat: Infinity,
-                            ease: "easeInOut"
+                            gap: 6,
+                            boxShadow: '0 2px 8px rgba(249,115,22,0.25)',
                         }}
                         whileHover={{
+                            boxShadow: '0 4px 16px rgba(249,115,22,0.35)',
                             scale: 1.02,
-                            boxShadow: '0 8px 24px rgba(249, 115, 22, 0.4)'
                         }}
-                        whileTap={{ scale: 0.96 }}
+                        whileTap={{ scale: 0.97 }}
                     >
-                        <IoAdd size={18} />
+                        <IoAdd size={16} />
                         Add Worker
                     </Button>
                 </motion.div>
             </div>
 
-            {/* Stats Row */}
-            <WorkerStats stats={stats} />
 
-            {/* Content Area */}
-            <div>
-                {/* Search Bar (Only if workers exist) */}
+            {/* ─── Content ─── */}
+            <div style={{
+                background: isDark ? 'rgba(255,255,255,0.02)' : '#FFFFFF',
+                borderRadius: 16,
+                border: `1px solid ${isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.06)'}`,
+                overflow: 'hidden', // Ensure stats bar borders don't overflow
+            }}>
+                {/* Stats Bar Integrated */}
+                <WorkerStats stats={stats} />
+                {/* Search + Count header */}
                 {workers.length > 0 && (
-                    <motion.div
-                        initial={{ opacity: 0, y: 10 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ duration: 0.4, delay: 0.3 }}
-                        style={{ marginBottom: '24px', maxWidth: '320px' }}
-                    >
-                        <div style={{ position: 'relative', group: 'search-group' }}>
+                    <div style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'space-between',
+                        padding: '14px 16px',
+                        borderBottom: `1px solid ${isDark ? 'rgba(255,255,255,0.04)' : 'rgba(0,0,0,0.04)'}`,
+                    }}>
+                        <div style={{
+                            position: 'relative',
+                            width: 260,
+                        }}>
                             <IoSearch
+                                size={14}
                                 style={{
                                     position: 'absolute',
-                                    left: '12px',
-                                    top: '50%',
+                                    left: 10, top: '50%',
                                     transform: 'translateY(-50%)',
-                                    color: '#71717A', // Tertiary text color
-                                    zIndex: 1,
-                                    pointerEvents: 'none'
+                                    color: isDark ? '#52525B' : '#9CA3AF',
+                                    pointerEvents: 'none',
                                 }}
                             />
                             <input
                                 type="text"
-                                placeholder="Search workers..."
+                                placeholder="Search by name, role or phone..."
                                 value={searchQuery}
                                 onChange={(e) => setSearchQuery(e.target.value)}
                                 style={{
                                     width: '100%',
-                                    padding: '10px 10px 10px 36px',
-                                    borderRadius: '10px',
-                                    border: '1px solid transparent', // Default transparent
-                                    background: isDark ? 'rgba(255,255,255,0.03)' : '#F4F4F5',
-                                    color: currentTheme.colors.text.primary,
-                                    fontSize: '14px',
+                                    padding: '8px 10px 8px 32px',
+                                    borderRadius: 8,
+                                    border: `1px solid ${isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.08)'}`,
+                                    background: isDark ? 'rgba(255,255,255,0.03)' : '#F9FAFB',
+                                    color: isDark ? '#FAFAFA' : '#111827',
+                                    fontSize: 13,
                                     outline: 'none',
-                                    transition: 'all 0.2s ease',
-                                    boxShadow: 'none'
+                                    transition: 'all 0.15s ease',
                                 }}
                                 onFocus={(e) => {
-                                    e.target.style.background = isDark ? '#18181B' : '#FFFFFF';
-                                    e.target.style.boxShadow = '0 0 0 2px rgba(249, 115, 22, 0.25)';
+                                    e.target.style.borderColor = 'rgba(249,115,22,0.4)';
+                                    e.target.style.boxShadow = '0 0 0 3px rgba(249,115,22,0.08)';
                                 }}
                                 onBlur={(e) => {
-                                    e.target.style.background = isDark ? 'rgba(255,255,255,0.03)' : '#F4F4F5';
+                                    e.target.style.borderColor = isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.08)';
                                     e.target.style.boxShadow = 'none';
                                 }}
                             />
                         </div>
-                    </motion.div>
+
+                        <span style={{
+                            fontSize: 12,
+                            color: isDark ? '#52525B' : '#9CA3AF',
+                            fontWeight: 500,
+                            fontVariantNumeric: 'tabular-nums',
+                        }}>
+                            {filteredWorkers.length} {filteredWorkers.length === 1 ? 'worker' : 'workers'}
+                        </span>
+                    </div>
                 )}
 
-                {/* Loading State */}
-                {loading ? (
-                    <div style={{ textAlign: 'center', padding: '40px', color: currentTheme.colors.text.secondary }}>
-                        Loading...
-                    </div>
-                ) : (
-                    <>
-                        {/* Table or Empty State */}
-                        {workers.length > 0 ? (
+                {/* Body */}
+                <div style={{ padding: workers.length > 0 ? '8px 0 4px 0' : 0 }}>
+                    {loading ? (
+                        <SkeletonRows />
+                    ) : workers.length > 0 ? (
+                        filteredWorkers.length > 0 ? (
                             <WorkerTable
                                 workers={filteredWorkers}
                                 onView={handleViewClick}
@@ -232,10 +251,19 @@ const WorkersPage = () => {
                                 onDelete={handleDeleteClick}
                             />
                         ) : (
-                            <WorkerEmpty onAdd={handleAddClick} />
-                        )}
-                    </>
-                )}
+                            <div style={{
+                                padding: '48px 16px',
+                                textAlign: 'center',
+                                color: isDark ? '#52525B' : '#9CA3AF',
+                                fontSize: 14,
+                            }}>
+                                No workers match "{searchQuery}"
+                            </div>
+                        )
+                    ) : (
+                        <WorkerEmpty onAdd={handleAddClick} />
+                    )}
+                </div>
             </div>
 
             {/* Add/Edit Modal */}
@@ -245,11 +273,8 @@ const WorkersPage = () => {
                 onSaved={handleModalSave}
                 initialData={editingWorker}
             />
-
         </PageContainer>
     );
 };
 
 export default WorkersPage;
-
-import PageContainer from '../layout/PageContainer';

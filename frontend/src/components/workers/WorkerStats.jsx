@@ -1,113 +1,90 @@
+/**
+ * WorkerStats — Single compact info bar replacing 5 separate cards
+ * Shows key metrics in a single horizontal strip
+ */
 import React from 'react';
 import { motion } from 'framer-motion';
-import { IoPeople, IoPerson, IoCalendar, IoCash } from 'react-icons/io5';
 import { formatCurrency } from '../../utils/api';
-import Card from '../ui/Card';
 import { useTheme } from '../../context/ThemeContext';
 
-const StatCard = ({ title, value, icon: Icon, color, delay }) => {
-    const { currentTheme, isDark } = useTheme();
+const Dot = ({ color }) => (
+    <span style={{
+        width: 6, height: 6, borderRadius: '50%',
+        background: color, display: 'inline-block', flexShrink: 0
+    }} />
+);
+
+const WorkerStats = ({ stats }) => {
+    const { isDark } = useTheme();
+
+    const items = [
+        { label: 'Workers', value: stats.totalWorkers || 0, color: '#3B82F6' },
+        { label: 'Active', value: stats.activeWorkers || 0, color: '#10B981' },
+        { label: 'Present', value: stats.presentToday || 0, color: '#F97316' },
+        { label: 'Salary', value: formatCurrency(stats.totalSalary || 0), color: '#8B5CF6' },
+        { label: 'Net Pay', value: formatCurrency(stats.netPayable || 0), color: '#EF4444' },
+    ];
 
     return (
         <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.4, delay, ease: 'easeOut' }}
-            whileHover={{ y: -4, transition: { duration: 0.2 } }}
-            style={{ flex: 1, minWidth: '220px' }}
-        >
-            <Card style={{
-                padding: '24px', // More breathing room
-                height: '100%',
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 0.3, delay: 0.1 }}
+            style={{
                 display: 'flex',
-                flexDirection: 'column',
-                justifyContent: 'space-between',
-                // Premium Card Styles
-                border: 'none', // Remove default border
-                background: isDark ? '#18181B' : '#FFFFFF',
-                boxShadow: isDark
-                    ? 'inset 0 1px 0 rgba(255,255,255,0.04), 0 8px 24px rgba(0,0,0,0.35)'
-                    : '0 4px 12px rgba(0,0,0,0.05)',
-                position: 'relative',
-                overflow: 'hidden'
-            }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '16px' }}>
+                alignItems: 'center',
+                gap: 0,
+                padding: '0 8px',
+                height: '42px',
+                transition: 'all 0.3s ease',
+                width: '100%',
+                /* Integrated styles: blend into main card */
+                background: 'transparent',
+                border: 'none',
+                borderBottom: `1px solid ${isDark ? 'rgba(255,255,255,0.04)' : 'rgba(0,0,0,0.04)'}`,
+            }}
+        >
+            {items.map((item, i) => (
+                <React.Fragment key={item.label}>
+                    {i > 0 && (
+                        <div style={{
+                            width: 1,
+                            height: 20,
+                            background: isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.08)',
+                            flexShrink: 0,
+                        }} />
+                    )}
                     <div style={{
-                        padding: '10px',
-                        borderRadius: '10px',
-                        background: isDark ? 'rgba(255,255,255,0.05)' : `${color}10`, // Subtle icon bg
-                        color: color,
+                        flex: 1,
                         display: 'flex',
                         alignItems: 'center',
                         justifyContent: 'center',
-                        boxShadow: isDark ? 'inset 0 1px 0 rgba(255,255,255,0.05)' : 'none'
+                        gap: 8,
+                        padding: '0 12px',
+                        minWidth: 0,
                     }}>
-                        <Icon size={20} />
+                        <Dot color={item.color} />
+                        <span style={{
+                            fontSize: 12,
+                            fontWeight: 500,
+                            color: isDark ? '#71717A' : '#6B7280',
+                            whiteSpace: 'nowrap',
+                        }}>
+                            {item.label}
+                        </span>
+                        <span style={{
+                            fontSize: 13,
+                            fontWeight: 600,
+                            color: isDark ? '#FAFAFA' : '#111827',
+                            whiteSpace: 'nowrap',
+                            fontVariantNumeric: 'tabular-nums',
+                        }}>
+                            {item.value}
+                        </span>
                     </div>
-                </div>
-                <div>
-                    <h3 style={{
-                        fontSize: '24px', // Slightly smaller, refined
-                        fontWeight: 600,
-                        color: isDark ? '#FAFAFA' : '#111827',
-                        margin: '0 0 4px 0',
-                        letterSpacing: '-0.02em'
-                    }}>
-                        {value}
-                    </h3>
-                    <p style={{
-                        fontSize: '13px',
-                        color: isDark ? '#A1A1AA' : '#6B7280',
-                        margin: 0,
-                        fontWeight: 500
-                    }}>
-                        {title}
-                    </p>
-                </div>
-            </Card>
+                </React.Fragment>
+            ))}
         </motion.div>
-    );
-};
-
-const WorkerStats = ({ stats }) => {
-    return (
-        <div style={{ display: 'flex', gap: '16px', flexWrap: 'wrap', marginBottom: '24px' }}>
-            <StatCard
-                title="Total Workers"
-                value={stats.totalWorkers || 0}
-                icon={IoPeople}
-                color="#3B82F6"
-                delay={0}
-            />
-            <StatCard
-                title="Active Workers"
-                value={stats.activeWorkers || 0}
-                icon={IoPerson}
-                color="#10B981"
-                delay={0.1}
-            />
-            <StatCard
-                title="Present Today"
-                value={stats.presentToday || 0}
-                icon={IoCalendar}
-                color="#F97316"
-                delay={0.2}
-            />
-            <StatCard
-                title="Est. Monthly Salary"
-                value={formatCurrency(stats.totalSalary || 0)}
-                icon={IoCash}
-                color="#8B5CF6"
-                delay={0.3}
-            />
-            <StatCard
-                title="Net Payable (after advances)"
-                value={formatCurrency(stats.netPayable || 0)}
-                icon={IoCash}
-                color="#EF4444"
-                delay={0.4}
-            />
-        </div>
     );
 };
 

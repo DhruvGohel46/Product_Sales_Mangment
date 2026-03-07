@@ -36,11 +36,11 @@
 }
 
 .stTitle {
-    font-size: 32px;
+    font-size: var(--font-4xl);
     /* Larger title */
-    line-height: 1.2;
-    letter-spacing: -0.02em;
-    font-weight: 700;
+    line-height: var(--line-tight);
+    letter-spacing: var(--tracking-tight);
+    font-weight: var(--weight-bold);
     color: var(--text-primary);
 }
 
@@ -83,8 +83,8 @@
     border: none;
     background: transparent;
     color: var(--text-secondary);
-    font-size: 14px;
-    font-weight: 500;
+    font-size: var(--font-md);
+    font-weight: var(--weight-medium);
     cursor: pointer;
     border-radius: 10px;
     transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
@@ -141,8 +141,8 @@
 }
 
 .stSectionTitle {
-    font-size: 20px;
-    font-weight: 600;
+    font-size: var(--font-2xl);
+    font-weight: var(--weight-semibold);
     color: var(--text-primary);
     margin-bottom: 8px;
     padding-bottom: 16px;
@@ -169,8 +169,8 @@
 }
 
 .stSectionTitle {
-    font-size: 18px;
-    font-weight: 600;
+    font-size: var(--font-xl);
+    font-weight: var(--weight-semibold);
     color: var(--text-primary);
     padding: 24px 32px;
     margin-bottom: 0;
@@ -214,15 +214,15 @@
 }
 
 .stLabelTitle {
-    font-size: 14px;
-    font-weight: 600;
+    font-size: var(--font-md);
+    font-weight: var(--weight-semibold);
     color: var(--text-primary);
 }
 
 .stLabelDesc {
-    font-size: 13px;
+    font-size: var(--font-sm);
     color: var(--text-tertiary);
-    line-height: 1.5;
+    line-height: var(--line-normal);
 }
 
 /* Inputs - Premium Tactile Feel */
@@ -234,8 +234,8 @@
     border: 1px solid var(--border-primary);
     background: var(--bg-secondary);
     color: var(--text-primary);
-    font-size: 14px;
-    font-weight: 500;
+    font-size: var(--font-md);
+    font-weight: var(--weight-medium);
     transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
     height: 42px;
 }
@@ -336,7 +336,7 @@ input:checked+.stSlider:before {
     border: 1px solid var(--border-primary);
     background: var(--bg-primary);
     color: var(--text-primary);
-    font-size: 14px;
+    font-size: var(--font-md);
     transition: all 0.2s ease;
 }
 

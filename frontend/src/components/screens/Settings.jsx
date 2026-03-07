@@ -4,6 +4,7 @@ import { useSettings } from '../../context/SettingsContext';
 import { useAlert as useToast } from '../../context/AlertContext';
 import { useTheme } from '../../context/ThemeContext';
 import '../../styles/Settings.css';
+import '../../styles/typography.css'; // Import typography system
 import Dropdown from '../ui/Dropdown';
 import GlobalTimePicker from '../ui/GlobalTimePicker';
 import GlobalDatePicker from '../ui/GlobalDatePicker';
@@ -32,6 +33,30 @@ const Settings = () => {
 
     const [saving, setSaving] = useState(false);
     const [activeTab, setActiveTab] = useState('shop');
+    
+    // Text scale state
+    const [textScale, setTextScale] = useState(() => {
+        const saved = localStorage.getItem('text_scale');
+        return saved ? parseFloat(saved) : 1;
+    });
+
+    // Apply text scale to CSS variable
+    useEffect(() => {
+        document.documentElement.style.setProperty('--text-scale', textScale);
+        localStorage.setItem('text_scale', textScale);
+    }, [textScale]);
+
+    // Display zoom state
+    const [displayZoom, setDisplayZoom] = useState(() => {
+        const saved = localStorage.getItem('display_zoom');
+        return saved ? parseFloat(saved) : 1;
+    });
+
+    // Apply display zoom to CSS variable
+    useEffect(() => {
+        document.documentElement.style.setProperty('--display-zoom', displayZoom);
+        localStorage.setItem('display_zoom', displayZoom);
+    }, [displayZoom]);
 
     const [formSettings, setFormSettings] = useState({
         // Shop
@@ -431,6 +456,72 @@ const Settings = () => {
                                             />
                                             <span className="stSlider"></span>
                                         </label>
+                                    </div>
+
+                                    {/* Text Size Control */}
+                                    <div className="stFormGroup">
+                                        <div className="stLabel">
+                                            <span className="stLabelTitle">Text Size</span>
+                                            <span className="stLabelDesc">Adjust text scaling across the app</span>
+                                        </div>
+                                        <div style={{ display: 'flex', gap: '8px', alignItems: 'center', marginTop: '8px' }}>
+                                            <Dropdown
+                                                options={[
+                                                    { label: 'Small', value: '0.9' },
+                                                    { label: 'Normal', value: '1' },
+                                                    { label: 'Large', value: '1.1' },
+                                                    { label: 'Extra Large', value: '1.2' }
+                                                ]}
+                                                value={textScale.toString()}
+                                                onChange={(val) => setTextScale(parseFloat(val))}
+                                                placeholder="Select text size"
+                                                className="stDropdown"
+                                                zIndex={40}
+                                            />
+                                            <div style={{ 
+                                                fontSize: 'var(--font-sm)', 
+                                                color: isDark ? '#94a3b8' : '#64748b',
+                                                marginLeft: '8px',
+                                                padding: '4px 8px',
+                                                borderRadius: '6px',
+                                                background: isDark ? 'rgba(148, 163, 184, 0.1)' : 'rgba(100, 116, 139, 0.1)'
+                                            }}>
+                                                Scale: {(textScale * 100).toFixed(0)}%
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    {/* Display Zoom Control */}
+                                    <div className="stFormGroup">
+                                        <div className="stLabel">
+                                            <span className="stLabelTitle">Display Zoom</span>
+                                            <span className="stLabelDesc">Scale sections, cards and UI elements</span>
+                                        </div>
+                                        <div style={{ display: 'flex', gap: '8px', alignItems: 'center', marginTop: '8px' }}>
+                                            <Dropdown
+                                                options={[
+                                                    { label: 'Small', value: '0.9' },
+                                                    { label: 'Normal', value: '1' },
+                                                    { label: 'Large', value: '1.1' },
+                                                    { label: 'Extra Large', value: '1.2' }
+                                                ]}
+                                                value={displayZoom.toString()}
+                                                onChange={(val) => setDisplayZoom(parseFloat(val))}
+                                                placeholder="Select display zoom"
+                                                className="stDropdown"
+                                                zIndex={39}
+                                            />
+                                            <div style={{ 
+                                                fontSize: 'var(--font-sm)', 
+                                                color: isDark ? '#94a3b8' : '#64748b',
+                                                marginLeft: '8px',
+                                                padding: '4px 8px',
+                                                borderRadius: '6px',
+                                                background: isDark ? 'rgba(148, 163, 184, 0.1)' : 'rgba(100, 116, 139, 0.1)'
+                                            }}>
+                                                Zoom: {(displayZoom * 100).toFixed(0)}%
+                                            </div>
+                                        </div>
                                     </div>
                                 </div>
                             </>

@@ -154,7 +154,7 @@ const LandingPage = () => {
                 <div className="absolute inset-0 bg-primary"></div>
                 <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center text-primary-foreground">
                     <h2 className="text-3xl md:text-5xl font-bold mb-6">Ready to transform your shop?</h2>
-                    <p className="text-xl opacity-90 mb-10 max-w-2xl mx-auto">Join thousands of shop owners who trust ReBill for their daily operations.</p>
+                    <p className="text-xl opacity-90 mb-10 max-w-2xl mx-auto">Join thousands of shop owners who trust InfoBill for their daily operations.</p>
                     <Link to="/register">
                         <Button size="lg" variant="secondary" className="text-lg px-10 h-16 rounded-full font-bold shadow-2xl">
                             Get Started for Free

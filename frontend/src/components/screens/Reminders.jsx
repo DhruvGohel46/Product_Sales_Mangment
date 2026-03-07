@@ -229,10 +229,13 @@ export default function Reminders() {
                 onMouseEnter={() => setHovered(true)}
                 onMouseLeave={() => setHovered(false)}
                 style={{
-                    background: 'none', border: 'none', cursor: 'pointer', padding: '6px',
-                    borderRadius: '8px', color: hovered ? (hoverColor || t.colors.primary[500]) : (color || t.colors.text.muted),
-                    backgroundColor: hovered ? subtleBg : 'transparent',
-                    transition: 'all 0.2s ease', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    background: 'none', border: 'none', cursor: 'pointer', 
+                    padding: 'calc(6px * var(--display-zoom))',
+                    borderRadius: 'calc(8px * var(--display-zoom))', 
+                    color: hovered ? (hoverColor || '#FF6A00') : (color || t.colors.text.muted),
+                    backgroundColor: hovered ? 'rgba(255,106,0,0.1)' : 'transparent',
+                    transition: 'all 0.2s cubic-bezier(0.16, 1, 0.3, 1)', 
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
                 }}
             >{icon}</button>
         );
@@ -247,168 +250,247 @@ export default function Reminders() {
 
                 {/* ─── Header ────────────────────────────────────────────────────── */}
                 <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3 }}
-                    style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '24px' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
-                        <div style={{
-                            width: '42px', height: '42px', borderRadius: '14px',
-                            background: 'linear-gradient(135deg, #FF6A00, #FF8A3D)',
+                    style={{ 
+                        display: 'flex', 
+                        alignItems: 'center', 
+                        justifyContent: 'space-between', 
+                        marginBottom: 'calc(24px * var(--display-zoom))',
+                        padding: '0 calc(4px * var(--display-zoom))'
+                    }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 'calc(16px * var(--display-zoom))' }}>
+                        <div className="glass-panel" style={{
+                            width: 'calc(48px * var(--display-zoom))', 
+                            height: 'calc(48px * var(--display-zoom))', 
+                            borderRadius: 'calc(14px * var(--display-zoom))',
+                            backgroundImage: 'linear-gradient(135deg, #FF6A00, #FF8A3D)',
                             display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff',
-                            boxShadow: '0 6px 18px rgba(255,106,0,0.35)',
+                            boxShadow: '0 8px 24px rgba(255,106,0,0.3)',
+                            border: '1px solid rgba(255,255,255,0.2)'
                         }}>{Icons.bell}</div>
                         <div>
-                            <h1 style={{ fontSize: '1.5rem', fontWeight: 700, color: t.colors.text.primary, margin: 0, lineHeight: 1.2 }}>
+                            <h1 style={{ 
+                                fontSize: 'calc(24px * var(--text-scale))', 
+                                fontWeight: 800, 
+                                color: t.colors.text.primary, 
+                                margin: 0, 
+                                letterSpacing: '-0.02em' 
+                            }}>
                                 Smart Reminders
                             </h1>
-                            <p style={{ fontSize: '0.8rem', color: t.colors.text.muted, margin: 0, marginTop: '2px' }}>
-                                Your business assistant
+                            <p style={{ 
+                                fontSize: 'calc(13px * var(--text-scale))', 
+                                color: t.colors.text.muted, 
+                                margin: 0, 
+                                marginTop: 'calc(2px * var(--display-zoom))',
+                                opacity: 0.8
+                            }}>
+                                Your intelligent business assistant
                             </p>
                         </div>
                     </div>
-                    {/* Stats */}
-                    <div style={{ display: 'flex', gap: '16px', alignItems: 'center' }}>
-                        {[
-                            { label: 'Active', value: activeCount, color: t.colors.primary[500] },
-                            { label: 'Overdue', value: overdueCount, color: '#f87171' },
-                            { label: 'Done Today', value: completedTodayCount, color: '#22c55e' },
-                        ].map((s) => (
-                            <div key={s.label} style={{
-                                textAlign: 'center', padding: '8px 16px', borderRadius: '12px',
-                                background: subtleBg, border: cardBorder, minWidth: '70px',
-                            }}>
-                                <div style={{ fontSize: '1.25rem', fontWeight: 700, color: s.color }}>{s.value}</div>
-                                <div style={{ fontSize: '0.7rem', color: t.colors.text.muted, fontWeight: 500 }}>{s.label}</div>
-                            </div>
-                        ))}
-                        <motion.button whileHover={{ scale: 1.04 }} whileTap={{ scale: 0.96 }}
+
+                    <div style={{ display: 'flex', gap: 'calc(12px * var(--display-zoom))', alignItems: 'center' }}>
+                        {/* Consolidated Glass Stats Bar */}
+                        <div className="glass-panel" style={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            height: 'calc(44px * var(--display-zoom))',
+                            padding: '0 calc(4px * var(--display-zoom))',
+                            borderRadius: 'calc(12px * var(--display-zoom))',
+                            backgroundImage: 'var(--glass-card)',
+                            border: '1px solid var(--glass-border)',
+                        }}>
+                            {[
+                                { label: 'Active', value: activeCount, color: '#FF6A00' },
+                                { label: 'Overdue', value: overdueCount, color: '#f87171' },
+                                { label: 'Done', value: completedTodayCount, color: '#22c55e' },
+                            ].map((s, idx) => (
+                                <React.Fragment key={s.label}>
+                                    {idx > 0 && (
+                                        <div style={{ 
+                                            width: 1, 
+                                            height: 'calc(16px * var(--display-zoom))', 
+                                            background: isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)',
+                                            margin: '0 calc(4px * var(--display-zoom))' 
+                                        }} />
+                                    )}
+                                    <div style={{
+                                        display: 'flex',
+                                        flexDirection: 'column',
+                                        alignItems: 'center',
+                                        justifyContent: 'center',
+                                        padding: '0 calc(12px * var(--display-zoom))',
+                                        minWidth: 'calc(60px * var(--display-zoom))'
+                                    }}>
+                                        <span style={{ fontSize: 'calc(14px * var(--text-scale))', fontWeight: 700, color: s.color, lineHeight: 1 }}>{s.value}</span>
+                                        <span style={{ fontSize: 'calc(8px * var(--text-scale))', color: t.colors.text.muted, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em', marginTop: '2px' }}>{s.label}</span>
+                                    </div>
+                                </React.Fragment>
+                            ))}
+                        </div>
+
+                        <motion.button 
+                            whileHover={{ scale: 1.05, translateY: -2 }} 
+                            whileTap={{ scale: 0.95 }}
                             onClick={() => { setEditingReminder(null); setShowModal(true); }}
+                            className="lift-3d"
                             style={{
-                                background: 'linear-gradient(135deg, #FF6A00, #FF8A3D)', border: 'none',
-                                borderRadius: '12px', padding: '10px 18px', color: '#fff', fontWeight: 600,
-                                fontSize: '0.85rem', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px',
-                                boxShadow: '0 4px 12px rgba(255,106,0,0.35)',
+                            backgroundImage: 'linear-gradient(135deg, #FF6A00, #FF8A3D)', 
+                            border: '1px solid rgba(255,255,255,0.2)',
+                            borderRadius: 'calc(12px * var(--display-zoom))', 
+                            height: 'calc(44px * var(--display-zoom))',
+                                padding: '0 calc(18px * var(--display-zoom))', 
+                                color: '#fff', 
+                                fontWeight: 700,
+                                fontSize: 'calc(13px * var(--text-scale))', 
+                                cursor: 'pointer', 
+                                display: 'flex', 
+                                alignItems: 'center', 
+                                gap: 'calc(8px * var(--display-zoom))',
+                                boxShadow: '0 8px 20px rgba(255,106,0,0.25)',
                             }}>
-                            {Icons.plus} New Reminder
+                            {Icons.plus} <span>New Reminder</span>
                         </motion.button>
                     </div>
                 </motion.div>
 
                 {/* ─── Quick Add Panel ────────────────────────────────────────────── */}
                 <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.05, duration: 0.3 }}
+                    className="glass-panel lift-3d"
                     style={{
-                        background: cardBg, border: cardBorder, borderRadius: '18px',
-                        padding: '20px 24px', marginBottom: '20px', boxShadow: cardShadow,
+                        padding: 'calc(16px * var(--display-zoom)) calc(20px * var(--display-zoom))',
+                        marginBottom: 'calc(24px * var(--display-zoom))',
+                        borderRadius: 'calc(20px * var(--display-zoom))',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: 'calc(12px * var(--display-zoom))',
+                        flexWrap: 'wrap'
                     }}>
-                    <div style={{ display: 'flex', gap: '12px', alignItems: 'center', flexWrap: 'wrap', width: '100%' }}>
-                        <div style={{ flex: '1 1 300px' }}>
-                            <input
-                                value={quickTitle} onChange={(e) => setQuickTitle(e.target.value)}
-                                onKeyDown={(e) => e.key === 'Enter' && handleQuickAdd()}
-                                placeholder="Quick add a reminder..."
-                                style={{
-                                    width: '100%', padding: '12px 16px', borderRadius: '12px',
-                                    border: isDark ? '1px solid rgba(255,255,255,0.08)' : '1px solid #e4e7ec',
-                                    background: isDark ? 'rgba(255,255,255,0.04)' : '#f8fafc',
-                                    color: t.colors.text.primary, fontSize: '0.95rem', outline: 'none',
-                                    transition: 'border 0.2s, box-shadow 0.2s',
-                                }}
-                                onFocus={(e) => { e.target.style.borderColor = '#FF6A00'; e.target.style.boxShadow = '0 0 0 3px rgba(255,106,0,0.1)'; }}
-                                onBlur={(e) => { e.target.style.borderColor = isDark ? 'rgba(255,255,255,0.08)' : '#e4e7ec'; e.target.style.boxShadow = 'none'; }}
-                            />
-                        </div>
-
-                        <div style={{ width: '160px' }}>
-                            <GlobalDatePicker
-                                value={quickDate}
-                                onChange={setQuickDate}
-                                placeholder="Date"
-                                hideLabel
-                                forceDown
-                            />
-                        </div>
-
-                        <div style={{ width: '130px' }}>
-                            <GlobalTimePicker
-                                value={quickTime}
-                                onChange={setQuickTime}
-                                placeholder="Time"
-                                hideLabel
-                                forceDown
-                            />
-                        </div>
-
-                        <div style={{ width: '140px' }}>
-                            <GlobalSelect
-                                options={REPEAT_TYPES.map(r => ({ label: r.label, value: r.id }))}
-                                value={quickRepeat}
-                                onChange={setQuickRepeat}
-                                placeholder="Repeat"
-                                hideLabel
-                                direction="bottom"
-                            />
-                        </div>
-                        {/* Priority pills */}
-                        <div style={{ display: 'flex', gap: '4px' }}>
-                            {PRIORITY_LEVELS.map((p) => (
-                                <button key={p.id} onClick={() => setQuickPriority(p.id)}
-                                    style={{
-                                        padding: '6px 12px', borderRadius: '20px', fontSize: '0.75rem', fontWeight: 600,
-                                        border: quickPriority === p.id ? `2px solid ${p.color}` : '2px solid transparent',
-                                        background: quickPriority === p.id ? (isDark ? p.bgDark : p.bgLight) : 'transparent',
-                                        color: quickPriority === p.id ? p.color : t.colors.text.muted,
-                                        cursor: 'pointer', transition: 'all 0.2s',
-                                    }}>{p.label}</button>
-                            ))}
-                        </div>
-                        <motion.button whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}
-                            onClick={handleQuickAdd} disabled={!quickTitle.trim()}
+                    <div style={{ flex: '1 1 calc(200px * var(--display-zoom))', minWidth: 0 }}>
+                        <input
+                            value={quickTitle} onChange={(e) => setQuickTitle(e.target.value)}
+                            onKeyDown={(e) => e.key === 'Enter' && handleQuickAdd()}
+                            placeholder="Quick add a task or reminder..."
                             style={{
-                                padding: '10px 20px', borderRadius: '12px', border: 'none',
-                                background: quickTitle.trim() ? 'linear-gradient(135deg, #FF6A00, #FF8A3D)' : subtleBg,
-                                color: quickTitle.trim() ? '#fff' : t.colors.text.muted,
-                                fontWeight: 600, fontSize: '0.85rem', cursor: quickTitle.trim() ? 'pointer' : 'not-allowed',
-                                boxShadow: quickTitle.trim() ? '0 4px 12px rgba(255,106,0,0.3)' : 'none',
+                                width: '100%', 
+                                padding: 'calc(10px * var(--display-zoom)) calc(16px * var(--display-zoom))', 
+                                borderRadius: 'calc(12px * var(--display-zoom))',
+                                border: '1px solid var(--glass-border)',
+                                background: 'rgba(0,0,0,0.05)',
+                                color: t.colors.text.primary, 
+                                fontSize: 'calc(14px * var(--text-scale))', 
+                                outline: 'none',
                                 transition: 'all 0.2s',
-                            }}>Save</motion.button>
+                            }}
+                            onFocus={(e) => { e.target.style.borderColor = '#FF6A00'; e.target.style.background = 'rgba(255,106,0,0.03)'; }}
+                            onBlur={(e) => { e.target.style.borderColor = 'var(--glass-border)'; e.target.style.background = 'rgba(0,0,0,0.05)'; }}
+                        />
                     </div>
+
+                    <div style={{ width: 'calc(150px * var(--display-zoom))' }}>
+                        <GlobalDatePicker value={quickDate} onChange={setQuickDate} hideLabel forceDown />
+                    </div>
+
+                    <div style={{ width: 'calc(100px * var(--display-zoom))' }}>
+                        <GlobalTimePicker value={quickTime} onChange={setQuickTime} hideLabel forceDown />
+                    </div>
+
+                    <div style={{ width: 'calc(110px * var(--display-zoom))' }}>
+                        <GlobalSelect
+                            options={REPEAT_TYPES.map(r => ({ label: r.label, value: r.id }))}
+                            value={quickRepeat}
+                            onChange={setQuickRepeat}
+                            hideLabel
+                            direction="bottom"
+                        />
+                    </div>
+
+                    <div style={{ display: 'flex', gap: 'calc(4px * var(--display-zoom))', background: 'rgba(0,0,0,0.05)', padding: 'calc(3px * var(--display-zoom))', borderRadius: 'calc(10px * var(--display-zoom))', border: '1px solid var(--glass-border)' }}>
+                        {PRIORITY_LEVELS.map((p) => (
+                            <button key={p.id} onClick={() => setQuickPriority(p.id)}
+                                style={{
+                                    padding: 'calc(6px * var(--display-zoom)) calc(12px * var(--display-zoom))', 
+                                    borderRadius: 'calc(8px * var(--display-zoom))', 
+                                    fontSize: 'calc(11px * var(--text-scale))', 
+                                    fontWeight: 700,
+                                    border: 'none',
+                                    background: quickPriority === p.id ? (isDark ? p.bgDark : p.bgLight) : 'transparent',
+                                    color: quickPriority === p.id ? p.color : t.colors.text.muted,
+                                    cursor: 'pointer', transition: 'all 0.2s',
+                                    textTransform: 'uppercase',
+                                    letterSpacing: '0.02em'
+                                }}>{p.label}</button>
+                        ))}
+                    </div>
+
+                    <motion.button 
+                        whileHover={{ scale: 1.05 }} 
+                        whileTap={{ scale: 0.95 }}
+                        onClick={handleQuickAdd} 
+                        disabled={!quickTitle.trim()}
+                        style={{
+                            height: 'calc(38px * var(--display-zoom))',
+                            padding: '0 calc(18px * var(--display-zoom))', 
+                            borderRadius: 'calc(10px * var(--display-zoom))', 
+                            border: '1px solid rgba(255,255,255,0.1)',
+                            backgroundImage: quickTitle.trim() ? 'linear-gradient(135deg, #FF6A00, #FF8A3D)' : 'none',
+                            backgroundColor: quickTitle.trim() ? 'transparent' : (isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.05)'),
+                            color: quickTitle.trim() ? '#fff' : t.colors.text.muted,
+                            fontWeight: 700, 
+                            fontSize: 'calc(13px * var(--text-scale))', 
+                            cursor: quickTitle.trim() ? 'pointer' : 'not-allowed',
+                            boxShadow: quickTitle.trim() ? '0 4px 12px rgba(255,106,0,0.2)' : 'none',
+                            transition: 'all 0.3s',
+                        }}>Save</motion.button>
                 </motion.div>
 
                 {/* ─── Smart Suggestions ──────────────────────────────────────────── */}
                 {showSuggestions && suggestions.length > 0 && (
                     <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1, duration: 0.3 }}
-                        style={{ marginBottom: '20px' }}>
-                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '12px' }}>
-                            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: t.colors.text.secondary, fontSize: '0.85rem', fontWeight: 600 }}>
+                        style={{ marginBottom: 'calc(20px * var(--display-zoom))' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 'calc(12px * var(--display-zoom))' }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: 'calc(8px * var(--display-zoom))', color: t.colors.text.secondary, fontSize: 'calc(13.5px * var(--text-scale))', fontWeight: 700 }}>
                                 <span style={{ color: '#FF6A00' }}>{Icons.sparkle}</span> Smart Suggestions
                             </div>
                             <button onClick={() => setShowSuggestions(false)}
-                                style={{ background: 'none', border: 'none', color: t.colors.text.muted, cursor: 'pointer', fontSize: '0.75rem', padding: '4px 8px', borderRadius: '6px' }}>
+                                style={{ 
+                                    background: 'none', border: 'none', color: t.colors.text.muted, cursor: 'pointer', 
+                                    fontSize: 'calc(12px * var(--text-scale))', padding: 'calc(4px * var(--display-zoom)) calc(8px * var(--display-zoom))', 
+                                    borderRadius: 'calc(6px * var(--display-zoom))' 
+                                }}>
                                 Hide
                             </button>
                         </div>
-                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '12px' }}>
+                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(calc(280px * var(--display-zoom)), 1fr))', gap: 'calc(12px * var(--display-zoom))' }}>
                             {suggestions.slice(0, 3).map((sug) => (
-                                <motion.div key={sug.id} className="suggestion-card" whileHover={{ translateY: -2 }}
+                                <motion.div key={sug.id} className="suggestion-card glass-panel lift-3d" 
                                     style={{
-                                        position: 'relative', overflow: 'hidden', padding: '16px 20px',
-                                        background: isDark ? 'rgba(255,138,61,0.05)' : 'rgba(255,138,61,0.04)',
-                                        border: isDark ? '1px solid rgba(255,138,61,0.12)' : '1px solid rgba(255,138,61,0.10)',
-                                        borderRadius: '16px', cursor: 'default',
+                                        position: 'relative', overflow: 'hidden', 
+                                        padding: 'calc(16px * var(--display-zoom)) calc(20px * var(--display-zoom))',
+                                        backgroundImage: 'var(--glass-card)',
+                                        border: '1px solid var(--glass-border)',
+                                        borderRadius: 'calc(16px * var(--display-zoom))', cursor: 'default',
                                     }}>
-                                    <div style={{ display: 'flex', alignItems: 'flex-start', gap: '12px' }}>
-                                        <span style={{ fontSize: '1.3rem', flexShrink: 0 }}>{sug.icon}</span>
+                                    <div style={{ display: 'flex', alignItems: 'flex-start', gap: 'calc(12px * var(--display-zoom))' }}>
+                                        <span style={{ fontSize: 'calc(20px * var(--text-scale))', flexShrink: 0 }}>{sug.icon}</span>
                                         <div style={{ flex: 1, minWidth: 0 }}>
-                                            <div style={{ fontSize: '0.85rem', fontWeight: 600, color: t.colors.text.primary, marginBottom: '4px' }}>{sug.title}</div>
-                                            <div style={{ fontSize: '0.78rem', color: t.colors.text.muted, lineHeight: 1.4 }}>{sug.description}</div>
-                                            <div style={{ display: 'flex', gap: '8px', marginTop: '10px' }}>
+                                            <div style={{ fontSize: 'calc(13.5px * var(--text-scale))', fontWeight: 700, color: t.colors.text.primary, marginBottom: 'calc(4px * var(--display-zoom))' }}>{sug.title}</div>
+                                            <div style={{ fontSize: 'calc(12.5px * var(--text-scale))', color: t.colors.text.muted, lineHeight: 1.4, opacity: 0.8 }}>{sug.description}</div>
+                                            <div style={{ display: 'flex', gap: 'calc(8px * var(--display-zoom))', marginTop: 'calc(10px * var(--display-zoom))' }}>
                                                 <button onClick={() => { handleAcceptSuggestion(sug.preset); handleDismissSuggestion(sug.id); }}
                                                     style={{
-                                                        padding: '5px 14px', borderRadius: '8px', border: 'none', fontSize: '0.75rem',
-                                                        fontWeight: 600, background: '#FF6A00', color: '#fff', cursor: 'pointer',
-                                                    }}>Create Reminder</button>
+                                                        padding: 'calc(5px * var(--display-zoom)) calc(14px * var(--display-zoom))', 
+                                                        borderRadius: 'calc(8px * var(--display-zoom))', border: 'none', 
+                                                        fontSize: 'calc(12px * var(--text-scale))',
+                                                        fontWeight: 700, backgroundImage: 'linear-gradient(135deg, #FF6A00, #FF8A3D)', color: '#fff', cursor: 'pointer',
+                                                        boxShadow: '0 4px 10px rgba(255,106,0,0.2)'
+                                                    }}>Create</button>
                                                 <button onClick={() => handleDismissSuggestion(sug.id)}
                                                     style={{
-                                                        padding: '5px 12px', borderRadius: '8px', border: 'none', fontSize: '0.75rem',
-                                                        fontWeight: 500, background: subtleBg, color: t.colors.text.muted, cursor: 'pointer',
+                                                        padding: 'calc(5px * var(--display-zoom)) calc(12px * var(--display-zoom))', 
+                                                        borderRadius: 'calc(8px * var(--display-zoom))', border: 'none', 
+                                                        fontSize: 'calc(12px * var(--text-scale))',
+                                                        fontWeight: 600, background: 'rgba(0,0,0,0.05)', color: t.colors.text.muted, cursor: 'pointer',
                                                     }}>Dismiss</button>
                                             </div>
                                         </div>
@@ -420,26 +502,57 @@ export default function Reminders() {
                 )}
 
                 {/* ─── Category Tabs ──────────────────────────────────────────────── */}
-                <div style={{ display: 'flex', gap: '4px', marginBottom: '20px', borderBottom: isDark ? '1px solid rgba(255,255,255,0.06)' : '1px solid #e4e7ec', paddingBottom: '0' }}>
+                <div style={{ 
+                    display: 'flex', 
+                    gap: 'calc(8px * var(--display-zoom))', 
+                    marginBottom: 'calc(20px * var(--display-zoom))', 
+                    borderBottom: '1px solid var(--glass-border)', 
+                    padding: '0 calc(8px * var(--display-zoom))' 
+                }}>
                     {TABS.map((tab) => {
                         const isActive = activeTab === tab.id;
                         const count = (categories[tab.id] || []).length;
                         return (
                             <button key={tab.id} onClick={() => setActiveTab(tab.id)}
                                 style={{
-                                    padding: '10px 18px', border: 'none', background: 'transparent', cursor: 'pointer',
-                                    fontSize: '0.85rem', fontWeight: isActive ? 600 : 500,
+                                    padding: 'calc(12px * var(--display-zoom)) calc(20px * var(--display-zoom))', 
+                                    border: 'none', 
+                                    background: 'transparent', 
+                                    cursor: 'pointer',
+                                    fontSize: 'calc(14px * var(--text-scale))', 
+                                    fontWeight: isActive ? 800 : 500,
                                     color: isActive ? '#FF6A00' : t.colors.text.muted,
-                                    position: 'relative', borderBottom: isActive ? '2px solid #FF6A00' : '2px solid transparent',
-                                    transition: 'all 0.2s', marginBottom: '-1px',
+                                    position: 'relative',
+                                    transition: 'all 0.3s cubic-bezier(0.16, 1, 0.3, 1)',
+                                    marginBottom: '-1px',
                                 }}>
                                 {tab.label}
                                 {count > 0 && (
                                     <span style={{
-                                        marginLeft: '6px', padding: '1px 7px', borderRadius: '10px', fontSize: '0.7rem', fontWeight: 600,
-                                        background: isActive ? 'rgba(255,106,0,0.15)' : subtleBg,
+                                        marginLeft: 'calc(8px * var(--display-zoom))', 
+                                        padding: 'calc(2px * var(--display-zoom)) calc(8px * var(--display-zoom))', 
+                                        borderRadius: 'calc(10px * var(--display-zoom))', 
+                                        fontSize: 'calc(10px * var(--text-scale))', 
+                                        fontWeight: 800,
+                                        background: isActive ? 'rgba(255,106,0,0.15)' : 'rgba(0,0,0,0.05)',
                                         color: isActive ? '#FF6A00' : t.colors.text.muted,
+                                        transition: 'all 0.3s'
                                     }}>{count}</span>
+                                )}
+                                {isActive && (
+                                    <motion.div 
+                                        layoutId="activeTab"
+                                        style={{
+                                            position: 'absolute',
+                                            bottom: 0,
+                                            left: 'calc(15% * var(--display-zoom))',
+                                            right: 'calc(15% * var(--display-zoom))',
+                                            height: '3px',
+                                            backgroundImage: 'linear-gradient(90deg, #FF6A00, #FF8A3D)',
+                                            borderRadius: '3px 3px 0 0',
+                                            boxShadow: '0 -2px 10px rgba(255,106,0,0.4)'
+                                        }}
+                                    />
                                 )}
                             </button>
                         );
@@ -451,14 +564,14 @@ export default function Reminders() {
                     <AnimatePresence mode="popLayout">
                         {currentList.length === 0 ? (
                             <motion.div key="empty" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-                                style={{ textAlign: 'center', padding: '60px 20px' }}>
-                                <div className="empty-state-icon" style={{ fontSize: '3rem', marginBottom: '16px', opacity: 0.5 }}>
+                                style={{ textAlign: 'center', padding: 'calc(60px * var(--display-zoom)) calc(20px * var(--display-zoom))' }}>
+                                <div className="empty-state-icon" style={{ fontSize: 'calc(48px * var(--text-scale))', marginBottom: 'calc(16px * var(--display-zoom))', opacity: 0.3 }}>
                                     {activeTab === 'completed' ? '🎉' : '🔔'}
                                 </div>
-                                <div style={{ fontSize: '1rem', fontWeight: 600, color: t.colors.text.secondary, marginBottom: '6px' }}>
+                                <div style={{ fontSize: 'calc(16px * var(--text-scale))', fontWeight: 800, color: t.colors.text.secondary, marginBottom: 'calc(6px * var(--display-zoom))', opacity: 0.6 }}>
                                     {activeTab === 'completed' ? 'No completed reminders yet' : 'All clear!'}
                                 </div>
-                                <div style={{ fontSize: '0.82rem', color: t.colors.text.muted }}>
+                                <div style={{ fontSize: 'calc(13.5px * var(--text-scale))', color: t.colors.text.muted, opacity: 0.5 }}>
                                     {activeTab === 'completed' ? 'Complete reminders to see them here' : 'Use the quick add above to create a reminder'}
                                 </div>
                             </motion.div>
@@ -476,98 +589,143 @@ export default function Reminders() {
                                     animate={{ opacity: completing ? 0.4 : 1, y: 0, scale: completing ? 0.98 : 1 }}
                                     exit={{ opacity: 0, x: -20, scale: 0.95 }}
                                     transition={{ duration: 0.3, delay: idx * 0.03 }}
-                                    className={`${reminder.priority === 'high' && !isCompleted ? 'reminder-priority-high' : ''} ${completing ? 'reminder-completing' : ''} card-zoom`}
+                                    className={`glass-panel lift-3d ${completing ? 'reminder-completing' : ''}`}
                                     style={{
-                                        background: cardBg, border: cardBorder, borderRadius: '16px',
-                                        padding: '16px 20px', boxShadow: cardShadow,
-                                        borderLeft: `3px solid ${priority.color}`,
-                                        transition: 'transform 0.2s, box-shadow 0.2s',
-                                        cursor: 'default', position: 'relative',
+                                        borderRadius: 'calc(18px * var(--display-zoom))',
+                                        padding: 'calc(14px * var(--display-zoom)) calc(20px * var(--display-zoom))', 
+                                        border: '1px solid var(--glass-border)',
+                                        backgroundImage: 'var(--glass-card)',
+                                        backdropFilter: 'var(--glass-blur)',
+                                        marginBottom: 'calc(4px * var(--display-zoom))',
+                                        cursor: 'default', 
+                                        position: 'relative',
+                                        overflow: 'visible'
                                     }}
-                                    onMouseEnter={(e) => { e.currentTarget.style.transform = 'translateY(-2px)'; e.currentTarget.style.boxShadow = isDark ? '0 12px 30px rgba(0,0,0,0.45)' : '0 8px 24px rgba(16,24,40,0.1)'; }}
-                                    onMouseLeave={(e) => { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.boxShadow = cardShadow; }}
                                 >
-                                    <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: 'calc(16px * var(--display-zoom))', position: 'relative', zIndex: 1, width: '100%' }}>
                                         {/* Complete button */}
                                         {!isCompleted && (
                                             <button onClick={() => handleComplete(reminder.id)}
                                                 style={{
-                                                    width: '24px', height: '24px', borderRadius: '50%', flexShrink: 0,
-                                                    border: `2px solid ${priority.color}`, background: 'transparent',
-                                                    cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
-                                                    transition: 'all 0.2s', color: priority.color,
+                                                    width: 'calc(26px * var(--display-zoom))', 
+                                                    height: 'calc(26px * var(--display-zoom))', 
+                                                    borderRadius: '50%', 
+                                                    flexShrink: 0,
+                                                    border: `2px solid ${priority.color}`, 
+                                                    background: 'transparent',
+                                                    cursor: 'pointer', 
+                                                    display: 'flex', 
+                                                    alignItems: 'center', 
+                                                    justifyContent: 'center',
+                                                    transition: 'all 0.3s cubic-bezier(0.16, 1, 0.3, 1)', 
+                                                    color: priority.color,
                                                 }}
-                                                onMouseEnter={(e) => { e.currentTarget.style.background = priority.color; e.currentTarget.style.color = '#fff'; }}
-                                                onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = priority.color; }}
+                                                onMouseEnter={(e) => { e.currentTarget.style.background = priority.color; e.currentTarget.style.color = '#fff'; e.currentTarget.style.boxShadow = `0 0 15px ${priority.color}40`; }}
+                                                onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = priority.color; e.currentTarget.style.boxShadow = 'none'; }}
                                             >
-                                                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><path d="M20 6L9 17l-5-5" /></svg>
+                                                {Icons.check}
                                             </button>
                                         )}
                                         {isCompleted && (
                                             <div style={{
-                                                width: '24px', height: '24px', borderRadius: '50%', flexShrink: 0,
-                                                background: '#22c55e', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff',
+                                                width: 'calc(26px * var(--display-zoom))', 
+                                                height: 'calc(26px * var(--display-zoom))', 
+                                                borderRadius: '50%', 
+                                                flexShrink: 0,
+                                                background: '#22c55e', 
+                                                display: 'flex', 
+                                                alignItems: 'center', 
+                                                justifyContent: 'center', 
+                                                color: '#fff',
+                                                boxShadow: '0 4px 10px rgba(34,197,94,0.3)'
                                             }}>
                                                 {Icons.check}
                                             </div>
                                         )}
 
-                                        {/* Content */}
-                                        <div style={{ flex: 1, minWidth: 0 }}>
-                                            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
+                                        {/* Content - Simplified and Decluttered */}
+                                        <div style={{ flex: 1, minWidth: 0, display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 'calc(16px * var(--display-zoom))' }}>
+                                            <div style={{ display: 'flex', alignItems: 'center', gap: 'calc(12px * var(--display-zoom))', minWidth: 0 }}>
                                                 <span style={{
-                                                    fontSize: '0.9rem', fontWeight: 600, color: t.colors.text.primary,
+                                                    fontSize: 'calc(15px * var(--text-scale))', 
+                                                    fontWeight: 700, 
+                                                    color: t.colors.text.primary,
                                                     textDecoration: isCompleted ? 'line-through' : 'none',
                                                     opacity: isCompleted ? 0.5 : 1,
+                                                    letterSpacing: '-0.01em',
+                                                    whiteSpace: 'nowrap',
+                                                    overflow: 'hidden',
+                                                    textOverflow: 'ellipsis'
                                                 }}>{reminder.title}</span>
+                                                
                                                 {overdue && !isCompleted && (
                                                     <span className="reminder-overdue-badge" style={{
-                                                        padding: '2px 8px', borderRadius: '6px', fontSize: '0.65rem', fontWeight: 600,
-                                                        background: 'rgba(248,113,113,0.15)', color: '#f87171',
+                                                        padding: 'calc(2px * var(--display-zoom)) calc(8px * var(--display-zoom))', 
+                                                        borderRadius: 'calc(6px * var(--display-zoom))', 
+                                                        fontSize: 'calc(10px * var(--text-scale))', 
+                                                        fontWeight: 800,
+                                                        textTransform: 'uppercase',
+                                                        background: 'rgba(248,113,113,0.15)', 
+                                                        color: '#f87171',
+                                                        letterSpacing: '0.02em',
+                                                        flexShrink: 0
                                                     }}>Overdue</span>
                                                 )}
-                                                {reminder.repeatType !== 'once' && (
-                                                    <span style={{ color: t.colors.text.muted, display: 'flex', alignItems: 'center' }}>{Icons.repeat}</span>
-                                                )}
                                             </div>
-                                            <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
-                                                <span style={{ fontSize: '0.78rem', color: t.colors.text.muted, display: 'flex', alignItems: 'center', gap: '4px' }}>
+
+                                            <div style={{ display: 'flex', alignItems: 'center', gap: 'calc(16px * var(--display-zoom))', flexShrink: 0 }}>
+                                                <span style={{ 
+                                                    fontSize: 'calc(13px * var(--text-scale))', 
+                                                    color: t.colors.text.muted, 
+                                                    display: 'flex', 
+                                                    alignItems: 'center', 
+                                                    gap: 'calc(6px * var(--display-zoom))', 
+                                                    opacity: 0.8,
+                                                    fontWeight: 500
+                                                }}>
                                                     {Icons.clock} {formatSmartTime(reminder.date, reminder.time, reminder.repeatType)}
                                                 </span>
                                                 <span style={{
-                                                    padding: '2px 8px', borderRadius: '6px', fontSize: '0.68rem', fontWeight: 600,
+                                                    padding: 'calc(4px * var(--display-zoom)) calc(12px * var(--display-zoom))', 
+                                                    borderRadius: 'calc(10px * var(--display-zoom))', 
+                                                    fontSize: 'calc(11px * var(--text-scale))', 
+                                                    fontWeight: 700,
                                                     background: isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.04)',
                                                     color: category.color,
+                                                    display: 'flex',
+                                                    alignItems: 'center',
+                                                    gap: 'calc(4px * var(--display-zoom))',
+                                                    border: `1px solid ${category.color}20`
                                                 }}>{category.icon} {category.label}</span>
-                                                {reminder.description && (
-                                                    <span style={{ fontSize: '0.75rem', color: t.colors.text.muted, opacity: 0.7 }}>
-                                                        — {reminder.description.substring(0, 50)}{reminder.description.length > 50 ? '...' : ''}
-                                                    </span>
+                                                
+                                                {reminder.repeatType !== 'once' && (
+                                                    <span style={{ color: t.colors.text.muted, display: 'flex', alignItems: 'center', opacity: 0.5 }}>{Icons.repeat}</span>
                                                 )}
                                             </div>
                                         </div>
 
                                         {/* Actions */}
                                         {!isCompleted && (
-                                            <div style={{ display: 'flex', gap: '2px', alignItems: 'center', position: 'relative' }}>
+                                            <div style={{ display: 'flex', gap: 'calc(4px * var(--display-zoom))', alignItems: 'center', position: 'relative' }}>
                                                 <ActionBtn icon={Icons.edit} label="Edit" onClick={() => { setEditingReminder(reminder); setShowModal(true); }} />
                                                 <div style={{ position: 'relative' }}>
                                                     <ActionBtn icon={Icons.clock} label="Snooze" onClick={() => setSnoozeMenuId(snoozeMenuId === reminder.id ? null : reminder.id)} color="#f59e0b" />
                                                     {snoozeMenuId === reminder.id && (
-                                                        <div className="snooze-menu" style={{
+                                                        <div className="snooze-menu glass-panel" style={{
                                                             position: 'absolute', top: '100%', right: 0, zIndex: 50,
-                                                            background: cardBg, border: cardBorder, borderRadius: '12px',
-                                                            padding: '6px', boxShadow: '0 12px 32px rgba(0,0,0,0.3)', minWidth: '140px',
+                                                            backgroundImage: 'var(--glass-card)', border: '1px solid var(--glass-border)', borderRadius: 'calc(12px * var(--display-zoom))',
+                                                            padding: 'calc(6px * var(--display-zoom))', boxShadow: '0 12px 32px rgba(0,0,0,0.3)', minWidth: 'calc(150px * var(--display-zoom))',
+                                                            backdropFilter: 'var(--glass-blur)'
                                                         }}>
                                                             {SNOOZE_OPTIONS.map((opt) => (
                                                                 <button key={opt.minutes} onClick={() => handleSnooze(reminder.id, opt.minutes)}
                                                                     style={{
-                                                                        display: 'block', width: '100%', padding: '8px 12px', borderRadius: '8px',
+                                                                        display: 'block', width: '100%', padding: 'calc(10px * var(--display-zoom)) calc(14px * var(--display-zoom))', borderRadius: 'calc(8px * var(--display-zoom))',
                                                                         border: 'none', background: 'transparent', color: t.colors.text.primary,
-                                                                        fontSize: '0.8rem', cursor: 'pointer', textAlign: 'left',
-                                                                        transition: 'background 0.15s',
+                                                                        fontSize: 'calc(13px * var(--text-scale))', cursor: 'pointer', textAlign: 'left',
+                                                                        transition: 'background 0.2s',
                                                                     }}
-                                                                    onMouseEnter={(e) => e.currentTarget.style.background = hoverBg}
+                                                                    onMouseEnter={(e) => e.currentTarget.style.background = 'rgba(255,255,255,0.08)'}
                                                                     onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}
                                                                 >{opt.label}</button>
                                                             ))}
@@ -592,21 +750,32 @@ export default function Reminders() {
             </div>
 
             {/* ─── Toast Notifications ──────────────────────────────────────────── */}
-            <div style={{ position: 'fixed', bottom: '24px', right: '24px', zIndex: 9999, display: 'flex', flexDirection: 'column', gap: '8px' }}>
+            <div style={{ position: 'fixed', bottom: 'calc(24px * var(--display-zoom))', right: 'calc(24px * var(--display-zoom))', zIndex: 9999, display: 'flex', flexDirection: 'column', gap: 'calc(8px * var(--display-zoom))' }}>
                 <AnimatePresence>
                     {toasts.map((toast) => (
                         <motion.div key={toast.id}
                             initial={{ opacity: 0, x: 80, scale: 0.9 }}
                             animate={{ opacity: 1, x: 0, scale: 1 }}
                             exit={{ opacity: 0, x: 80, scale: 0.9 }}
+                            className="glass-panel lift-3d"
                             transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
                             style={{
-                                background: isDark ? '#1B1D22' : '#fff', border: cardBorder, borderRadius: '14px',
-                                padding: '12px 18px', boxShadow: '0 12px 32px rgba(0,0,0,0.25)',
-                                borderLeft: '3px solid #FF6A00', minWidth: '260px', maxWidth: '340px',
+                                backgroundImage: 'var(--glass-card)', 
+                                border: '1px solid var(--glass-border)', 
+                                borderRadius: 'calc(14px * var(--display-zoom))',
+                                padding: 'calc(12px * var(--display-zoom)) calc(18px * var(--display-zoom))', 
+                                boxShadow: '0 12px 32px rgba(0,0,0,0.25)',
+                                backdropFilter: 'var(--glass-blur)',
+                                borderLeft: '4px solid #FF6A00', 
+                                minWidth: 'calc(260px * var(--display-zoom))', 
+                                maxWidth: 'calc(340px * var(--display-zoom))',
+                                position: 'relative',
+                                overflow: 'hidden'
                             }}>
-                            <div style={{ fontSize: '0.85rem', fontWeight: 600, color: t.colors.text.primary }}>{toast.title}</div>
-                            {toast.message && <div style={{ fontSize: '0.78rem', color: t.colors.text.muted, marginTop: '2px' }}>{toast.message}</div>}
+                            <div style={{ position: 'relative', zIndex: 1 }}>
+                                <div style={{ fontSize: 'calc(14px * var(--text-scale))', fontWeight: 800, color: t.colors.text.primary, letterSpacing: '-0.01em' }}>{toast.title}</div>
+                                {toast.message && <div style={{ fontSize: 'calc(12.5px * var(--text-scale))', color: t.colors.text.muted, marginTop: '2px', opacity: 0.8 }}>{toast.message}</div>}
+                            </div>
                         </motion.div>
                     ))}
                 </AnimatePresence>
@@ -641,14 +810,25 @@ function ReminderModal({ isDark, theme: t, cardBg, cardBorder, subtleBg, reminde
     const update = (key, val) => setForm((prev) => ({ ...prev, [key]: val }));
 
     const inputStyle = {
-        width: '100%', padding: '10px 14px', borderRadius: '12px',
-        border: isDark ? '1px solid rgba(255,255,255,0.08)' : '1px solid #e4e7ec',
-        background: isDark ? 'rgba(255,255,255,0.04)' : '#f8fafc',
-        color: t.colors.text.primary, fontSize: '0.88rem', outline: 'none',
-        transition: 'border 0.2s',
+        width: '100%', 
+        padding: 'calc(10px * var(--display-zoom)) calc(14px * var(--display-zoom))', 
+        borderRadius: 'calc(12px * var(--display-zoom))',
+        border: '1px solid var(--glass-border)',
+        background: 'rgba(0,0,0,0.05)',
+        color: t.colors.text.primary, 
+        fontSize: 'calc(14px * var(--text-scale))', 
+        outline: 'none',
+        transition: 'all 0.2s',
     };
 
-    const labelStyle = { fontSize: '0.78rem', fontWeight: 600, color: t.colors.text.secondary, marginBottom: '6px', display: 'block' };
+    const labelStyle = { 
+        fontSize: 'calc(12.5px * var(--text-scale))', 
+        fontWeight: 700, 
+        color: t.colors.text.secondary, 
+        marginBottom: 'calc(6px * var(--display-zoom))', 
+        display: 'block',
+        opacity: 0.9
+    };
 
     return (
         <>
@@ -656,22 +836,28 @@ function ReminderModal({ isDark, theme: t, cardBg, cardBorder, subtleBg, reminde
                 onClick={onClose}
                 style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', backdropFilter: 'blur(4px)', zIndex: 1000 }} />
             <motion.div
-                initial={{ opacity: 0, scale: 0.92, y: 20 }}
-                animate={{ opacity: 1, scale: 1, y: 0 }}
-                exit={{ opacity: 0, scale: 0.92, y: 20 }}
-                transition={{ duration: 0.25, ease: [0.16, 1, 0.3, 1] }}
+                initial={{ opacity: 0, scale: 0.92, rotateX: 10, x: "-50%", y: "-50%" }}
+                animate={{ opacity: 1, scale: 1, rotateX: 0, x: "-50%", y: "-50%" }}
+                exit={{ opacity: 0, scale: 0.92, rotateX: 10, x: "-50%", y: "-50%" }}
+                className="glass-panel"
                 style={{
-                    position: 'fixed', top: '50%', left: '50%', transform: 'translate(-50%, -50%)',
-                    zIndex: 1001, width: '90%', maxWidth: '520px', maxHeight: '85vh', overflowY: 'auto',
-                    background: cardBg, border: cardBorder, borderRadius: '20px',
-                    padding: '28px', boxShadow: '0 24px 48px rgba(0,0,0,0.3)',
+                    position: 'fixed', top: '50%', left: '50%',
+                    zIndex: 1001, width: '90%', maxWidth: 'calc(540px * var(--display-zoom))', 
+                    maxHeight: '85vh', overflowY: 'auto',
+                    backgroundImage: 'var(--glass-card)', 
+                    border: '1px solid var(--glass-border)', 
+                    borderRadius: 'calc(24px * var(--display-zoom))',
+                    padding: 'calc(32px * var(--display-zoom))', 
+                    boxShadow: '0 32px 64px rgba(0,0,0,0.4)',
+                    backdropFilter: 'var(--glass-blur)',
+                    perspective: '1200px'
                 }}>
                 {/* Header */}
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '24px' }}>
-                    <h2 style={{ fontSize: '1.15rem', fontWeight: 700, color: t.colors.text.primary, margin: 0 }}>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 'calc(28px * var(--display-zoom))' }}>
+                    <h2 style={{ fontSize: 'calc(20px * var(--text-scale))', fontWeight: 800, color: t.colors.text.primary, margin: 0, letterSpacing: '-0.01em' }}>
                         {isEditing ? 'Edit Reminder' : 'New Reminder'}
                     </h2>
-                    <button onClick={onClose} style={{ background: 'none', border: 'none', cursor: 'pointer', color: t.colors.text.muted, padding: '4px' }}>{Icons.x}</button>
+                    <button onClick={onClose} style={{ background: 'none', border: 'none', cursor: 'pointer', color: t.colors.text.muted, padding: 'calc(4px * var(--display-zoom))' }}>{Icons.x}</button>
                 </div>
 
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '18px' }}>
@@ -749,23 +935,28 @@ function ReminderModal({ isDark, theme: t, cardBg, cardBorder, subtleBg, reminde
                     </div>
                 </div>
 
-                {/* Footer */}
-                <div style={{ display: 'flex', gap: '12px', justifyContent: 'flex-end', marginTop: '28px' }}>
+                <div style={{ display: 'flex', gap: 'calc(12px * var(--display-zoom))', justifyContent: 'flex-end', marginTop: 'calc(28px * var(--display-zoom))' }}>
                     <button onClick={onClose}
                         style={{
-                            padding: '10px 20px', borderRadius: '12px', border: cardBorder, background: 'transparent',
-                            color: t.colors.text.secondary, fontWeight: 500, fontSize: '0.85rem', cursor: 'pointer',
+                            padding: 'calc(10px * var(--display-zoom)) calc(20px * var(--display-zoom))', 
+                            borderRadius: 'calc(12px * var(--display-zoom))', 
+                            border: '1px solid var(--glass-border)', 
+                            background: 'transparent',
+                            color: t.colors.text.secondary, fontWeight: 600, fontSize: 'calc(14px * var(--text-scale))', cursor: 'pointer',
                         }}>Cancel</button>
                     <motion.button whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }}
                         onClick={() => { if (form.title.trim()) onSave(form); }}
                         disabled={!form.title.trim()}
                         style={{
-                            padding: '10px 24px', borderRadius: '12px', border: 'none',
-                            background: form.title.trim() ? 'linear-gradient(135deg, #FF6A00, #FF8A3D)' : subtleBg,
+                            padding: 'calc(10px * var(--display-zoom)) calc(24px * var(--display-zoom))', 
+                            borderRadius: 'calc(12px * var(--display-zoom))', 
+                            border: 'none',
+                            backgroundImage: form.title.trim() ? 'linear-gradient(135deg, #FF6A00, #FF8A3D)' : 'none',
+                            backgroundColor: form.title.trim() ? 'transparent' : 'rgba(0,0,0,0.1)',
                             color: form.title.trim() ? '#fff' : t.colors.text.muted,
-                            fontWeight: 600, fontSize: '0.85rem', cursor: form.title.trim() ? 'pointer' : 'not-allowed',
-                            boxShadow: form.title.trim() ? '0 4px 12px rgba(255,106,0,0.3)' : 'none',
-                        }}>{isEditing ? 'Save Changes' : 'Create Reminder'}</motion.button>
+                            fontWeight: 700, fontSize: 'calc(14px * var(--text-scale))', cursor: form.title.trim() ? 'pointer' : 'not-allowed',
+                            boxShadow: form.title.trim() ? '0 8px 16px rgba(255,106,0,0.2)' : 'none',
+                        }}>{isEditing ? 'Save Changes' : 'Create'}</motion.button>
                 </div>
             </motion.div>
         </>

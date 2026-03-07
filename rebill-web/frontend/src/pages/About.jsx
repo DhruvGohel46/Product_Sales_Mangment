@@ -21,7 +21,7 @@ const AboutPage = () => {
                     transition={{ delay: 0.1 }}
                     className="text-xl text-muted-foreground max-w-3xl mx-auto"
                 >
-                    ReBill started with a simple mission: to empower small businesses with the same powerful tools used by retail giants.
+                    InfoBill started with a simple mission: to empower small businesses with the same powerful tools used by retail giants.
                 </motion.p>
             </div>
 

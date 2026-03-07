@@ -56,7 +56,7 @@ const RegisterPage = () => {
                         Start managing your shop like a <span className="text-primary">pro</span>.
                     </h1>
                     <p className="text-lg text-muted-foreground">
-                        Join thousands of business owners who rely on ReBill for inventory tracking, invoicing, and real-time analytics.
+                        Join thousands of business owners who rely on InfoBill for inventory tracking, invoicing, and real-time analytics.
                     </p>
 
                     <div className="space-y-4">

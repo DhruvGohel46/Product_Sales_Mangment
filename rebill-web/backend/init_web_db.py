@@ -4,7 +4,7 @@ import os
 
 def create_database():
     # Default params matching config.py
-    dbname = "rebill_web_db"
+    dbname = "infobill_web_db"
     user = "postgres"
     password = "dharmik"
     host = "localhost"

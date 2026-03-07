@@ -87,6 +87,7 @@ export const ThemeProvider = ({ children }) => {
     root.style.setProperty('--accent', themeObject.colors.primary[500]);
 
     // Border Radius
+    root.style.setProperty('--radius-sharp', themeObject.borderRadius.sharp);
     root.style.setProperty('--radius-sm', themeObject.borderRadius.sm);
     root.style.setProperty('--radius-base', themeObject.borderRadius.base);
     root.style.setProperty('--radius-md', themeObject.borderRadius.md);
@@ -103,6 +104,13 @@ export const ThemeProvider = ({ children }) => {
     // Shadow tokens
     root.style.setProperty('--shadow-card', themeObject.shadows.card);
     root.style.setProperty('--shadow-card-hover', themeObject.shadows.cardHover);
+    
+    // 3D Elevation
+    if (themeObject.elevation) {
+      root.style.setProperty('--elevation-low', themeObject.elevation.low);
+      root.style.setProperty('--elevation-mid', themeObject.elevation.mid);
+      root.style.setProperty('--elevation-high', themeObject.elevation.high);
+    }
 
     // Glow tokens
     root.style.setProperty('--glow-primary', themeObject.shadows.glow?.primary || 'none');
@@ -117,6 +125,7 @@ export const ThemeProvider = ({ children }) => {
       root.style.setProperty('--glass-dropdown', themeObject.glass.dropdown);
       root.style.setProperty('--glass-header', themeObject.glass.header);
       root.style.setProperty('--glass-border', themeObject.glass.border);
+      root.style.setProperty('--glass-specular', themeObject.glass.specular);
       root.style.setProperty('--glass-blur', themeObject.glass.blur);
     }
 

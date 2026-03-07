@@ -1,5 +1,5 @@
 {
-  "name": "product-sales-management",
+  "name": "infobill",
   "version": "1.0.0",
   "main": "electron/main.js",
   "scripts": {
@@ -26,8 +26,8 @@
     "wait-on": "^7.2.0"
   },
   "build": {
-    "appId": "com.burgerbhau.product-sales-management",
-    "productName": "Product Sales Management",
+    "appId": "com.burgerbhau.infobill",
+    "productName": "InfoBill",
     "directories": {
       "output": "dist",
       "buildResources": "build"
@@ -60,7 +60,7 @@
       "allowElevation": true,
       "createDesktopShortcut": true,
       "createStartMenuShortcut": true,
-      "shortcutName": "Product Sales Management"
+      "shortcutName": "InfoBill"
     }
   }
 }

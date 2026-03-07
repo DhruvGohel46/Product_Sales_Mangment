@@ -334,7 +334,12 @@ const ProductManagement = () => {
     <div className="pmSectionContent" ref={topRef}>
 
       {/* Controls */}
-      <Card className="pmPanel pmPanelTight" padding="calc(20px * var(--display-zoom))">
+      {/* Controls Container */}
+      <Card 
+        className="pmPanel pmPanelTight" 
+        padding="calc(20px * var(--display-zoom))"
+        style={{ marginBottom: 'calc(var(--spacing-6) * var(--display-zoom))', overflow: 'visible' }}
+      >
         <div className="pmControls">
           <div className="pmField">
             <div className="pmLabel">Search</div>
@@ -354,6 +359,7 @@ const ProductManagement = () => {
               onChange={(val) => setCategoryFilter(val)}
               placeholder="Filter Category"
               className="pmDropdown"
+              direction="top"
             />
           </div>
 
@@ -414,6 +420,7 @@ const ProductManagement = () => {
                     onChange={(val) => handleInputChange('category_id', val)}
                     placeholder="Select Category"
                     className="pmDropdown"
+                    direction="top"
                   />
                 </div>
               </div>
@@ -522,11 +529,11 @@ const ProductManagement = () => {
             style={{
               position: 'fixed',
               inset: 0,
-              zIndex: 2000,
+              zIndex: 1100,
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              backgroundColor: 'rgba(0,0,0,0.6)',
+              backgroundColor: 'rgba(22, 26, 32, 0.8)',
               backdropFilter: 'blur(12px)',
               WebkitBackdropFilter: 'blur(12px)'
             }}
@@ -544,7 +551,7 @@ const ProductManagement = () => {
                 maxWidth: '460px',
                 padding: 'var(--spacing-8)',
                 borderRadius: '20px',
-                background: 'rgba(22, 26, 32, 0.8)',
+                backgroundColor: 'rgba(22, 26, 32, 0.8)',
                 backdropFilter: 'blur(14px)',
                 WebkitBackdropFilter: 'blur(14px)',
                 border: '1px solid rgba(239, 68, 68, 0.2)',
@@ -562,7 +569,7 @@ const ProductManagement = () => {
                   width: 'calc(48px * var(--display-zoom))',
                   height: 'calc(48px * var(--display-zoom))',
                   borderRadius: 'calc(14px * var(--display-zoom))',
-                  background: 'rgba(239, 68, 68, 0.12)',
+                  backgroundColor: 'rgba(239, 68, 68, 0.12)',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
@@ -650,7 +657,7 @@ const ProductManagement = () => {
                       fontSize: 'var(--text-base)',
                       borderRadius: 'var(--radius-lg)',
                       border: error && error.includes('Password') ? '1px solid var(--error-500)' : '1px solid var(--glass-border)',
-                      background: 'var(--glass-card)',
+                      backgroundImage: 'var(--glass-card)',
                       color: 'var(--text-primary)',
                       transition: 'all var(--transition-normal) var(--ease-out)',
                       outline: 'none'
@@ -684,7 +691,7 @@ const ProductManagement = () => {
                     fontSize: 'var(--text-sm)',
                     fontWeight: 'var(--font-medium)',
                     borderRadius: 'var(--radius-lg)',
-                    background: 'var(--glass-card)',
+                    backgroundImage: 'var(--glass-card)',
                     color: 'var(--text-secondary)',
                     border: '1px solid var(--glass-border)',
                     cursor: 'pointer',

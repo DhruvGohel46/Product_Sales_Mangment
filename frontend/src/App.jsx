@@ -360,7 +360,7 @@ function AppContent() {
               onMouseEnter={(e) => e.currentTarget.style.opacity = '0.85'}
               onMouseLeave={(e) => e.currentTarget.style.opacity = '1'}
             >
-              ReBill
+              InfoBill
               <span style={{
                 fontSize: 'var(--text-sm)',
                 fontWeight: 'var(--font-normal)',
@@ -386,7 +386,7 @@ function AppContent() {
               className="rounded-pill"
               style={{
                 padding: 'var(--spacing-2) var(--spacing-3)',
-                backgroundColor: 'var(--glass-card)',
+                backgroundImage: 'var(--glass-card)',
                 border: '1px solid var(--glass-border)',
                 fontSize: 'var(--text-sm)',
                 fontWeight: 'var(--font-medium)',
@@ -396,8 +396,8 @@ function AppContent() {
                 backdropFilter: 'var(--glass-blur)',
                 WebkitBackdropFilter: 'var(--glass-blur)',
               }}
-              onMouseEnter={(e) => e.currentTarget.style.background = 'var(--glass-header)'}
-              onMouseLeave={(e) => e.currentTarget.style.background = 'var(--glass-card)'}
+              onMouseEnter={(e) => e.currentTarget.style.backgroundImage = 'var(--glass-header)'}
+              onMouseLeave={(e) => e.currentTarget.style.backgroundImage = 'var(--glass-card)'}
             >
               {todayLabel}
             </div>
@@ -415,7 +415,7 @@ function AppContent() {
                 height: '40px',
                 padding: 0,
                 border: 'none',
-                backgroundColor: 'var(--glass-card)',
+                backgroundImage: 'var(--glass-card)',
                 color: 'var(--text-primary)',
                 display: 'flex',
                 alignItems: 'center',

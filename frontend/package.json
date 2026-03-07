@@ -1,7 +1,7 @@
 {
-  "name": "rebill-frontend",
+  "name": "infobill-frontend",
   "version": "1.0.0",
-  "description": "ReBill - Modern POS & Billing System",
+  "description": "InfoBill - Modern POS & Billing System",
   "homepage": "./",
   "private": true,
   "dependencies": {

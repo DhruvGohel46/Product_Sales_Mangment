@@ -23,7 +23,7 @@
   padding: calc(20px * var(--display-zoom));
   border: 1px solid var(--glass-border);
   border-radius: calc(20px * var(--display-zoom));
-  background: var(--glass-header);
+  background: transparent;
   backdrop-filter: var(--glass-blur);
   -webkit-backdrop-filter: var(--glass-blur);
   margin: 0px;
@@ -124,6 +124,7 @@
   grid-template-columns: 1.4fr 0.8fr 0.8fr auto;
   gap: calc(12px * var(--display-zoom));
   align-items: end;
+  overflow-y:visible;
 }
 
 .pmField {
@@ -131,6 +132,7 @@
   flex-direction: column;
   gap: calc(6px * var(--display-zoom));
   min-width: 0;
+  overflow-y:visible;
 }
 
 .pmLabel {

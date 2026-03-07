@@ -156,8 +156,14 @@ const WorkerProfile = () => {
 
     return (
         <PageContainer>
-            {/* Top Navigation */}
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
+            {/* Top Navigation Row */}
+            <div style={{ 
+                display: 'flex', 
+                justifyContent: 'space-between', 
+                alignItems: 'center', 
+                marginBottom: 'calc(24px * var(--display-zoom))',
+                padding: '0 4px' 
+            }}>
                 <Button
                     onClick={() => navigate('/workers')}
                     variant="ghost"
@@ -200,7 +206,7 @@ const WorkerProfile = () => {
                     <div style={{
                         position: 'absolute',
                         inset: 0,
-                        background: 'linear-gradient(145deg, transparent, rgba(0,0,0,0.2))',
+                        backgroundImage: 'linear-gradient(145deg, transparent, rgba(0,0,0,0.2))',
                         pointerEvents: 'none'
                     }} />
                 </div>

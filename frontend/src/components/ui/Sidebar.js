@@ -13,7 +13,7 @@ const Sidebar = ({
     const { settings } = useSettings();
     const location = useLocation();
     const navigate = useNavigate();
-    const restaurantName = settings?.shop_name || 'ReBill POS';
+    const restaurantName = settings?.shop_name || 'InfoBill POS';
 
     // Generate acronym
     const getAcronym = (name) => {
@@ -55,15 +55,14 @@ const Sidebar = ({
             className="glass-sidebar"
             style={{
                 height: '100%',
-                backgroundImage: 'radial-gradient(circle at 0% 50%, rgba(249,115,22,0.05), transparent 60%)',
                 display: 'flex',
                 flexDirection: 'column',
                 zIndex: 50,
                 flexShrink: 0,
                 userSelect: 'none',
                 position: 'relative',
-                borderRadius: '0 var(--radius-sidebar) var(--radius-sidebar) 0',
-                margin: 'var(--spacing-2) 0',
+                borderRadius: 'var(--radius-sharp)',
+                margin: '0',
             }}
         >
             {/* Header / Logo Area */}
@@ -141,7 +140,7 @@ const Sidebar = ({
                             }}
                             whileHover={!isActive ? {
                                 x: 3,
-                                backgroundColor: 'var(--glass-card)',
+                                backgroundImage: 'var(--glass-card)',
                                 color: 'var(--text-primary)',
                                 transition: { duration: 0.16 }
                             } : {
@@ -216,7 +215,7 @@ const Sidebar = ({
                 <motion.button
                     onClick={toggleCollapse}
                     whileHover={{
-                        backgroundColor: 'var(--glass-card)',
+                        backgroundImage: 'var(--glass-card)',
                         scale: 1.05
                     }}
                     whileTap={{ scale: 0.92 }}

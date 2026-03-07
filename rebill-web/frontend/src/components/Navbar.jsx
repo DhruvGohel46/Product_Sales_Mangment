@@ -48,7 +48,7 @@ const Navbar = () => {
                             <Rocket className="h-5 w-5" />
                         </div>
                         <span className="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-foreground to-foreground/70">
-                            ReBill
+                            InfoBill
                         </span>
                     </Link>
 

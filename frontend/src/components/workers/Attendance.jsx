@@ -77,7 +77,7 @@ const Attendance = () => {
                     variant="primary"
                     onClick={markAllPresent}
                     style={{
-                        background: 'linear-gradient(135deg, #10B981 0%, #059669 100%)', // Green for positive action
+                        backgroundImage: 'linear-gradient(135deg, #10B981 0%, #059669 100%)', // Green for positive action
                         border: 'none',
                         padding: '12px 24px',
                         fontSize: '1rem',

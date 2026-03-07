@@ -271,14 +271,15 @@ export const spacing = {
 
 // Border radius
 export const borderRadius = {
+  sharp: '0',
   none: '0',
-  sm: '4px',
-  base: '6px',
-  md: '8px',
-  lg: '12px',
-  xl: '16px', // Standard ReBill Card
-  '2xl': '24px',
-  '3xl': '32px',
+  sm: '8px',
+  base: '12px',
+  md: '16px',
+  lg: '24px',
+  xl: '32px', // Standard InfoBill Card
+  '2xl': '48px',
+  '3xl': '64px',
   full: '9999px',
 };
 
@@ -328,6 +329,14 @@ export const shadows = {
     primary: '0 0 0 2px rgba(255, 106, 0, 0.35)',
     success: '0 0 0 2px rgba(34, 197, 94, 0.35)',
     error: '0 0 0 2px rgba(239, 68, 68, 0.35)',
+  },
+
+  // 3D Elevation Scale (Ambient + Direct)
+  elevation: {
+    low: '0 2px 4px rgba(0,0,0,0.05), 0 1px 2px rgba(0,0,0,0.1)',
+    mid: '0 10px 20px rgba(0,0,0,0.08), 0 6px 6px rgba(0,0,0,0.1)',
+    high: '0 20px 40px rgba(0,0,0,0.12), 0 15px 12px rgba(0,0,0,0.15)',
+    inner: 'inset 0 2px 4px rgba(0,0,0,0.06)',
   }
 };
 
@@ -343,23 +352,25 @@ export const breakpoints = {
 // Glassmorphism tokens
 const glass = {
   light: {
-    sidebar: 'rgba(255, 255, 255, 0.7)',
-    card: 'rgba(255, 255, 255, 0.75)',
-    modal: 'rgba(255, 255, 255, 0.85)',
-    input: 'rgba(255, 255, 255, 0.9)',
-    dropdown: 'rgba(255, 255, 255, 0.95)',
-    header: 'rgba(255, 255, 255, 0.7)',
-    border: '#E3E6EA',
+    sidebar: 'transparent',
+    card: 'linear-gradient(135deg, rgba(255, 255, 255, 0.25), rgba(255, 255, 255, 0.05))',
+    modal: 'linear-gradient(135deg, rgba(255, 255, 255, 0.4), rgba(255, 255, 255, 0.1))',
+    input: 'rgba(255, 255, 255, 0.1)',
+    dropdown: 'rgba(255, 255, 255, 0.9)',
+    header: 'transparent',
+    border: 'rgba(255, 255, 255, 0.3)',
+    specular: 'rgba(255, 255, 255, 0.5)', // For top-left highlights
     blur: 'blur(20px)',
   },
   dark: {
-    sidebar: 'rgba(21, 22, 26, 0.7)',
-    card: 'rgba(27, 29, 34, 0.75)',
-    modal: 'rgba(27, 29, 34, 0.9)',
-    input: 'rgba(35, 38, 45, 0.9)',
-    dropdown: 'rgba(35, 38, 45, 0.95)',
-    header: 'rgba(21, 22, 26, 0.7)',
-    border: '#2C2F36',
+    sidebar: 'transparent',
+    card: 'linear-gradient(135deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.02))',
+    modal: 'linear-gradient(135deg, rgba(255, 255, 255, 0.15), rgba(255, 255, 255, 0.05))',
+    input: 'rgba(255, 255, 255, 0.05)',
+    dropdown: 'rgba(23, 23, 23, 0.85)',
+    header: 'transparent',
+    border: 'rgba(255, 255, 255, 0.2)',
+    specular: 'rgba(255, 255, 255, 0.3)', // For top-left highlights
     blur: 'blur(20px)',
   }
 };

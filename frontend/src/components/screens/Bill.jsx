@@ -343,7 +343,7 @@ const WorkingPOSInterface = ({ onBillCreated }) => {
 
   return (
     <div style={mainContainerStyle}>
-      <div style={leftSidebarStyle}>
+      <div className="glass-sidebar" style={leftSidebarStyle}>
         <div style={{
           padding: 'var(--spacing-5)',
           borderBottom: '1px solid var(--glass-border)',
@@ -378,13 +378,13 @@ const WorkingPOSInterface = ({ onBillCreated }) => {
                   key={category.id}
                   onClick={() => setSelectedCategory(category.id)}
                   whileHover={!isActive ? { 
-                    backgroundColor: 'var(--glass-card)',
-                    transform: 'translateX(4px)'
-                  } : {
+                     backgroundImage: 'var(--glass-card)',
+                     transform: 'translateX(4px)'
+                   } : {
                     transform: 'translateX(2px)'
                   }}
                   whileTap={{ scale: 0.98 }}
-                  className="rounded-lg liquid-glass-card"
+                  className="rounded-lg glass-card"
                   style={{
                     position: 'relative',
                     width: '100%',
@@ -421,23 +421,24 @@ const WorkingPOSInterface = ({ onBillCreated }) => {
                   <div style={{
                     width: 'calc(28px * var(--display-zoom))', // Reduced from 32px
                     height: 'calc(28px * var(--display-zoom))', // Reduced from 32px
-                    borderRadius: 'var(--radius-md)',
-                    backgroundColor: isActive ? 'var(--text-inverse)' : 'var(--glass-card)',
-                    display: 'flex',
+                     borderRadius: 'var(--radius-md)',
+                      backgroundColor: isActive ? 'rgba(255,255,255,0.2)' : 'transparent',
+                      backgroundImage: isActive ? 'none' : 'var(--glass-card)',
+                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
-                    color: isActive ? 'var(--primary-500)' : 'var(--text-secondary)',
+                    color: isActive ? 'var(--text-inverse)' : 'var(--text-secondary)',
                     fontSize: 'calc(11px * var(--text-scale))', // Slightly smaller
                     fontWeight: 'var(--font-semibold)',
                     transition: 'all var(--transition-normal) var(--ease-out)',
-                    border: isActive ? '2px solid var(--text-inverse)' : '1px solid var(--glass-border)',
+                    border: isActive ? '1px solid rgba(255,255,255,0.3)' : '1px solid var(--glass-border)',
                     boxShadow: isActive ? 'none' : 'var(--shadow-button)',
                   }}>
                     {category.name.charAt(0)}
                   </div>
 
                   <span style={{
-                    fontSize: 'var(--font-sm)', // Use token which supports text-scale
+                    fontSize: 'var(--text-sm)', // Use token which supports text-scale
                     fontWeight: isActive ? 'var(--font-semibold)' : 'var(--font-medium)',
                     color: isActive ? 'var(--text-inverse)' : 'var(--text-secondary)',
                     overflow: 'hidden',
@@ -453,7 +454,7 @@ const WorkingPOSInterface = ({ onBillCreated }) => {
         </div>
       </div>
 
-      <div style={middleSectionStyle}>
+      <div style={middleSectionStyle} className="reminders-scroll">
         <div style={{
           padding: 0, // Handled by Grid gap
           minHeight: 'calc(100% - 1rem)',
@@ -461,15 +462,13 @@ const WorkingPOSInterface = ({ onBillCreated }) => {
           {loading ? (
             <div style={{
               display: 'grid',
-              gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))',
-              gap: currentTheme.spacing[4],
+              gridTemplateColumns: 'repeat(auto-fill, minmax(calc(180px * var(--display-zoom)), 1fr))',
+              gap: 'var(--spacing-4)',
             }}>
               {[...Array(8)].map((_, i) => (
-                <div key={i} style={{
-                  height: '240px',
-                  backgroundColor: isDark ? 'rgba(255,255,255,0.03)' : 'rgba(0,0,0,0.03)',
-                  borderRadius: '16px',
-                  animation: 'pulse 1.5s infinite'
+                <div key={i} className="glass-card animate-pulse" style={{
+                  height: 'calc(200px * var(--display-zoom))',
+                  borderRadius: 'var(--radius-lg)',
                 }} />
               ))}
             </div>
@@ -479,158 +478,185 @@ const WorkingPOSInterface = ({ onBillCreated }) => {
               flexDirection: 'column',
               alignItems: 'center',
               justifyContent: 'center',
-              padding: currentTheme.spacing[12],
-              color: currentTheme.colors.text.secondary,
+              padding: 'var(--spacing-12)',
+              color: 'var(--text-secondary)',
               height: '100%',
               textAlign: 'center'
             }}>
               {/* Empty State - Same as before but cleaner */}
               <div style={{
-                width: '80px',
-                height: '80px',
+                width: 'calc(80px * var(--display-zoom))',
+                height: 'calc(80px * var(--display-zoom))',
                 borderRadius: '50%',
-                background: isDark ? 'rgba(255,255,255,0.03)' : '#f3f4f6',
+                backgroundImage: 'var(--glass-card)',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                marginBottom: '24px'
+                marginBottom: 'var(--spacing-6)',
+                border: '1px solid var(--glass-border)'
               }}>
                 <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" style={{ opacity: 0.5 }}>
                   <circle cx="11" cy="11" r="8"></circle>
                   <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
                 </svg>
               </div>
-              <h3 style={{ fontSize: '18px', fontWeight: 600, color: currentTheme.colors.text.primary, marginBottom: '8px' }}>
+              <h3 style={{ fontSize: 'var(--text-lg)', fontWeight: 600, color: 'var(--text-primary)', marginBottom: 'var(--spacing-2)' }}>
                 No products found
               </h3>
-              <p style={{ fontSize: '14px', color: currentTheme.colors.text.secondary }}>
+              <p style={{ fontSize: 'var(--text-sm)', color: 'var(--text-muted)' }}>
                 Try adjusting your search or filters.
               </p>
             </div>
           ) : (
             <motion.div
-              initial={{ opacity: 0, y: 12 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.35, staggerChildren: 0.05 }}
+              initial="initial"
+              animate="animate"
+              variants={{
+                  animate: { transition: { staggerChildren: 0.05 } }
+              }}
               style={{
                 display: 'grid',
                 gridTemplateColumns: 'repeat(auto-fill, minmax(calc(160px * var(--display-zoom)), 1fr))', // Reduced from 200px
-                gap: currentTheme.spacing[3], // Slightly tighter gap
-                paddingBottom: currentTheme.spacing[8],
+                gap: 'var(--spacing-4)', // Slightly tighter gap
+                padding: '4px'
               }}
             >
               {filteredProducts.map((product) => (
-                <Card
-                  key={product.product_id}
-                  hover={true}
-                  padding="none"
-                  onClick={(e) => handleAddItem(product, e)}
-                  style={{
-                    height: '100%',
-                    display: 'flex',
-                    flexDirection: 'column',
-                    cursor: product.stock_status === 'Out of Stock' ? 'not-allowed' : 'pointer',
-                    opacity: product.stock_status === 'Out of Stock' ? 0.6 : 1,
-                  }}
+                <motion.div
+                    key={product.product_id}
+                    variants={{
+                        initial: { opacity: 0, y: 10 },
+                        animate: { opacity: 1, y: 0 }
+                    }}
                 >
-                  <div style={{ padding: 'calc(10px * var(--display-zoom))', height: '100%', display: 'flex', flexDirection: 'column' }}>
-
-                    {/* Image Container - Human Quality */}
-                    <div style={{
-                      aspectRatio: '1/1', // Square
-                      width: '100%',
-                      marginBottom: 'calc(10px * var(--display-zoom))', // Reduced
-                      borderRadius: '10px', // Slightly smaller radius
-                      overflow: 'hidden',
-                      backgroundColor: isDark ? 'rgba(0,0,0,0.2)' : '#F6F7F9',
-                      padding: 'calc(12px * var(--display-zoom))', // Reduced from 18px
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      position: 'relative'
-                    }}>
-                      {product.stock_status === 'Out of Stock' && (
+                    <div 
+                        className="glass-card lift-3d"
+                        onClick={(e) => handleAddItem(product, e)}
+                        style={{
+                            padding: 'calc(10px * var(--display-zoom))',
+                            height: '100%',
+                            display: 'flex',
+                            flexDirection: 'column',
+                            cursor: product.stock_status === 'Out of Stock' ? 'not-allowed' : 'pointer',
+                            opacity: product.stock_status === 'Out of Stock' ? 0.6 : 1,
+                            position: 'relative',
+                            overflow: 'hidden'
+                        }}
+                    >
+                        
+                        {/* Image Container */}
                         <div style={{
-                          position: 'absolute', top: '8px', left: '8px',
-                          backgroundColor: '#EF4444', color: 'white',
-                          fontSize: '10px', fontWeight: 700,
-                          padding: '4px 8px', borderRadius: '4px', zIndex: 10
-                        }}>OUT</div>
-                      )}
-
-                      {product.image_filename ? (
-                        <img
-                          src={productsAPI.getImageUrl(product.image_filename)}
-                          alt={product.name}
-                          style={{ width: '100%', height: '100%', objectFit: 'contain' }}
-                          loading="lazy"
-                        />
-                      ) : (
-                        <span style={{ fontSize: '12px', color: currentTheme.colors.text.muted }}>No Image</span>
-                      )}
-                    </div>
-
-                    <div style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
-                      <h4 style={{
-                        fontSize: 'calc(13px * var(--text-scale))', // Reduced from 15px
-                        fontWeight: 600,
-                        color: currentTheme.colors.text.primary,
-                        margin: '0 0 2px 0',
-                        lineHeight: 1.2,
-                        overflow: 'hidden',
-                        textOverflow: 'ellipsis',
-                        display: '-webkit-box',
-                        WebkitLineClamp: 2,
-                        WebkitBoxOrient: 'vertical',
-                      }}>
-                        {product.name}
-                      </h4>
-                      <div style={{ marginTop: 'auto', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                        <span style={{
-                          fontSize: 'calc(14px * var(--text-scale))', // Reduced from 16px
-                          fontWeight: 700,
-                          color: '#FF6A00', // Signature Orange
+                            aspectRatio: '1/1',
+                            width: '100%',
+                            marginBottom: 'calc(10px * var(--display-zoom))',
+                            borderRadius: 'calc(12px * var(--display-zoom))',
+                            overflow: 'hidden',
+                            backgroundColor: 'rgba(255,255,255,0.03)',
+                            padding: 'calc(12px * var(--display-zoom))',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            border: '1px solid var(--glass-border)',
+                            position: 'relative',
+                            zIndex: 2
                         }}>
-                          {formatCurrency(product.price)}
-                        </span>
+                            {product.stock_status === 'Out of Stock' && (
+                                <div style={{
+                                    position: 'absolute', top: '8px', left: '8px',
+                                    backgroundColor: 'var(--error-500)', color: 'white',
+                                    fontSize: 'calc(10px * var(--text-scale))', fontWeight: 800,
+                                    padding: '2px 6px', borderRadius: '4px', zIndex: 10,
+                                    boxShadow: '0 2px 8px rgba(239, 68, 68, 0.4)'
+                                }}>OUT</div>
+                            )}
 
-                        {/* Add Button - Signature Element */}
-                        <motion.div
-                          whileHover={{ scale: 1.1 }}
-                          whileTap={{ scale: 0.9 }}
-                          style={{
-                            width: 'calc(28px * var(--display-zoom))', height: 'calc(28px * var(--display-zoom))', // Reduced from 32px
-                            backgroundColor: '#FF6A00',
-                            borderRadius: '50%',
-                            display: 'flex', alignItems: 'center', justifyContent: 'center',
-                            boxShadow: '0 4px 12px rgba(255,106,0,0.3)',
-                            color: 'white'
-                          }}
-                        >
-                          <svg width="calc(16px * var(--display-zoom))" height="calc(16px * var(--display-zoom))" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-                            <path d="M12 5V19M5 12H19" strokeLinecap="round" strokeLinejoin="round" />
-                          </svg>
-                        </motion.div>
-                      </div>
+                            {product.image_filename ? (
+                                <img
+                                    src={productsAPI.getImageUrl(product.image_filename)}
+                                    alt={product.name}
+                                    style={{ width: '100%', height: '100%', objectFit: 'contain' }}
+                                    loading="lazy"
+                                />
+                            ) : (
+                                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px' }}>
+                                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" style={{ opacity: 0.3 }}>
+                                        <rect x="3" y="3" width="18" height="18" rx="2" ry="2" />
+                                        <circle cx="8.5" cy="8.5" r="1.5" />
+                                        <path d="M21 15l-5-5L5 21" />
+                                    </svg>
+                                    <span style={{ fontSize: 'calc(10px * var(--text-scale))', color: 'var(--text-muted)', fontWeight: 500 }}>No Image</span>
+                                </div>
+                            )}
+                        </div>
+
+                        <div style={{ flex: 1, display: 'flex', flexDirection: 'column', position: 'relative', zIndex: 2 }}>
+                            <h4 style={{
+                                fontSize: 'calc(14px * var(--text-scale))',
+                                fontWeight: 700,
+                                color: 'var(--text-primary)',
+                                margin: '0 0 6px 0',
+                                lineHeight: 1.25,
+                                overflow: 'hidden',
+                                textOverflow: 'ellipsis',
+                                WebkitLineClamp: 2,
+                                display: '-webkit-box',
+                                WebkitBoxOrient: 'vertical',
+                            }}>
+                                {product.name}
+                            </h4>
+                            <div style={{ marginTop: 'auto', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                                <span style={{
+                                    fontSize: 'calc(15px * var(--text-scale))',
+                                    fontWeight: 800,
+                                    color: 'var(--primary-500)',
+                                    textShadow: '0 0 10px rgba(249,115,22,0.15)'
+                                }}>
+                                    {formatCurrency(product.price)}
+                                </span>
+
+                                {/* Add Button */}
+                                <motion.div
+                                    whileHover={{ scale: 1.1, backgroundColor: 'var(--primary-600)' }}
+                                    whileTap={{ scale: 0.9 }}
+                                    style={{
+                                        width: 'calc(28px * var(--display-zoom))', 
+                                        height: 'calc(28px * var(--display-zoom))',
+                                        backgroundColor: 'var(--primary-500)',
+                                        borderRadius: '50%',
+                                        display: 'flex', 
+                                        alignItems: 'center', 
+                                        justifyContent: 'center',
+                                        boxShadow: '0 4px 12px rgba(249,115,22,0.3)',
+                                        color: 'white',
+                                        transition: 'background-color 0.2s'
+                                    }}
+                                >
+                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round">
+                                        <path d="M12 5V19M5 12H19" />
+                                    </svg>
+                                </motion.div>
+                            </div>
+                        </div>
                     </div>
-                  </div>
-                </Card>
+                </motion.div>
               ))}
             </motion.div>
           )}
         </div>
       </div>
 
-      <div style={{
-        width: '400px',
-        backgroundColor: isDark ? '#15161A' : '#FFFFFF', // Secondary Surface
-        borderLeft: `1px solid ${currentTheme.colors.border}`,
+      <div className="glass-panel" style={{
+        width: 'calc(400px * var(--display-zoom))',
+        borderLeft: '1px solid var(--glass-border)',
         display: 'flex',
         flexDirection: 'column',
         height: '100%',
         overflow: 'hidden',
-        boxShadow: '-8px 0 24px rgba(0,0,0,0.06)', // Depth to split screen
-        zIndex: 5
+        boxShadow: 'var(--shadow-modal)',
+        zIndex: 10,
+        backgroundImage: 'var(--glass-modal)',
+        backdropFilter: 'var(--glass-blur-strong)',
+        WebkitBackdropFilter: 'var(--glass-blur-strong)',
       }}>
         <div style={{
           flex: 1,
@@ -694,7 +720,7 @@ const WorkingPOSInterface = ({ onBillCreated }) => {
                 style={{
                   width: '64px', height: '64px',
                   borderRadius: '16px',
-                  background: isDark ? 'rgba(255,255,255,0.03)' : '#F6F7F9',
+                  backgroundColor: isDark ? 'rgba(255,255,255,0.03)' : '#F6F7F9',
                   display: 'flex', alignItems: 'center', justifyContent: 'center',
                   marginBottom: '16px'
                 }}

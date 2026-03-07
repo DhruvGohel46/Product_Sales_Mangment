@@ -36,7 +36,7 @@ const DownloadPage = () => {
                         animate={{ opacity: 1, y: 0 }}
                         className="text-4xl md:text-5xl font-extrabold tracking-tight mb-6"
                     >
-                        Download ReBill POS
+                        Download InfoBill POS
                     </motion.h1>
                     <motion.p
                         initial={{ opacity: 0, y: 20 }}
@@ -60,7 +60,7 @@ const DownloadPage = () => {
                             <CardHeader>
                                 <CardTitle className="flex items-center space-x-2">
                                     <Monitor className="h-6 w-6 text-primary" />
-                                    <span>ReBill for Windows</span>
+                                    <span>InfoBill for Windows</span>
                                 </CardTitle>
                                 <CardDescription>Version 2.4.0 (Stable) • 64-bit</CardDescription>
                             </CardHeader>

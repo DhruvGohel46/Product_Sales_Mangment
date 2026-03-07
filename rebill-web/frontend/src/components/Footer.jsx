@@ -11,7 +11,7 @@ const Footer = () => {
                             <div className="bg-primary text-primary-foreground p-1.5 rounded-md">
                                 <Rocket className="h-5 w-5" />
                             </div>
-                            <span className="text-xl font-bold">ReBill</span>
+                            <span className="text-xl font-bold">InfoBill</span>
                         </div>
                         <p className="text-muted-foreground text-sm leading-relaxed">
                             The modern POS system designed for speed, reliability, and growth. Built for the future of retail.
@@ -55,7 +55,7 @@ const Footer = () => {
                 </div>
 
                 <div className="pt-8 border-t border-border flex flex-col md:flex-row justify-between items-center gap-4 text-sm text-muted-foreground">
-                    <p>&copy; {new Date().getFullYear()} ReBill POS. All rights reserved.</p>
+                    <p>&copy; {new Date().getFullYear()} InfoBill POS. All rights reserved.</p>
                     <div className="flex items-center space-x-2">
                         <span className="w-2 h-2 rounded-full bg-green-500"></span>
                         <span>All systems operational</span>

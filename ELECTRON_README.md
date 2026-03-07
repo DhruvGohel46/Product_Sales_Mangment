@@ -1,7 +1,7 @@
- Product Sales Management - Electron Desktop App
+ InfoBill - Electron Desktop App
 
 ## Overview
-This is the Electron desktop application version of the Product Sales Management system. It provides a native desktop experience with enhanced features and system integration.
+This is the Electron desktop application version of the InfoBill system. It provides a native desktop experience with enhanced features and system integration.
 
 ## Prerequisites
 - Node.js 16+ 
@@ -53,7 +53,7 @@ npm run electron-dev
 # Build React app, compile Backend, and create Windows installer
 npm run dist
 
-# Output will be in: dist/Product Sales Management Setup 1.0.0.exe
+# Output will be in: dist/InfoBill Setup 1.0.0.exe
 ```
 
 #### Alternative Build Commands
@@ -95,8 +95,8 @@ npm run electron-pack
 - **API URL**: `http://localhost:5050` (auto-configured)
 
 ### Electron Configuration
-- **App ID**: `com.burgerbhau.product-sales-management`
-- **Product Name**: `Product Sales Management`
+- **App ID**: `com.burgerbhau.infobill`
+- **Product Name**: `InfoBill`
 - **Main Process**: `electron/main.js`
 - **Preload Script**: `electron/preload.js`
 
@@ -163,4 +163,4 @@ For issues and support:
 4. Check printer connections for printing issues
 
 ## License
-© 2024 Burger Bhau (Kothariya) - Product Sales Management System
+© 2024 Burger Bhau (Kothariya) - InfoBill System

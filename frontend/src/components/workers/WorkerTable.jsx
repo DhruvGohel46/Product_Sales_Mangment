@@ -106,25 +106,31 @@ const WorkerRow = ({ worker, onView, onEdit, onDelete, index }) => {
             transition={{ duration: 0.25, delay: index * 0.04, ease: [0.25, 0.46, 0.45, 0.94] }}
             onClick={() => onView(worker)}
             whileHover={{
-                backgroundColor: isDark ? 'rgba(255,255,255,0.025)' : 'rgba(0,0,0,0.015)',
-                transition: { duration: 0.15 }
+                backgroundColor: isDark ? 'rgba(255,255,255,0.04)' : 'rgba(255,255,255,0.6)',
+                scale: 1.01,
+                transition: { duration: 0.2 }
             }}
+            className="lift-3d"
             style={{
                 display: 'flex',
                 alignItems: 'center',
                 gap: 'calc(16px * var(--display-zoom))',
-                padding: 'calc(14px * var(--display-zoom)) calc(16px * var(--display-zoom))',
-                borderRadius: 'calc(12px * var(--display-zoom))',
+                padding: 'calc(16px * var(--display-zoom)) calc(20px * var(--display-zoom))',
+                borderRadius: 'calc(20px * var(--display-zoom))',
                 cursor: 'pointer',
-                borderBottom: `1px solid ${isDark ? 'rgba(255,255,255,0.04)' : 'rgba(0,0,0,0.04)'}`,
-                transition: 'background-color 0.15s',
+                border: `1px solid ${isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.1)'}`,
+                background: isDark ? 'rgba(255,255,255,0.02)' : 'rgba(255,255,255,0.3)',
+                backdropFilter: 'var(--glass-blur)',
+                marginBottom: 'calc(8px * var(--display-zoom))',
+                transition: 'all 0.3s cubic-bezier(0.16, 1, 0.3, 1)',
+                boxShadow: '0 4px 12px rgba(0,0,0,0.05)',
             }}
         >
             {/* Avatar */}
             <div style={{
                 width: 'calc(42px * var(--display-zoom))', height: 'calc(42px * var(--display-zoom))', borderRadius: 'calc(12px * var(--display-zoom))',
                 overflow: 'hidden', flexShrink: 0,
-                background: isDark
+                backgroundImage: isDark
                     ? 'linear-gradient(145deg, #27272A, #1C1C1F)'
                     : 'linear-gradient(145deg, #F9FAFB, #F0F1F3)',
                 display: 'flex', alignItems: 'center', justifyContent: 'center',

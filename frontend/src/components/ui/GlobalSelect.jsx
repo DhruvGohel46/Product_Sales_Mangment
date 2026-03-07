@@ -26,7 +26,8 @@ const GlobalSelect = ({
     disabled = false,
     className = '',
     direction = 'bottom',
-    icon = null
+    icon = null,
+    style = {}
 }) => {
     const [isOpen, setIsOpen] = useState(false);
     const containerRef = useRef(null);
@@ -68,7 +69,6 @@ const GlobalSelect = ({
     return (
         <div
             className={`global-select-container ${className}`}
-            ref={containerRef}
             style={{
                 display: 'flex',
                 flexDirection: 'column',
@@ -76,7 +76,8 @@ const GlobalSelect = ({
                 width: '100%',
                 opacity: disabled ? 0.6 : 1,
                 pointerEvents: disabled ? 'none' : 'auto',
-                position: 'relative' // Ensure relative positioning for absolute child
+                position: 'relative',
+                ...style
             }}
         >
             {label && (

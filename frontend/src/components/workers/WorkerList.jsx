@@ -62,7 +62,7 @@ const WorkerList = () => {
                     variant="primary"
                     onClick={() => setShowModal(true)}
                     style={{
-                        background: 'linear-gradient(135deg, #FF6B00 0%, #FF8800 100%)',
+                        backgroundImage: 'linear-gradient(135deg, #FF6B00 0%, #FF8800 100%)',
                         border: 'none'
                     }}
                 >

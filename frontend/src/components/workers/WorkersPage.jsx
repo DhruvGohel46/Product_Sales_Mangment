@@ -113,6 +113,8 @@ const WorkersPage = () => {
                 display: 'flex',
                 justifyContent: 'space-between',
                 alignItems: 'flex-start',
+                padding: 'calc(12px * var(--display-zoom)) calc(16px * var(--display-zoom)) 0 calc(16px * var(--display-zoom))',
+                marginBottom: 'calc(8px * var(--display-zoom))'
             }}>
                 <motion.div
                     initial={{ opacity: 0, y: 6 }}
@@ -207,10 +209,11 @@ const WorkersPage = () => {
 
             {/* ─── Content ─── */}
             <div style={{
-                background: isDark ? 'rgba(255,255,255,0.02)' : '#FFFFFF',
+                background: 'transparent',
                 borderRadius: 'calc(16px * var(--display-zoom))',
-                border: `1px solid ${isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.06)'}`,
-                overflow: 'hidden', // Ensure stats bar borders don't overflow
+                border: 'none',
+                overflow: 'visible',
+                marginTop: 'calc(8px * var(--display-zoom))'
             }}>
                 {/* Stats Bar Integrated */}
                 <WorkerStats stats={stats} />

@@ -36,7 +36,7 @@ class ExcelXLSXService:
         """Write Rebill and Shop Name headers"""
         # Project Name
         ws.merge_cells(f'A1:{max_col_letter}1')
-        ws['A1'] = "Rebill"
+        ws['A1'] = "InfoBill"
         ws['A1'].font = Font(bold=True, size=18, color="FFFFFF")
         ws['A1'].fill = PatternFill(start_color="2c3e50", end_color="2c3e50", fill_type="solid")
         ws['A1'].alignment = Alignment(horizontal="center", vertical="center")

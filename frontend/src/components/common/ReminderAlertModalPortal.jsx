@@ -249,7 +249,7 @@ const ReminderAlertModal = ({
                             width: '56px',
                             height: '56px',
                             borderRadius: '16px',
-                            background: 'linear-gradient(135deg, #FF6A00, #FF8A3D)',
+                            backgroundImage: 'linear-gradient(135deg, #FF6A00, #FF8A3D)',
                             display: 'flex',
                             alignItems: 'center',
                             justifyContent: 'center',
@@ -316,11 +316,11 @@ const ReminderAlertModal = ({
                             whileTap={{ scale: 0.98 }}
                             onClick={handleMarkDone}
                             disabled={isProcessing}
-                            style={{
+                        style={{
                                 padding: '14px 20px',
                                 borderRadius: '14px',
                                 border: 'none',
-                                background: 'linear-gradient(135deg, #22c55e, #16a34a)',
+                                backgroundImage: 'linear-gradient(135deg, #22c55e, #16a34a)',
                                 color: '#ffffff',
                                 fontSize: '15px',
                                 fontWeight: 600,

@@ -185,15 +185,34 @@ def get_worker_stats():
     # Create set of active worker IDs for fast lookup
     active_worker_ids = {w.worker_id for w in workers}
     
-    # Calculate Total Advances for CURRENT MONTH (Active Workers Only)
+    # Calculate Salary Cycle Period for Advances
+    from models import Settings
+    salary_day_setting = Settings.query.get('salary_day')
+    salary_day = int(salary_day_setting.value) if salary_day_setting else 1
+    
     today = date.today()
+    if today.day >= salary_day:
+        start_date = date(today.year, today.month, salary_day)
+        next_month = today.month + 1 if today.month < 12 else 1
+        next_year = today.year if today.month < 12 else today.year + 1
+        end_date = date(next_year, next_month, salary_day)
+    else:
+        prev_month = today.month - 1 if today.month > 1 else 12
+        prev_year = today.year if today.month > 1 else today.year - 1
+        start_date = date(prev_year, prev_month, salary_day)
+        end_date = date(today.year, today.month, salary_day)
+
+    from datetime import timedelta
+    inclusive_end_date = end_date - timedelta(days=1)
+
+    # Calculate Total Advances for CURRENT SALARY CYCLE (Active Workers Only)
     total_advances = db.session.query(func.sum(Advance.amount)).join(Worker).filter(
         Worker.status == 'active',
-        extract('month', Advance.date) == today.month,
-        extract('year', Advance.date) == today.year
+        Advance.date >= start_date,
+        Advance.date <= inclusive_end_date
     ).scalar() or 0.0
 
-    net_payable = total_salary - total_advances
+    net_payable = total_salary - float(total_advances)
     
     # Get today's attendance
     today_attendance = WorkerService.get_today_attendance()
@@ -208,7 +227,9 @@ def get_worker_stats():
         'activeWorkers': active_workers,
         'presentToday': present_today,
         'totalSalary': float(total_salary),
-        'netPayable': float(net_payable)
+        'netPayable': float(net_payable),
+        'cycle_start': start_date.isoformat(),
+        'cycle_end': inclusive_end_date.isoformat()
     })
 
 # ATTENDANCE

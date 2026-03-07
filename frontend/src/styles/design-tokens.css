@@ -63,6 +63,12 @@
   --spacing-6: 24px;
   --spacing-8: 32px;
   --spacing-10: 40px;
+  
+  /* Global Page Layout Tokens */
+  --page-padding-x: var(--spacing-6);
+  --page-padding-top: var(--spacing-6);
+  --page-padding-bottom: var(--spacing-8);
+  --page-section-gap: var(--spacing-6);
 
   /* Component-specific spacing */
   --spacing-card-padding: var(--spacing-5);
@@ -94,15 +100,15 @@
   
   /* Dark Theme Glass */
   --glass-dark-card: rgba(22,26,32,0.75);
-  --glass-dark-header: rgba(11,11,12,0.72);
-  --glass-dark-sidebar: rgba(15,17,19,0.80);
+  --glass-dark-header: transparent;
+  --glass-dark-sidebar: transparent;
   --glass-dark-modal: rgba(20,24,30,0.85);
   --glass-dark-border: rgba(255,255,255,0.06);
   
   /* Light Theme Glass */
   --glass-light-card: rgba(255,255,255,0.70);
-  --glass-light-header: rgba(255,255,255,0.75);
-  --glass-light-sidebar: rgba(255,255,255,0.65);
+  --glass-light-header: transparent;
+  --glass-light-sidebar: transparent;
   --glass-light-modal: rgba(255,255,255,0.80);
   --glass-light-border: rgba(0,0,0,0.05);
 

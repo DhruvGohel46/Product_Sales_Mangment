@@ -7,83 +7,61 @@
    ============================================================================= */
 
 /* ─── Card Entrance ───────────────────────────────────────────────────────── */
-@keyframes reminderCardEnter {
-  from {
-    opacity: 0;
-    transform: translateY(12px) scale(0.97);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0) scale(1);
-  }
+/* ─── Liquid Sheen Animation ───────────────────────────────────────── */
+@keyframes sheenSweep {
+  0% { transform: translateX(-100%) skewX(-15deg); }
+  25% { transform: translateX(100%) skewX(-15deg); }
+  100% { transform: translateX(100%) skewX(-15deg); }
 }
 
-.reminder-card-enter {
-  animation: reminderCardEnter 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-}
-
-/* ─── Completion Strike-through ───────────────────────────────────────────── */
-@keyframes strikeThrough {
-  0% {
-    width: 0;
-    opacity: 0;
-  }
-  100% {
-    width: 100%;
-    opacity: 1;
-  }
-}
-
-.reminder-completed .reminder-title {
-  position: relative;
-  color: inherit;
-  opacity: 0.5;
-}
-
-.reminder-completed .reminder-title::after {
-  content: '';
+.liquid-sheen {
   position: absolute;
+  top: 0;
   left: 0;
-  top: 50%;
-  height: 1.5px;
-  background: currentColor;
-  animation: strikeThrough 0.4s ease forwards;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(255, 255, 255, 0) 40%,
+    rgba(255, 255, 255, 0.15) 50%,
+    rgba(255, 255, 255, 0) 60%,
+    transparent 100%
+  );
+  z-index: 1;
+  pointer-events: none;
+  transform: translateX(-100%);
+}
+
+.glass-panel:hover .liquid-sheen {
+  animation: sheenSweep 2.5s cubic-bezier(0.16, 1, 0.3, 1) infinite;
+}
+
+/* ─── Volumetric Lift ─────────────────────────────────────────────────── */
+.lift-3d {
+  transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1), 
+              box-shadow 0.4s cubic-bezier(0.16, 1, 0.3, 1),
+              border-color 0.4s ease;
+}
+
+.lift-3d:hover {
+  transform: translateY(calc(-4px * var(--display-zoom))) translateZ(calc(10px * var(--display-zoom)));
+  box-shadow: 
+    0 15px 35px rgba(0,0,0,0.3),
+    0 5px 15px rgba(0,0,0,0.1);
+  border-color: rgba(255,255,255,0.2) !important;
 }
 
 /* ─── Completion Fade-out ─────────────────────────────────────────────────── */
 @keyframes completionFade {
-  0% {
-    opacity: 1;
-    transform: scale(1);
-  }
-  60% {
-    opacity: 0.6;
-    transform: scale(0.98);
-  }
-  100% {
-    opacity: 0;
-    transform: scale(0.95) translateY(-8px);
-  }
+  0% { opacity: 1; transform: scale(1); }
+  100% { opacity: 0; transform: scale(0.9) translateY(-10px); }
 }
 
 .reminder-completing {
-  animation: completionFade 0.5s ease forwards;
-  pointer-events: none;
+  animation: completionFade 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 
-/* ─── High Priority Pulse ─────────────────────────────────────────────────── */
-@keyframes priorityPulse {
-  0%, 100% {
-    box-shadow: 0 0 0 0 rgba(248, 113, 113, 0);
-  }
-  50% {
-    box-shadow: 0 0 0 4px rgba(248, 113, 113, 0.12);
-  }
-}
-
-.reminder-priority-high {
-  animation: priorityPulse 3s ease-in-out infinite;
-}
 
 /* ─── Overdue Indicator ───────────────────────────────────────────────────── */
 @keyframes overdueGlow {

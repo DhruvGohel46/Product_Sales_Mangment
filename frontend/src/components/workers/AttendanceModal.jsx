@@ -345,7 +345,7 @@ const AttendanceModal = ({
                                 width: '48px',
                                 height: '48px',
                                 borderRadius: '14px',
-                                background: 'linear-gradient(135deg, #3b82f6, #2563eb)',
+                                backgroundImage: 'linear-gradient(135deg, #3b82f6, #2563eb)',
                                 display: 'flex',
                                 alignItems: 'center',
                                 justifyContent: 'center',
@@ -391,9 +391,10 @@ const AttendanceModal = ({
                                 padding: '10px 16px',
                                 borderRadius: '12px',
                                 border: 'none',
-                                background: loading 
+                                backgroundImage: loading ? 'none' : 'linear-gradient(135deg, #3b82f6, #2563eb)',
+                                backgroundColor: loading 
                                     ? (isDark ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)')
-                                    : 'linear-gradient(135deg, #3b82f6, #2563eb)',
+                                    : 'transparent',
                                 color: loading 
                                     ? (isDark ? 'rgba(255, 255, 255, 0.5)' : 'rgba(0, 0, 0, 0.5)')
                                     : '#ffffff',
@@ -446,7 +447,7 @@ const AttendanceModal = ({
                                         transition: 'all 0.2s ease'
                                     }}
                                     whileHover={{
-                                        background: isDark 
+                                        backgroundColor: isDark 
                                             ? 'rgba(255, 255, 255, 0.06)' 
                                             : 'rgba(0, 0, 0, 0.06)'
                                     }}
@@ -456,7 +457,7 @@ const AttendanceModal = ({
                                         width: '40px',
                                         height: '40px',
                                         borderRadius: '12px',
-                                        background: 'linear-gradient(135deg, #8b5cf6, #7c3aed)',
+                                        backgroundImage: 'linear-gradient(135deg, #8b5cf6, #7c3aed)',
                                         display: 'flex',
                                         alignItems: 'center',
                                         justifyContent: 'center',
@@ -514,7 +515,7 @@ const AttendanceModal = ({
                                                     padding: '8px 12px',
                                                     borderRadius: '10px',
                                                     border: 'none',
-                                                    background: 'linear-gradient(135deg, #22c55e, #16a34a)',
+                                                    backgroundImage: 'linear-gradient(135deg, #22c55e, #16a34a)',
                                                     color: '#ffffff',
                                                     fontSize: '12px',
                                                     fontWeight: 600,
@@ -541,7 +542,7 @@ const AttendanceModal = ({
                                                     padding: '8px 12px',
                                                     borderRadius: '10px',
                                                     border: 'none',
-                                                    background: 'linear-gradient(135deg, #f59e0b, #d97706)',
+                                                    backgroundImage: 'linear-gradient(135deg, #f59e0b, #d97706)',
                                                     color: '#ffffff',
                                                     fontSize: '12px',
                                                     fontWeight: 600,

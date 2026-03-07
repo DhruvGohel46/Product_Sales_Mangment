@@ -1,4 +1,4 @@
-# ReBill - Modern POS & Billing System
+# InfoBill - Modern POS & Billing System
 
 A production-grade offline POS and billing system for retail shops, cafes, and small businesses.
 
@@ -92,7 +92,7 @@ Customize the application for your shop.
 ### Method 2: Source Code Setup
 1. **Clone Repository**:
    ```bash
-   git clone https://github.com/DhruvGohel46/Product_Sales_Mangment.git
+   git clone https://github.com/DhruvGohel46/InfoBill.git
    ```
 2. **Run Setup Script**:
    ```bash
@@ -127,12 +127,12 @@ npm run electron-dev
 ## 📊 Database & Reports
 - **Automatic Migration**: XML data is automatically migrated to SQLite on first run.
 - **Daily Refresh**: The system auto-archives previous day's data and resets for a fresh start.
-- **Excel Reports**: Generated with "Rebill" branding and restaurant details.
+- **Excel Reports**: Generated with "InfoBill" branding and restaurant details.
 
 ## 📁 Project Structure
 
 ```
-product-sales-management/
+infobill/
 ├── electron/
 │   ├── main.js                # Electron main process
 │   ├── preload.js             # Secure IPC bridge
@@ -226,4 +226,4 @@ MIT License - Open source and free to use.
 
 ---
 
-**🎉 Enjoy ReBill - Your Modern Billing Solution!**
+**🎉 Enjoy InfoBill - Your Modern Billing Solution!**

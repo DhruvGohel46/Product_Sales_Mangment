@@ -19,7 +19,7 @@ def create_app(config_class=DevelopmentConfig):
     
     @app.route('/')
     def index():
-        return jsonify({"message": "ReBill SaaS Backend Running"})
+        return jsonify({"message": "InfoBill SaaS Backend Running"})
 
     # Create tables
     with app.app_context():

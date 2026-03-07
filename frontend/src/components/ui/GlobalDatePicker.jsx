@@ -63,27 +63,47 @@ const GlobalDatePicker = ({
             const updatePosition = () => {
                 const rect = containerRef.current.getBoundingClientRect();
                 const viewportHeight = window.innerHeight;
+                const viewportWidth = window.innerWidth;
 
-                // Fixed height for the dropdown panel
-                const dropdownHeight = 350; // Approximate height of the calendar panel
+                // Minimum width for the calendar to be usable
+                const minDropdownWidth = type === 'date' ? 300 : 280;
+                const dropdownWidth = Math.max(rect.width, minDropdownWidth);
+                const dropdownHeight = type === 'date' ? 360 : 300; 
 
                 // Determine if we should open upwards (if no space below AND space above)
-                // Unless forceDown is explicitly true
                 const spaceBelow = viewportHeight - rect.bottom;
                 const shouldOpenUp = !forceDown && spaceBelow < dropdownHeight && rect.top > dropdownHeight;
+
+                // Determine horizontal position (center on trigger but keep within viewport)
+                let left = rect.left;
+                
+                // If trigger is smaller than min width, try to align better
+                if (rect.width < minDropdownWidth) {
+                    // Try to center it relative to trigger
+                    left = rect.left - (minDropdownWidth - rect.width) / 2;
+                }
+
+                // Keep within viewport with some margin
+                const margin = 16;
+                if (left + dropdownWidth > viewportWidth - margin) {
+                    left = viewportWidth - dropdownWidth - margin;
+                }
+                if (left < margin) {
+                    left = margin;
+                }
 
                 if (shouldOpenUp) {
                     setDropdownPos({
                         top: rect.top + window.scrollY - dropdownHeight - 8,
-                        left: rect.left + window.scrollX,
-                        width: rect.width,
+                        left: left + window.scrollX,
+                        width: dropdownWidth,
                         transformOrigin: 'bottom center'
                     });
                 } else {
                     setDropdownPos({
-                        top: rect.bottom + window.scrollY + 8, // Open below, +8px gap
-                        left: rect.left + window.scrollX,
-                        width: rect.width,
+                        top: rect.bottom + window.scrollY + 8,
+                        left: left + window.scrollX,
+                        width: dropdownWidth,
                         transformOrigin: 'top center'
                     });
                 }
@@ -98,7 +118,7 @@ const GlobalDatePicker = ({
                 window.removeEventListener('scroll', updatePosition, true);
             };
         }
-    }, [isOpen, forceDown]);
+    }, [isOpen, forceDown, type]);
 
     // Close when clicking outside
     useEffect(() => {
@@ -318,7 +338,7 @@ const GlobalDatePicker = ({
                                     border: '1px solid var(--border-primary)',
                                     borderRadius: '12px',
                                     boxShadow: '0 -10px 25px -5px rgba(0, 0, 0, 0.15), 0 -8px 10px -6px rgba(0, 0, 0, 0.1)',
-                                    padding: '16px',
+                                    padding: '16px 20px',
                                     minWidth: '280px'
                                 }}
                                 className="glass-panel"
@@ -354,19 +374,19 @@ const GlobalDatePicker = ({
                                 {type === 'date' ? (
                                     <>
                                         {/* Weekdays */}
-                                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: '4px', marginBottom: '8px' }}>
+                                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: '4px', marginBottom: '8px', justifyItems: 'center' }}>
                                             {['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa'].map(d => (
                                                 <div key={d} style={{ textAlign: 'center', fontSize: '12px', fontWeight: 600, color: 'var(--text-tertiary)' }}>{d}</div>
                                             ))}
                                         </div>
                                         {/* Days */}
-                                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: '4px' }}>
+                                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: '4px', justifyItems: 'center' }}>
                                             {renderCalendar()}
                                         </div>
                                     </>
                                 ) : (
                                     /* Month Selection Grid */
-                                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '8px' }}>
+                                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '8px', justifyItems: 'center' }}>
                                         {months.map((m, idx) => {
                                             const isSelected = typeof value === 'string' && value === `${viewDate.getFullYear()}-${String(idx + 1).padStart(2, '0')}`;
                                             return (

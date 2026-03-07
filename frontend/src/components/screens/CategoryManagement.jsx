@@ -202,48 +202,92 @@ const CategoryManagement = () => {
                 </div>
 
                 {loading ? (
-                    <Card className="pmEmpty">Loading categories...</Card>
+                    <div className="pmEmpty glass-card animate-pulse">Loading categories...</div>
                 ) : categories.length === 0 ? (
-                    <Card className="pmEmpty">No categories found. Add your first category!</Card>
+                    <div className="pmEmpty glass-card">No categories found. Add your first category!</div>
                 ) : (
                     <motion.div className="pmGrid" variants={staggerContainer} initial="initial" animate="animate">
                         {categories.map((cat) => (
                             <motion.div key={cat.id} variants={staggerItem}>
-                                <Card
-                                    className={`pmCard ${!cat.active ? 'pmCardInactive' : ''}`}
-                                    hover={true}
-                                    padding="20px"
+                                <div
+                                    className={`glass-card lift-3d ${!cat.active ? 'opacity-60' : ''}`}
+                                    style={{
+                                        padding: 'calc(20px * var(--display-zoom))',
+                                        position: 'relative',
+                                        overflow: 'hidden',
+                                        display: 'flex',
+                                        flexDirection: 'column',
+                                        height: '100%',
+                                        minHeight: 'calc(180px * var(--display-zoom))'
+                                    }}
                                 >
-                                    <div className="pmCardTop">
-                                        <div className="pmName">{cat.name}</div>
-                                        <div className={`pmBadge ${cat.active ? 'pmBadgePaan' : 'pmBadgeOther'}`}>
-                                            {cat.active ? 'Active' : 'Inactive'}
+                                    <div style={{ position: 'relative', zIndex: 2, flex: 1 }}>
+                                        <div className="pmCardTop" style={{ marginBottom: 'calc(12px * var(--display-zoom))' }}>
+                                            <div className="pmName" style={{ fontSize: 'calc(18px * var(--text-scale))', fontWeight: 700 }}>{cat.name}</div>
+                                            <div 
+                                                className="rounded-pill" 
+                                                style={{ 
+                                                    padding: '2px 10px', 
+                                                    fontSize: 'calc(11px * var(--text-scale))', 
+                                                    fontWeight: 700,
+                                                    background: cat.active ? 'rgba(34, 197, 94, 0.12)' : 'rgba(115, 115, 115, 0.12)',
+                                                    color: cat.active ? 'var(--success-500)' : 'var(--text-muted)',
+                                                    border: cat.active ? '1px solid rgba(34, 197, 94, 0.2)' : '1px solid rgba(115, 115, 115, 0.2)',
+                                                    boxShadow: cat.active ? '0 0 10px rgba(34, 197, 94, 0.1)' : 'none'
+                                                }}
+                                            >
+                                                {cat.active ? 'Active' : 'Inactive'}
+                                            </div>
+                                        </div>
+                                        
+                                        <div style={{ 
+                                            fontSize: 'calc(13px * var(--text-scale))', 
+                                            color: 'var(--text-secondary)',
+                                            lineHeight: 1.5,
+                                            marginBottom: 'calc(16px * var(--display-zoom))',
+                                            opacity: 0.8
+                                        }}>
+                                            {cat.description || 'No description provided for this category.'}
+                                        </div>
+                                        
+                                        <div style={{ 
+                                            display: 'flex', 
+                                            alignItems: 'center', 
+                                            gap: '8px',
+                                            fontSize: 'calc(12px * var(--text-scale))',
+                                            color: 'var(--text-muted)',
+                                            fontWeight: 500
+                                        }}>
+                                            <div style={{ 
+                                                width: '8px', 
+                                                height: '8px', 
+                                                borderRadius: '50%', 
+                                                background: cat.active ? 'var(--success-500)' : 'var(--text-muted)',
+                                                boxShadow: cat.active ? '0 0 8px var(--success-500)' : 'none'
+                                            }} />
+                                            {cat.product_count} linked products
                                         </div>
                                     </div>
-                                    <div className="pmMetaRow">
-                                        <div className="pmId" style={{ color: 'var(--text-secondary)' }}>
-                                            {cat.description || 'No description'}
-                                        </div>
-                                    </div>
-                                    <div className="pmMetaRow" style={{ marginTop: 'calc(10px * var(--display-zoom))' }}>
-                                        <div className="pmStatusRow">
-                                            <div className={`pmStatusDot ${cat.active ? 'pmStatusActive' : 'pmStatusInactive'}`} style={{ width: 'calc(8px * var(--display-zoom))', height: 'calc(8px * var(--display-zoom))', borderRadius: '50%' }} />
-                                            <span className="pmStatusLabel">
-                                                {cat.product_count} linked products
-                                            </span>
-                                        </div>
-                                    </div>
-                                    <div className="pmActions" style={{ marginTop: 'calc(15px * var(--display-zoom))' }}>
-                                        <div className="pmButtonGrid">
-                                            <button className="pmActionBtn" onClick={() => handleEdit(cat)}>
+
+                                    <div className="pmActions" style={{ marginTop: 'calc(20px * var(--display-zoom))', position: 'relative', zIndex: 2 }}>
+                                        <div className="pmButtonGrid" style={{ gap: '10px' }}>
+                                            <button 
+                                                className="pmActionBtn" 
+                                                onClick={() => handleEdit(cat)}
+                                                style={{ borderRadius: 'var(--radius-md)', padding: '8px', justifyContent: 'center' }}
+                                            >
                                                 <IconEdit /> Edit
                                             </button>
-                                            <button className="pmActionBtn pmActionDanger" onClick={() => onRequestDelete(cat)}>
+                                            <button 
+                                                className="pmActionBtn pmActionDanger" 
+                                                onClick={() => onRequestDelete(cat)}
+                                                style={{ borderRadius: 'var(--radius-md)', padding: '8px', justifyContent: 'center' }}
+                                            >
                                                 <IconTrash /> Remove
                                             </button>
                                         </div>
                                     </div>
-                                </Card>
+                                </div>
                             </motion.div>
                         ))}
                     </motion.div>

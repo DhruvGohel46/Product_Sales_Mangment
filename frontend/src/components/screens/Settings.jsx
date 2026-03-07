@@ -153,14 +153,14 @@ const Settings = () => {
                                     className={`stTabButton ${activeTab === tab.id ? 'stTabActive' : ''}`}
                                     onClick={() => setActiveTab(tab.id)}
                                 >
-                                    <tab.icon size={18} className="stTabIcon" />
+                                    <tab.icon size={20} className="stTabIcon" />
                                     <span className="stTabLabel">{tab.label}</span>
 
                                     {activeTab === tab.id && (
                                         <motion.div
                                             layoutId="stTabIndicator"
                                             className="stTabIndicator"
-                                            transition={{ type: "spring", bounce: 0.2, duration: 0.5 }}
+                                            transition={{ type: "spring", bounce: 0.2, duration: 0.6 }}
                                         />
                                     )}
                                 </button>

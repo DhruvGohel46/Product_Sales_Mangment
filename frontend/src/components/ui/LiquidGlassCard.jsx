@@ -50,22 +50,22 @@ const LiquidGlassCard = ({
 
   const cardVariants = {
     default: {
-      backgroundColor: 'var(--glass-card)',
+      backgroundImage: 'var(--glass-card)',
       boxShadow: 'var(--shadow-card)',
       border: '1px solid var(--glass-border)',
     },
     elevated: {
-      backgroundColor: 'var(--glass-card)',
+      backgroundImage: 'var(--glass-card)',
       boxShadow: 'var(--shadow-hover)',
       border: '1px solid var(--glass-border)',
     },
     interactive: {
-      backgroundColor: 'var(--glass-card)',
+      backgroundImage: 'var(--glass-card)',
       boxShadow: 'var(--shadow-card)',
       border: '1px solid var(--glass-border)',
     },
     compact: {
-      backgroundColor: 'var(--glass-card)',
+      backgroundImage: 'var(--glass-card)',
       boxShadow: 'var(--shadow-card)',
       border: '1px solid var(--glass-border)',
     }

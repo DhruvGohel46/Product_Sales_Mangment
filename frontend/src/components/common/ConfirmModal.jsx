@@ -101,11 +101,11 @@ const ConfirmModal = ({
                 onClick={(e) => e.stopPropagation()}
                 style={{
                     position: 'relative',
-                    width: '90%',
-                    maxWidth: '440px',
+                    width: 'calc(460px * var(--display-zoom))', 
+                    maxWidth: '90vw', 
                     padding: 'var(--spacing-8)',
                     borderRadius: '20px',
-                    background: 'rgba(22, 26, 32, 0.8)',
+                    backgroundColor: 'rgba(22, 26, 32, 0.8)',
                     backdropFilter: 'blur(14px)',
                     WebkitBackdropFilter: 'blur(14px)',
                     border: variant === 'danger' ? '1px solid rgba(239, 68, 68, 0.2)' : 
@@ -123,21 +123,25 @@ const ConfirmModal = ({
                     marginBottom: 'var(--spacing-5)'
                 }}>
                     <div className={`rb-confirm__icon ${iconVariantClass}`} style={{
-                        width: '48px',
-                        height: '48px',
-                        borderRadius: '14px',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        background: variant === 'danger' ? 'rgba(239, 68, 68, 0.12)' :
+                        width: 'calc(64px * var(--display-zoom))', 
+                        height: 'calc(64px * var(--display-zoom))', 
+                        borderRadius: 'calc(20px * var(--display-zoom))',
+                        backgroundColor: variant === 'danger' ? 'rgba(239, 68, 68, 0.12)' :
                                   variant === 'warning' ? 'rgba(245, 158, 11, 0.12)' :
                                   variant === 'primary' ? 'rgba(255, 106, 0, 0.12)' :
                                   'rgba(14, 165, 233, 0.12)',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
                         color: variant === 'danger' ? 'var(--error-500)' :
                                variant === 'warning' ? 'var(--warning-500)' :
                                variant === 'primary' ? 'var(--primary-500)' :
                                'var(--info-500)',
-                        flexShrink: 0
+                        flexShrink: 0,
+                        border: variant === 'danger' ? '1px solid rgba(239, 68, 68, 0.25)' :
+                                variant === 'warning' ? '1px solid rgba(245, 158, 11, 0.25)' :
+                                variant === 'primary' ? '1px solid rgba(255, 106, 0, 0.25)' :
+                                '1px solid rgba(14, 165, 233, 0.25)'
                     }}>
                         <Icon />
                     </div>
@@ -193,7 +197,7 @@ const ConfirmModal = ({
                             fontSize: 'var(--text-sm)',
                             fontWeight: 'var(--font-medium)',
                             borderRadius: 'var(--radius-lg)',
-                            background: 'var(--glass-card)',
+                            backgroundImage: 'var(--glass-card)',
                             color: 'var(--text-secondary)',
                             border: '1px solid var(--glass-border)',
                             cursor: 'pointer',
@@ -214,7 +218,7 @@ const ConfirmModal = ({
                             border: 'none',
                             cursor: 'pointer',
                             transition: 'all var(--transition-normal) var(--ease-out)',
-                            background: variant === 'danger' ? 'var(--error-500)' :
+                            backgroundColor: variant === 'danger' ? 'var(--error-500)' :
                                       variant === 'warning' ? 'var(--warning-500)' :
                                       variant === 'primary' ? 'var(--primary-500)' :
                                       'var(--info-500)',

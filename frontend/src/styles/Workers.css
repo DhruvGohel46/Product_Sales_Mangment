@@ -5,29 +5,35 @@
     flex-direction: column;
     gap: calc(24px * var(--display-zoom));
     padding-bottom: calc(40px * var(--display-zoom));
+    perspective: 1200px;
 }
 
 /* --- Profile Header --- */
 .wpHeader {
-    background: var(--surface-primary);
-    border-radius: calc(16px * var(--display-zoom));
+    background: var(--glass-card);
+    backdrop-filter: var(--glass-blur);
+    -webkit-backdrop-filter: var(--glass-blur);
+    border-radius: calc(32px * var(--display-zoom));
     padding: calc(24px * var(--display-zoom)) calc(32px * var(--display-zoom));
-    /* Slimmer padding */
     display: flex;
     gap: calc(32px * var(--display-zoom));
     align-items: center;
     margin-bottom: calc(24px * var(--display-zoom));
-    box-shadow: var(--shadow-card);
-    border: 1px solid var(--border-primary);
+    box-shadow: 
+        inset 0 1px 1px var(--glass-specular),
+        var(--shadow-lg);
+    border: 1px solid var(--glass-border);
     position: sticky;
-    /* Make it sticky */
     top: 0;
     z-index: 100;
-    overflow: visible;
-    /* changed from hidden to allowing box-shadow/sticky to work better if needed, though hidden is fine for inner content */
-    transition: transform 0.2s ease, box-shadow 0.2s ease;
-    backdrop-filter: blur(12px);
-    /* Glassmorphism if supported */
+    
+    transform-style: preserve-3d;
+    transition: transform 0.5s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.5s ease;
+}
+
+.wpHeader:hover {
+    transform: translateZ(30px) translateY(-5px);
+    box-shadow: var(--shadow-2xl);
 }
 
 .wpHeader:hover {
@@ -178,15 +184,27 @@
 }
 
 .wpStatCard {
-    background: var(--surface-primary);
-    border-radius: calc(16px * var(--display-zoom));
+    background: var(--glass-card);
+    backdrop-filter: var(--glass-blur);
+    -webkit-backdrop-filter: var(--glass-blur);
+    border-radius: calc(32px * var(--display-zoom));
     padding: calc(24px * var(--display-zoom));
-    border: 1px solid var(--border-primary);
-    box-shadow: var(--shadow-card);
+    border: 1px solid var(--glass-border);
+    box-shadow: 
+        inset 0 1px 1px var(--glass-specular),
+        var(--shadow-card);
     display: flex;
     flex-direction: column;
     position: relative;
     overflow: hidden;
+
+    transform-style: preserve-3d;
+    transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.4s ease;
+}
+
+.wpStatCard:hover {
+    transform: translateZ(25px) scale(1.03);
+    box-shadow: var(--shadow-xl);
 }
 
 .wpStatHeader {

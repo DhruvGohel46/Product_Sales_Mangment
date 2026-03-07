@@ -26,7 +26,7 @@ const Sidebar = () => {
                 <div className="bg-primary text-primary-foreground p-1.5 rounded-md">
                     <Store className="h-5 w-5" />
                 </div>
-                <span className="text-xl font-bold">ReBill</span>
+                <span className="text-xl font-bold">InfoBill</span>
             </div>
 
             <div className="flex-grow py-6 px-3 space-y-1">

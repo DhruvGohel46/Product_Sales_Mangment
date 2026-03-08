@@ -13,7 +13,28 @@ const Sidebar = ({
     const { settings } = useSettings();
     const location = useLocation();
     const navigate = useNavigate();
-    const restaurantName = settings?.shop_name || 'InfoBill POS';
+    const restaurantName = settings?.shop_name || 'InfoOS POS';
+
+    // Read display-zoom from CSS variable (updated by Settings)
+    const getZoom = () => parseFloat(
+        getComputedStyle(document.documentElement).getPropertyValue('--display-zoom') || '1'
+    );
+
+    // Sidebar widths update whenever display-zoom changes
+    const [zoom, setZoom] = React.useState(getZoom);
+    React.useEffect(() => {
+        // Poll the CSS var — it changes when Settings applies a new zoom
+        const id = setInterval(() => {
+            const next = getZoom();
+            setZoom(prev => prev !== next ? next : prev);
+        }, 300);
+        return () => clearInterval(id);
+    }, []);
+
+    const expandedW = Math.round(260 * zoom);
+    const collapsedW = Math.round(80 * zoom);
+    const logoH = Math.round(80 * zoom);
+    const iconSize = Math.max(14, Math.round(20 * zoom));
 
     // Generate acronym
     const getAcronym = (name) => {
@@ -28,8 +49,8 @@ const Sidebar = ({
     const acronym = getAcronym(restaurantName);
 
     const sidebarVariants = {
-        expanded: { width: '260px' },
-        collapsed: { width: '80px' }
+        expanded: { width: `${expandedW}px` },
+        collapsed: { width: `${collapsedW}px` }
     };
 
     const [lastTap, setLastTap] = React.useState(0);
@@ -67,7 +88,7 @@ const Sidebar = ({
         >
             {/* Header / Logo Area */}
             <div style={{
-                height: '80px',
+                height: `${logoH}px`,
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: isCollapsed ? 'center' : 'flex-start',
@@ -131,22 +152,6 @@ const Sidebar = ({
                             onClick={() => navigate(item.path)}
                             title={isCollapsed ? item.label : ''}
                             initial={false}
-                            animate={{
-                                backgroundColor: isActive ? 'var(--primary-500)' : 'transparent',
-                                color: isActive ? 'var(--text-inverse)' : 'var(--text-secondary)',
-                                boxShadow: isActive
-                                    ? 'var(--shadow-button)'
-                                    : 'none',
-                            }}
-                            whileHover={!isActive ? {
-                                x: 3,
-                                backgroundImage: 'var(--glass-card)',
-                                color: 'var(--text-primary)',
-                                transition: { duration: 0.16 }
-                            } : {
-                                x: 3,
-                                transition: { duration: 0.16 }
-                            }}
                             whileTap={{ scale: 0.97, transition: { duration: 0.1 } }}
                             style={{
                                 position: 'relative',
@@ -156,13 +161,39 @@ const Sidebar = ({
                                 width: '100%',
                                 padding: 'var(--spacing-3) var(--spacing-4)',
                                 borderRadius: 'var(--radius-md)',
-                                border: 'none',
                                 cursor: 'pointer',
                                 outline: 'none',
-                                transition: 'all var(--transition-normal) var(--ease-out)',
+                                transition: 'all 0.2s cubic-bezier(0.25, 0.46, 0.45, 0.94)',
                                 backdropFilter: 'var(--glass-blur)',
                                 WebkitBackdropFilter: 'var(--glass-blur)',
-                                border: '1px solid var(--glass-border)',
+                                border: isActive ? '1px solid rgba(255, 255, 255, 0.3)' : '1px solid var(--glass-border)',
+                                background: isActive 
+                                    ? 'linear-gradient(135deg, rgba(255,255,255,0.25) 0%, rgba(255,255,255,0) 50%, rgba(0,0,0,0.1) 100%), var(--primary-500)' 
+                                    : 'transparent',
+                                color: isActive ? 'var(--text-inverse)' : 'var(--text-secondary)',
+                                boxShadow: isActive 
+                                    ? 'inset 0 1px 1px rgba(255,255,255,0.6), inset 0 -2px 4px rgba(0,0,0,0.2), 0 8px 16px rgba(255, 106, 0, 0.3)' 
+                                    : 'none',
+                            }}
+                            onMouseEnter={(e) => {
+                                if (!isActive) {
+                                    e.currentTarget.style.background = 'var(--glass-card)';
+                                    e.currentTarget.style.color = 'var(--text-primary)';
+                                    e.currentTarget.style.transform = 'translateX(4px)';
+                                } else {
+                                    e.currentTarget.style.transform = 'translateX(4px) scale(1.02)';
+                                    e.currentTarget.style.boxShadow = 'inset 0 1px 1px rgba(255,255,255,0.8), inset 0 -2px 4px rgba(0,0,0,0.2), 0 12px 20px rgba(255, 106, 0, 0.4)';
+                                }
+                            }}
+                            onMouseLeave={(e) => {
+                                if (!isActive) {
+                                    e.currentTarget.style.background = 'transparent';
+                                    e.currentTarget.style.color = 'var(--text-secondary)';
+                                    e.currentTarget.style.transform = 'translateX(0)';
+                                } else {
+                                    e.currentTarget.style.transform = 'translateX(0) scale(1)';
+                                    e.currentTarget.style.boxShadow = 'inset 0 1px 1px rgba(255,255,255,0.6), inset 0 -2px 4px rgba(0,0,0,0.2), 0 8px 16px rgba(255, 106, 0, 0.3)';
+                                }
                             }}
                         >
                             {/* Icon Wrapper */}
@@ -171,7 +202,7 @@ const Sidebar = ({
                                     display: 'flex',
                                     alignItems: 'center',
                                     justifyContent: 'center',
-                                    fontSize: '20px',
+                                    fontSize: `${iconSize}px`,
                                     marginRight: isCollapsed ? 0 : 'var(--spacing-3)',
                                     color: 'currentColor'
                                 }}
@@ -214,12 +245,16 @@ const Sidebar = ({
             }}>
                 <motion.button
                     onClick={toggleCollapse}
-                    whileHover={{
-                        backgroundImage: 'var(--glass-card)',
-                        scale: 1.05
-                    }}
                     whileTap={{ scale: 0.92 }}
                     className="rounded-lg"
+                    onMouseEnter={(e) => {
+                        e.currentTarget.style.background = 'var(--glass-card)';
+                        e.currentTarget.style.transform = 'scale(1.05)';
+                    }}
+                    onMouseLeave={(e) => {
+                        e.currentTarget.style.background = 'transparent';
+                        e.currentTarget.style.transform = 'scale(1)';
+                    }}
                     style={{
                         background: 'transparent',
                         border: '1px solid var(--glass-border)',

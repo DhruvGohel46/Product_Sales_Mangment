@@ -1,7 +1,7 @@
 {
-  "name": "infobill-frontend",
+  "name": "infoos-frontend",
   "version": "1.0.0",
-  "description": "InfoBill - Modern POS & Billing System",
+  "description": "InfoOS - Modern POS & Billing System",
   "homepage": "./",
   "private": true,
   "dependencies": {

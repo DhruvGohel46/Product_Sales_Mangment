@@ -293,13 +293,13 @@ export const shadows = {
   xl: '0 12px 20px -4px rgba(0, 0, 0, 0.1), 0 6px 12px -2px rgba(0, 0, 0, 0.05)',
   '2xl': '0 20px 32px -8px rgba(0, 0, 0, 0.12), 0 10px 20px -4px rgba(0, 0, 0, 0.06)',
 
-  // ReBill Signature Card Shadows
-  card: '0 1px 2px rgba(0,0,0,0.04), 0 8px 24px rgba(0,0,0,0.08)',
-  cardHover: '0 12px 32px rgba(0,0,0,0.12), 0 0 0 1px rgba(255,106,0,0.20)', // Lift + Glow
+  // ReBill Signature Card Shadows (Tinted slate for premium soft volume)
+  card: '0 4px 12px -2px rgba(15, 23, 42, 0.05), 0 12px 32px -4px rgba(15, 23, 42, 0.08)',
+  cardHover: '0 20px 48px -8px rgba(15, 23, 42, 0.12), 0 0 0 1px rgba(255, 106, 0, 0.30)', // Lift + Liquid Glow
 
   // Dark Theme Shadows
-  cardDark: '0 1px 0 rgba(255,255,255,0.03), 0 8px 24px rgba(0,0,0,0.35)',
-  cardDarkHover: '0 12px 32px rgba(0,0,0,0.45), 0 0 0 1px rgba(255,106,0,0.25)', // Lift + Glow
+  cardDark: '0 1px 0 rgba(255,255,255,0.03), 0 8px 32px rgba(0,0,0,0.40)',
+  cardDarkHover: '0 16px 48px rgba(0,0,0,0.55), 0 0 0 1px rgba(255,106,0,0.3)', // Lift + Glow
 
   inner: 'inset 0 1px 2px 0 rgba(0, 0, 0, 0.03)',
 
@@ -352,23 +352,23 @@ export const breakpoints = {
 // Glassmorphism tokens
 const glass = {
   light: {
-    sidebar: 'transparent',
-    card: 'linear-gradient(135deg, rgba(255, 255, 255, 0.25), rgba(255, 255, 255, 0.05))',
-    modal: 'linear-gradient(135deg, rgba(255, 255, 255, 0.4), rgba(255, 255, 255, 0.1))',
-    input: 'rgba(255, 255, 255, 0.1)',
-    dropdown: 'rgba(255, 255, 255, 0.9)',
-    header: 'transparent',
-    border: 'rgba(255, 255, 255, 0.3)',
-    specular: 'rgba(255, 255, 255, 0.5)', // For top-left highlights
-    blur: 'blur(20px)',
+    sidebar: 'linear-gradient(135deg, rgba(255, 255, 255, 0.70) 0%, rgba(255, 255, 255, 0.30) 100%)',
+    card: 'linear-gradient(135deg, rgba(255, 255, 255, 0.95) 0%, rgba(255, 255, 255, 0.80) 40%, rgba(255, 255, 255, 0.50) 100%)',
+    modal: 'linear-gradient(135deg, rgba(255, 255, 255, 0.98), rgba(255, 255, 255, 0.85))',
+    input: 'rgba(0, 0, 0, 0.03)',
+    dropdown: 'rgba(255, 255, 255, 0.98)',
+    header: 'linear-gradient(135deg, rgba(255, 255, 255, 0.80), rgba(255, 255, 255, 0.40))',
+    border: 'rgba(255, 255, 255, 0.8)',
+    specular: 'rgba(255, 255, 255, 1)', // Brilliant top-left 3D highlight
+    blur: 'blur(24px)',
   },
   dark: {
-    sidebar: 'transparent',
+    sidebar: 'linear-gradient(135deg, rgba(255, 255, 255, 0.06), rgba(255, 255, 255, 0.01))',
     card: 'linear-gradient(135deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.02))',
     modal: 'linear-gradient(135deg, rgba(255, 255, 255, 0.15), rgba(255, 255, 255, 0.05))',
     input: 'rgba(255, 255, 255, 0.05)',
     dropdown: 'rgba(23, 23, 23, 0.85)',
-    header: 'transparent',
+    header: 'linear-gradient(135deg, rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0.02))',
     border: 'rgba(255, 255, 255, 0.2)',
     specular: 'rgba(255, 255, 255, 0.3)', // For top-left highlights
     blur: 'blur(20px)',

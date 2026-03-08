@@ -86,6 +86,10 @@ export const productsAPI = {
     if (!filename) return null;
     return `${API_BASE_URL}/api/images/${filename}`;
   },
+
+  // Toggle favorite status
+  toggleFavorite: (productId, isFavorite) =>
+    api.put(`/api/products/${productId}`, { favorite: isFavorite }),
 };
 
 // Category Management APIs

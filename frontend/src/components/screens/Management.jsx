@@ -46,6 +46,19 @@ const IconTrash = (props) => (
   </svg>
 );
 
+const IconHeart = ({ filled, ...props }) => (
+  <svg width="16" height="16" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" {...props}>
+    <path
+      d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      fill={filled ? 'currentColor' : 'none'}
+    />
+  </svg>
+);
+
 const ProductManagement = () => {
   const { staggerContainer, staggerItem } = useAnimation();
   const { showSuccess } = useToast();
@@ -75,6 +88,23 @@ const ProductManagement = () => {
   const [selectedImage, setSelectedImage] = useState(null);
   const [previewImage, setPreviewImage] = useState(null);
   const [imageToDelete, setImageToDelete] = useState(false);
+
+  // Favorite toggle handler
+  const handleToggleFavorite = async (product) => {
+    try {
+      const newFavorite = !product.favorite;
+      await productsAPI.toggleFavorite(product.product_id, newFavorite);
+      // Optimistically update local state
+      setProducts(prev =>
+        prev.map(p =>
+          p.product_id === product.product_id ? { ...p, favorite: newFavorite } : p
+        )
+      );
+    } catch (err) {
+      const apiError = handleAPIError(err);
+      setError(apiError.message);
+    }
+  };
 
   // Password Modal State
   const [showPasswordModal, setShowPasswordModal] = useState(false);
@@ -793,7 +823,29 @@ const ProductManagement = () => {
                       <div className="pmName" title={product.name} style={{ fontSize: showImages ? 'calc(16px * var(--text-scale))' : 'calc(17px * var(--text-scale))', WebkitLineClamp: showImages ? 2 : 1 }}>{product.name}</div>
                       <div className="pmPriceRow">
                         <div className="pmPrice">{formatCurrency(product.price)}</div>
-                        <div className="pmBadge">{product.category_name || product.category || 'Other'}</div>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 'calc(6px * var(--display-zoom))' }}>
+                          <div className="pmBadge">{product.category_name || product.category || 'Other'}</div>
+                          <motion.button
+                            className="pmFavoriteBtn"
+                            whileHover={{ scale: 1.2 }}
+                            whileTap={{ scale: 0.85 }}
+                            onClick={(e) => { e.stopPropagation(); handleToggleFavorite(product); }}
+                            title={product.favorite ? 'Remove from Favorites' : 'Add to Favorites'}
+                            style={{
+                              background: 'none',
+                              border: 'none',
+                              cursor: 'pointer',
+                              padding: 'calc(4px * var(--display-zoom))',
+                              color: product.favorite ? '#EF4444' : 'var(--text-tertiary)',
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                              transition: 'color 0.2s ease',
+                            }}
+                          >
+                            <IconHeart filled={product.favorite} />
+                          </motion.button>
+                        </div>
                       </div>
                     </div>
 

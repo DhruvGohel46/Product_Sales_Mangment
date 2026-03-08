@@ -467,7 +467,7 @@ const Settings = () => {
                                         <div style={{ display: 'flex', gap: '8px', alignItems: 'center', marginTop: '8px' }}>
                                             <Dropdown
                                                 options={[
-                                                    { label: 'Small', value: '0.9' },
+                                                    { label: 'Small', value: '0.8' },
                                                     { label: 'Normal', value: '1' },
                                                     { label: 'Large', value: '1.1' },
                                                     { label: 'Extra Large', value: '1.2' }
@@ -500,7 +500,7 @@ const Settings = () => {
                                         <div style={{ display: 'flex', gap: '8px', alignItems: 'center', marginTop: '8px' }}>
                                             <Dropdown
                                                 options={[
-                                                    { label: 'Small', value: '0.9' },
+                                                    { label: 'Small', value: '0.8' },
                                                     { label: 'Normal', value: '1' },
                                                     { label: 'Large', value: '1.1' },
                                                     { label: 'Extra Large', value: '1.2' }

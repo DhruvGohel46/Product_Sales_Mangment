@@ -52,7 +52,7 @@ const SearchBar = ({ value, onChange, placeholder = "Search items..." }) => {
         <div style={{
             position: 'relative',
             width: '100%',
-            height: '48px', // Standardized height
+            height: 'calc(48px * var(--display-zoom))', // Standardized height
             display: 'flex',
             alignItems: 'center',
             fontFamily: currentTheme.typography.fontFamily.primary,
@@ -60,7 +60,7 @@ const SearchBar = ({ value, onChange, placeholder = "Search items..." }) => {
             {/* Search Icon - Absolutely Positioned Left */}
             <div style={{
                 position: 'absolute',
-                left: '16px',
+                left: 'calc(16px * var(--display-zoom))',
                 top: '50%',
                 transform: 'translateY(-50%)',
                 pointerEvents: 'none',
@@ -71,7 +71,7 @@ const SearchBar = ({ value, onChange, placeholder = "Search items..." }) => {
                 alignItems: 'center',
                 justifyContent: 'center'
             }}>
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <svg width="1.25em" height="1.25em" style={{ fontSize: 'calc(16px * var(--display-zoom))' }} viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                     <path d="M21 21L15 15M17 10C17 13.866 13.866 17 10 17C6.13401 17 3 13.866 3 10C3 6.13401 6.13401 3 10 3C13.866 3 17 6.13401 17 10Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
                 </svg>
             </div>
@@ -88,13 +88,13 @@ const SearchBar = ({ value, onChange, placeholder = "Search items..." }) => {
                 style={{
                     width: '100%',
                     height: '100%',
-                    paddingLeft: '48px', // Space for icon (20px icon + 16px padding + 12px spacing)
-                    paddingRight: localValue ? '40px' : '40px', // Space for clear button/badge
-                    borderRadius: '12px',
+                    paddingLeft: 'calc(44px * var(--display-zoom))', // Space for icon
+                    paddingRight: 'calc(40px * var(--display-zoom))', // Space for clear button/badge
+                    borderRadius: 'calc(12px * var(--display-zoom))',
                     border: `1px solid ${isFocused ? currentTheme.colors.primary[500] : (isDark ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)')}`,
                     backgroundColor: isDark ? 'rgba(255, 255, 255, 0.05)' : 'rgba(255, 255, 255, 0.5)',
                     color: currentTheme.colors.text.primary,
-                    fontSize: '0.95rem',
+                    fontSize: 'calc(0.95rem * var(--text-scale))',
                     fontWeight: 500,
                     outline: 'none',
                     backdropFilter: 'blur(12px)',
@@ -107,12 +107,12 @@ const SearchBar = ({ value, onChange, placeholder = "Search items..." }) => {
             {/* Right Side Actions (Clear / Shortcut) */}
             <div style={{
                 position: 'absolute',
-                right: '12px',
+                right: 'calc(12px * var(--display-zoom))',
                 top: '50%',
                 transform: 'translateY(-50%)',
                 display: 'flex',
                 alignItems: 'center',
-                gap: '8px',
+                gap: 'calc(8px * var(--display-zoom))',
             }}>
                 {localValue ? (
                     <button
@@ -133,7 +133,7 @@ const SearchBar = ({ value, onChange, placeholder = "Search items..." }) => {
                         onMouseEnter={(e) => e.currentTarget.style.color = currentTheme.colors.text.primary}
                         onMouseLeave={(e) => e.currentTarget.style.color = currentTheme.colors.text.secondary}
                     >
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <svg width="1.2em" height="1.2em" style={{ fontSize: 'calc(16px * var(--display-zoom))' }} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                             <circle cx="12" cy="12" r="10"></circle>
                             <line x1="15" y1="9" x2="9" y2="15"></line>
                             <line x1="9" y1="9" x2="15" y2="15"></line>
@@ -142,13 +142,13 @@ const SearchBar = ({ value, onChange, placeholder = "Search items..." }) => {
                 ) : (
                     <div style={{
                         pointerEvents: 'none',
-                        width: '20px',
-                        height: '20px',
-                        borderRadius: '6px',
+                        width: 'calc(20px * var(--display-zoom))',
+                        height: 'calc(20px * var(--display-zoom))',
+                        borderRadius: 'calc(6px * var(--display-zoom))',
                         border: `1px solid ${isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)'}`,
                         backgroundColor: isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.05)',
                         color: currentTheme.colors.text.muted,
-                        fontSize: '0.75rem',
+                        fontSize: 'calc(0.75rem * var(--text-scale))',
                         fontWeight: 600,
                         fontFamily: 'monospace',
                         display: 'flex',

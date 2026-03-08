@@ -3,6 +3,23 @@
 /* Import Design Tokens */
 @import './design-tokens.css';
 
+/* ─── Dynamic Sizing Defaults ────────────────────────────────────────────────
+   These are overridden by JS (Settings.jsx / App.jsx restoreDisplayPrefs)
+   but we define safe defaults here so the layout is correct even before JS
+   hydrates. Sidebar width = base * zoom, header height = 64px * zoom.
+──────────────────────────────────────────────────────────────────────────── */
+:root {
+  --display-zoom: 1;
+  --text-scale: 1;
+
+  /* Derived sidebar widths — used by Sidebar.js variants */
+  --sidebar-width-expanded: calc(260px * var(--display-zoom));
+  --sidebar-width-collapsed: calc(80px  * var(--display-zoom));
+
+  /* Derived header height */
+  --header-height: calc(64px * var(--display-zoom));
+}
+
 /* CSS Reset and Base Styles */
 * {
   margin: 0;
@@ -40,7 +57,7 @@ body {
   -webkit-backdrop-filter: var(--glass-blur);
   border: 1px solid var(--glass-border);
   box-shadow: 
-    0 8px 32px rgba(0, 0, 0, 0.2),
+    var(--shadow-card),
     inset 0 1px 1px var(--glass-specular);
   transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
 }
@@ -48,7 +65,7 @@ body {
 .glass-panel:hover {
   background: linear-gradient(135deg, rgba(255, 255, 255, 0.15), rgba(255, 255, 255, 0.05));
   box-shadow: 
-    0 12px 48px rgba(0, 0, 0, 0.3),
+    var(--shadow-hover),
     inset 0 1px 2px var(--glass-specular);
 }
 
@@ -79,7 +96,7 @@ body {
 
 .lift-3d:hover {
   transform: translateZ(30px) translateY(-5px) rotateX(2deg);
-  box-shadow: 0 20px 40px rgba(0,0,0,0.15);
+  box-shadow: var(--shadow-hover);
 }
 
 .glass-sidebar {
@@ -88,6 +105,13 @@ body {
   -webkit-backdrop-filter: var(--glass-blur);
   border-right: 1px solid var(--glass-border);
   border-radius: var(--radius-sharp);
+  /* Dynamic sizing: icon / padding shrink with display zoom */
+  font-size: calc(1rem * var(--display-zoom));
+}
+
+.glass-header {
+  /* Override height to honour display-zoom */
+  height: var(--header-height) !important;
 }
 
 /* Theme-aware scrollbar */

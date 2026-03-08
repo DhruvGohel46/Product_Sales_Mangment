@@ -113,7 +113,7 @@ def update_product(product_id):
         data = request.get_json()
         
         # Validate at least one field to update
-        if not any(key in data for key in ['name', 'price', 'category', 'active']):
+        if not any(key in data for key in ['name', 'price', 'category', 'active', 'favorite']):
             return jsonify({
                 'success': False,
                 'message': 'No fields to update. Provide at least one: name, price, category, active'
@@ -150,6 +150,12 @@ def update_product(product_id):
             if isinstance(active, str):
                 active = active.lower() in ['true', '1', 'yes']
             update_data['active'] = bool(active)
+        
+        if 'favorite' in data:
+            favorite = data['favorite']
+            if isinstance(favorite, str):
+                favorite = favorite.lower() in ['true', '1', 'yes']
+            update_data['favorite'] = bool(favorite)
 
         # Handle product name change -> Rename image
         if 'name' in update_data:

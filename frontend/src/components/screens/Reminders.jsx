@@ -2,7 +2,7 @@
  * =============================================================================
  * SMART REMINDERS SCREEN — Reminders.jsx
  * =============================================================================
- * A business assistant inside ReBill — helps shop owners manage supplier
+ * A business assistant inside InfoOS — helps shop owners manage supplier
  * payments, inventory restocking, staff salaries, daily tasks, and more.
  * =============================================================================
  */
@@ -106,7 +106,7 @@ export default function Reminders() {
                     triggeredRef.current.add(r.id);
                     addToast(`⏰ ${r.title}`, formatSmartTime(r.date, r.time, r.repeatType));
                     if (Notification.permission === 'granted') {
-                        new Notification('ReBill Reminder', { body: r.title, icon: '/favicon.ico' });
+                        new Notification('InfoOS Reminder', { body: r.title, icon: '/favicon.ico' });
                     }
                 }
             });
@@ -354,95 +354,7 @@ export default function Reminders() {
                     </div>
                 </motion.div>
 
-                {/* ─── Quick Add Panel ────────────────────────────────────────────── */}
-                <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.05, duration: 0.3 }}
-                    className="glass-panel lift-3d"
-                    style={{
-                        padding: 'calc(16px * var(--display-zoom)) calc(20px * var(--display-zoom))',
-                        marginBottom: 'calc(24px * var(--display-zoom))',
-                        borderRadius: 'calc(20px * var(--display-zoom))',
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: 'calc(12px * var(--display-zoom))',
-                        flexWrap: 'wrap'
-                    }}>
-                    <div style={{ flex: '1 1 calc(200px * var(--display-zoom))', minWidth: 0 }}>
-                        <input
-                            value={quickTitle} onChange={(e) => setQuickTitle(e.target.value)}
-                            onKeyDown={(e) => e.key === 'Enter' && handleQuickAdd()}
-                            placeholder="Quick add a task or reminder..."
-                            style={{
-                                width: '100%', 
-                                padding: 'calc(10px * var(--display-zoom)) calc(16px * var(--display-zoom))', 
-                                borderRadius: 'calc(12px * var(--display-zoom))',
-                                border: '1px solid var(--glass-border)',
-                                background: 'rgba(0,0,0,0.05)',
-                                color: t.colors.text.primary, 
-                                fontSize: 'calc(14px * var(--text-scale))', 
-                                outline: 'none',
-                                transition: 'all 0.2s',
-                            }}
-                            onFocus={(e) => { e.target.style.borderColor = '#FF6A00'; e.target.style.background = 'rgba(255,106,0,0.03)'; }}
-                            onBlur={(e) => { e.target.style.borderColor = 'var(--glass-border)'; e.target.style.background = 'rgba(0,0,0,0.05)'; }}
-                        />
-                    </div>
 
-                    <div style={{ width: 'calc(150px * var(--display-zoom))' }}>
-                        <GlobalDatePicker value={quickDate} onChange={setQuickDate} hideLabel forceDown />
-                    </div>
-
-                    <div style={{ width: 'calc(100px * var(--display-zoom))' }}>
-                        <GlobalTimePicker value={quickTime} onChange={setQuickTime} hideLabel forceDown />
-                    </div>
-
-                    <div style={{ width: 'calc(110px * var(--display-zoom))' }}>
-                        <GlobalSelect
-                            options={REPEAT_TYPES.map(r => ({ label: r.label, value: r.id }))}
-                            value={quickRepeat}
-                            onChange={setQuickRepeat}
-                            hideLabel
-                            direction="bottom"
-                        />
-                    </div>
-
-                    <div style={{ display: 'flex', gap: 'calc(4px * var(--display-zoom))', background: 'rgba(0,0,0,0.05)', padding: 'calc(3px * var(--display-zoom))', borderRadius: 'calc(10px * var(--display-zoom))', border: '1px solid var(--glass-border)' }}>
-                        {PRIORITY_LEVELS.map((p) => (
-                            <button key={p.id} onClick={() => setQuickPriority(p.id)}
-                                style={{
-                                    padding: 'calc(6px * var(--display-zoom)) calc(12px * var(--display-zoom))', 
-                                    borderRadius: 'calc(8px * var(--display-zoom))', 
-                                    fontSize: 'calc(11px * var(--text-scale))', 
-                                    fontWeight: 700,
-                                    border: 'none',
-                                    background: quickPriority === p.id ? (isDark ? p.bgDark : p.bgLight) : 'transparent',
-                                    color: quickPriority === p.id ? p.color : t.colors.text.muted,
-                                    cursor: 'pointer', transition: 'all 0.2s',
-                                    textTransform: 'uppercase',
-                                    letterSpacing: '0.02em'
-                                }}>{p.label}</button>
-                        ))}
-                    </div>
-
-                    <motion.button 
-                        whileHover={{ scale: 1.05 }} 
-                        whileTap={{ scale: 0.95 }}
-                        onClick={handleQuickAdd} 
-                        disabled={!quickTitle.trim()}
-                        style={{
-                            height: 'calc(38px * var(--display-zoom))',
-                            padding: '0 calc(18px * var(--display-zoom))', 
-                            borderRadius: 'calc(10px * var(--display-zoom))', 
-                            border: '1px solid rgba(255,255,255,0.1)',
-                            backgroundImage: quickTitle.trim() ? 'linear-gradient(135deg, #FF6A00, #FF8A3D)' : 'none',
-                            backgroundColor: quickTitle.trim() ? 'transparent' : (isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.05)'),
-                            color: quickTitle.trim() ? '#fff' : t.colors.text.muted,
-                            fontWeight: 700, 
-                            fontSize: 'calc(13px * var(--text-scale))', 
-                            cursor: quickTitle.trim() ? 'pointer' : 'not-allowed',
-                            boxShadow: quickTitle.trim() ? '0 4px 12px rgba(255,106,0,0.2)' : 'none',
-                            transition: 'all 0.3s',
-                        }}>Save</motion.button>
-                </motion.div>
 
                 {/* ─── Smart Suggestions ──────────────────────────────────────────── */}
                 {showSuggestions && suggestions.length > 0 && (
@@ -814,7 +726,7 @@ function ReminderModal({ isDark, theme: t, cardBg, cardBorder, subtleBg, reminde
         padding: 'calc(10px * var(--display-zoom)) calc(14px * var(--display-zoom))', 
         borderRadius: 'calc(12px * var(--display-zoom))',
         border: '1px solid var(--glass-border)',
-        background: 'rgba(0,0,0,0.05)',
+        background: isDark ? 'rgba(0,0,0,0.2)' : 'rgba(255,255,255,0.6)',
         color: t.colors.text.primary, 
         fontSize: 'calc(14px * var(--text-scale))', 
         outline: 'none',
@@ -844,12 +756,11 @@ function ReminderModal({ isDark, theme: t, cardBg, cardBorder, subtleBg, reminde
                     position: 'fixed', top: '50%', left: '50%',
                     zIndex: 1001, width: '90%', maxWidth: 'calc(540px * var(--display-zoom))', 
                     maxHeight: '85vh', overflowY: 'auto',
-                    backgroundImage: 'var(--glass-card)', 
+                    backgroundImage: 'var(--glass-modal)', 
                     border: '1px solid var(--glass-border)', 
                     borderRadius: 'calc(24px * var(--display-zoom))',
                     padding: 'calc(32px * var(--display-zoom))', 
                     boxShadow: '0 32px 64px rgba(0,0,0,0.4)',
-                    backdropFilter: 'var(--glass-blur)',
                     perspective: '1200px'
                 }}>
                 {/* Header */}
@@ -910,7 +821,7 @@ function ReminderModal({ isDark, theme: t, cardBg, cardBorder, subtleBg, reminde
                                     style={{
                                         flex: 1, padding: '8px', borderRadius: '10px', fontSize: '0.8rem', fontWeight: 600,
                                         border: form.priority === p.id ? `2px solid ${p.color}` : '2px solid transparent',
-                                        background: form.priority === p.id ? (isDark ? p.bgDark : p.bgLight) : subtleBg,
+                                        background: form.priority === p.id ? (isDark ? p.bgDark : p.bgLight) : (isDark ? 'rgba(0,0,0,0.2)' : 'rgba(255,255,255,0.6)'),
                                         color: form.priority === p.id ? p.color : t.colors.text.muted,
                                         cursor: 'pointer', transition: 'all 0.2s', textAlign: 'center',
                                     }}>{p.label}</button>
@@ -925,8 +836,8 @@ function ReminderModal({ isDark, theme: t, cardBg, cardBorder, subtleBg, reminde
                                 <button key={cat.id} onClick={() => update('category', cat.id)}
                                     style={{
                                         padding: '6px 12px', borderRadius: '10px', fontSize: '0.78rem', fontWeight: 500,
-                                        border: form.category === cat.id ? `1.5px solid ${cat.color}` : `1.5px solid ${isDark ? 'rgba(255,255,255,0.06)' : '#e4e7ec'}`,
-                                        background: form.category === cat.id ? `${cat.color}15` : 'transparent',
+                                        border: form.category === cat.id ? `1.5px solid ${cat.color}` : `1.5px solid var(--glass-border)`,
+                                        background: form.category === cat.id ? `${cat.color}15` : (isDark ? 'rgba(0,0,0,0.2)' : 'rgba(255,255,255,0.6)'),
                                         color: form.category === cat.id ? cat.color : t.colors.text.muted,
                                         cursor: 'pointer', transition: 'all 0.2s',
                                     }}>{cat.icon} {cat.label}</button>

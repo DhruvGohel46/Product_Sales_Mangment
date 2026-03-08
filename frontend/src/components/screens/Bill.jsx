@@ -85,8 +85,8 @@ const WorkingPOSInterface = ({ onBillCreated }) => {
   const { showSuccess } = useAlert();
 
   const [products, setProducts] = useState([]);
-  const [categories, setCategories] = useState([{ id: 'all', name: 'All Items' }]);
-  const [selectedCategory, setSelectedCategory] = useState('all');
+  const [categories, setCategories] = useState([{ id: 'favorites', name: '★ Favorites' }]);
+  const [selectedCategory, setSelectedCategory] = useState('favorites');
   const [searchTerm, setSearchTerm] = useState('');
   const [orderItems, setOrderItems] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -135,7 +135,7 @@ const WorkingPOSInterface = ({ onBillCreated }) => {
       const response = await categoriesAPI.getAllCategories();
       const dynamicCategories = response.data.categories || [];
       setCategories([
-        { id: 'all', name: 'All Items' },
+        { id: 'favorites', name: '★ Favorites' },
         ...dynamicCategories.map(c => ({ id: c.id, name: c.name }))
       ]);
     } catch (err) {
@@ -144,9 +144,13 @@ const WorkingPOSInterface = ({ onBillCreated }) => {
   };
 
   const filteredProducts = products.filter(product => {
-    const categoryMatch = selectedCategory === 'all' ||
-      product.category_id === selectedCategory ||
-      product.category === selectedCategory;
+    let categoryMatch;
+    if (selectedCategory === 'favorites') {
+      categoryMatch = !!product.favorite;
+    } else {
+      categoryMatch = product.category_id === selectedCategory ||
+        product.category === selectedCategory;
+    }
     const searchMatch = product.name.toLowerCase().includes(searchTerm.toLowerCase());
     return categoryMatch && searchMatch;
   });
@@ -378,7 +382,6 @@ const WorkingPOSInterface = ({ onBillCreated }) => {
                   key={category.id}
                   onClick={() => setSelectedCategory(category.id)}
                   whileHover={!isActive ? { 
-                     backgroundImage: 'var(--glass-card)',
                      transform: 'translateX(4px)'
                    } : {
                     transform: 'translateX(2px)'
@@ -394,6 +397,7 @@ const WorkingPOSInterface = ({ onBillCreated }) => {
                     gap: 'var(--spacing-2)', // Reduced from 3
                     padding: '0 var(--spacing-2)', // Reduced from 3
                     backgroundColor: isActive ? 'var(--primary-500)' : 'transparent',
+                    backgroundImage: isActive ? 'none' : 'var(--glass-card)',
                     border: isActive ? '1px solid var(--primary-500)' : '1px solid var(--glass-border)',
                     cursor: 'pointer',
                     color: isActive ? 'var(--text-inverse)' : 'var(--text-secondary)',
@@ -401,6 +405,7 @@ const WorkingPOSInterface = ({ onBillCreated }) => {
                     textAlign: 'left',
                     backdropFilter: 'var(--glass-blur)',
                     WebkitBackdropFilter: 'var(--glass-blur)',
+                    overflow: 'hidden' // Ensures the indicator fully conforms to the button's rounded corners
                   }}
                 >
                   {isActive && (
@@ -409,9 +414,9 @@ const WorkingPOSInterface = ({ onBillCreated }) => {
                       style={{
                         position: 'absolute',
                         left: 0,
-                        top: '10px', // Adjusted for smaller height
-                        bottom: '10px', // Adjusted for smaller height
-                        width: '4px',
+                        top: 0,
+                        bottom: 0,
+                        width: 'calc(4px * var(--display-zoom))', // Scaled width
                         backgroundColor: 'var(--text-inverse)',
                         borderRadius: '0 var(--radius-sm) var(--radius-sm) 0',
                       }}

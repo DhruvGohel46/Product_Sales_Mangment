@@ -35,6 +35,7 @@ class DatabaseService:
                 'category_name': p.category_rel.name if p.category_rel else None,
                 'image_filename': p.image_filename,
                 'active': p.active,
+                'favorite': p.favorite,
                 'created_at': str(p.created_at),
                 'updated_at': str(p.updated_at)
             }
@@ -66,6 +67,7 @@ class DatabaseService:
                 'category_name': p.category_rel.name if p.category_rel else None,
                 'image_filename': p.image_filename,
                 'active': p.active,
+                'favorite': p.favorite,
                 'stock': inv.stock if inv else 0, # Default 0 if not linked
                 'stock_status': 'In Stock' # Default
             }
@@ -101,6 +103,7 @@ class DatabaseService:
             'category_name': p.category_rel.name if p.category_rel else None,
             'image_filename': p.image_filename,
             'active': p.active,
+            'favorite': p.favorite,
             'created_at': str(p.created_at),
             'updated_at': str(p.updated_at)
         }
@@ -150,6 +153,8 @@ class DatabaseService:
                 p.image_filename = product_data['image_filename']
             if 'active' in product_data:
                 p.active = bool(product_data['active'])
+            if 'favorite' in product_data:
+                p.favorite = bool(product_data['favorite'])
             
             p.updated_at = datetime.now()
             db.session.commit()

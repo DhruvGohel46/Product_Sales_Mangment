@@ -31,6 +31,7 @@ class Product(db.Model):
     category = db.Column(db.String(255)) # Legacy field support
     image_filename = db.Column(db.String(255))
     active = db.Column(db.Boolean, default=True)
+    favorite = db.Column(db.Boolean, default=False)
     created_at = db.Column(db.DateTime, default=func.now())
     updated_at = db.Column(db.DateTime, default=func.now(), onupdate=func.now())
 

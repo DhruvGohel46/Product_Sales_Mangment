@@ -1,0 +1,118 @@
+.pricing {
+  padding: 120px 0;
+  border-top: 1px solid var(--border-dim);
+}
+
+.header {
+  text-align: center;
+  margin-bottom: 60px;
+}
+
+.title {
+  font-size: clamp(32px, 4vw, 48px);
+  margin-bottom: 16px;
+}
+
+.subtitle {
+  color: var(--text-secondary);
+  font-size: 18px;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 2px;
+  background: var(--border-dim);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+}
+
+/* Each plan — no cards, just clean sections separated by borders */
+.plan {
+  display: flex;
+  flex-direction: column;
+  padding: 48px 36px;
+  background: var(--surface-0);
+  position: relative;
+}
+
+.popular {
+  background: rgba(249, 115, 22, 0.03);
+}
+
+.popularBadge {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  background: var(--primary-500);
+  color: var(--text-inverse);
+  font-size: 11px;
+  font-weight: 800;
+  padding: 4px 12px;
+  border-radius: var(--radius-full);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.planHeader {
+  margin-bottom: 32px;
+}
+
+.planName {
+  font-size: 22px;
+  margin-bottom: 16px;
+  color: var(--text-primary);
+}
+
+.priceWrap {
+  margin-bottom: 16px;
+}
+
+.price {
+  font-size: 48px;
+  font-weight: 800;
+  color: var(--text-primary);
+}
+
+.period {
+  color: var(--text-muted);
+  font-size: 18px;
+}
+
+.planDesc {
+  color: var(--text-muted);
+  line-height: 1.5;
+  font-size: 15px;
+}
+
+.featureList {
+  flex-grow: 1;
+  margin-bottom: 36px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  list-style: none;
+}
+
+.featureList li {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: var(--text-secondary);
+  font-size: 15px;
+}
+
+.checkIcon {
+  color: var(--primary-400);
+  flex-shrink: 0;
+}
+
+.cta {
+  width: 100%;
+}
+
+@media (max-width: 900px) {
+  .grid {
+    grid-template-columns: 1fr;
+  }
+}

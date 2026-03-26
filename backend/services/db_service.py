@@ -384,6 +384,17 @@ class DatabaseService:
             if bill:
                 bill.status = 'CANCELLED'
                 bill.updated_at = datetime.now()
+                
+                # Restore inventory stock
+                try:
+                    items = json.loads(bill.items)
+                    for item in items:
+                        inv_item = Inventory.query.filter_by(product_id=item['product_id']).first()
+                        if inv_item:
+                            inv_item.stock += item['quantity']
+                except Exception as eval_err:
+                    print(f"Error restoring inventory for cancelled bill: {eval_err}")
+                
                 db.session.commit()
                 return True
             return False
@@ -417,6 +428,23 @@ class DatabaseService:
                 }
                 enriched_items.append(enriched_item)
                 
+            # Adjust inventory stock
+            try:
+                # 1. Restore stock from old items
+                old_items = json.loads(bill.items)
+                for old_item in old_items:
+                    inv_item = Inventory.query.filter_by(product_id=old_item['product_id']).first()
+                    if inv_item:
+                        inv_item.stock += old_item['quantity']
+                        
+                # 2. Deduct stock for new items
+                for new_item in bill_data['items']:
+                    inv_item = Inventory.query.filter_by(product_id=new_item['product_id']).first()
+                    if inv_item:
+                        inv_item.stock -= new_item['quantity']
+            except Exception as eval_err:
+                print(f"Error adjusting inventory for updated bill: {eval_err}")
+
             bill.customer_name = bill_data.get('customer_name', '')
             bill.total_amount = float(bill_data['total_amount'])
             bill.items = json.dumps(enriched_items)

@@ -18,7 +18,6 @@ def start_dashboard_refresher():
     try:
         refresher = DashboardRefresher()
         print("Dashboard Refresher started - Daily refresh at 12:01 AM")
-        print(f"Archive directory: {refresher.archive_dir}")
         refresher.start_scheduler()
     except Exception as e:
         print(f"Failed to start dashboard refresher: {e}")

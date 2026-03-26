@@ -43,7 +43,6 @@
  */
 import React, { useState, useEffect } from 'react';
 import { HashRouter, Routes, Route, useNavigate, useLocation } from 'react-router-dom';
-import { motion, AnimatePresence } from 'framer-motion';
 import { ThemeProvider } from './context/ThemeContext';
 import { AlertProvider, useAlert } from './context/AlertContext';
 import { SettingsProvider, useSettings } from './context/SettingsContext';
@@ -60,7 +59,6 @@ import Analytics from './components/screens/Analytics';
 import ProductManagement from './components/screens/Management';
 import Inventory from './components/screens/Inventory';
 import Settings from './components/screens/Settings';
-import Reminders from './components/screens/Reminders';
 import { settingsAPI } from './api/settings';
 import { setCurrencySymbol } from './utils/api';
 import NotificationSystem from './components/system/NotificationSystem';
@@ -164,7 +162,6 @@ function AppContent() {
     if (pathname.startsWith('/management')) return 'management';
     if (pathname.startsWith('/workers')) return 'workers';
     if (pathname.startsWith('/inventory')) return 'inventory';
-    if (pathname.startsWith('/reminders')) return 'reminders';
     if (pathname.startsWith('/settings')) return 'settings';
     return 'pos';
   };
@@ -236,18 +233,6 @@ function AppContent() {
         </svg>
       )
     },
-
-    {
-      id: 'reminders',
-      label: 'Reminders',
-      path: '/reminders',
-      icon: (
-        <svg width="1em" height="1em" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-          <path d="M13.73 21a2 2 0 0 1-3.46 0" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-        </svg>
-      )
-    },
     {
       id: 'settings',
       label: 'Settings',
@@ -307,12 +292,7 @@ function AppContent() {
         overflow: 'hidden',
         position: 'relative'
       }}>
-        {/* Header */}
-        <motion.header
-          initial={{ opacity: 0, y: -12 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.35, ease: "easeOut" }}
-          whileHover={{ filter: 'brightness(1.05)' }}
+        <header
           className="glass-header"
           style={{
             height: 'var(--header-height)',
@@ -327,14 +307,7 @@ function AppContent() {
         >
           {/* Left Side - New Bill Button */}
           <div style={{ width: '200px' }}>
-            <motion.button
-              whileHover={{
-                transform: 'var(--hover-lift)',
-                boxShadow: 'var(--shadow-button-hover)'
-              }}
-              whileTap={{
-                transform: 'var(--active-scale)'
-              }}
+            <button
               onClick={() => {
                 setPosKey(prev => prev + 1);
                 navigate('/');
@@ -346,7 +319,7 @@ function AppContent() {
               }}
             >
               Start New Bill
-            </motion.button>
+            </button>
           </div>
 
           {/* Center - Title */}
@@ -415,8 +388,7 @@ function AppContent() {
             </div>
 
             {/* Theme Toggle */}
-            <motion.button
-              whileTap={{ scale: 0.92 }}
+            <button
               onClick={toggleTheme}
               className="rounded-lg"
               style={{
@@ -449,9 +421,9 @@ function AppContent() {
               ) : (
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" /></svg>
               )}
-            </motion.button>
+            </button>
           </div>
-        </motion.header>
+        </header>
 
         {/* Main Content */}
         <main style={{
@@ -477,7 +449,6 @@ function AppContent() {
             <Route path="/workers/attendance" element={<Attendance />} />
             <Route path="/workers/salary" element={<SalaryManager />} />
 
-            <Route path="/reminders" element={<Reminders />} />
             <Route path="/settings" element={<Settings />} />
             <Route path="*" element={<WorkingPOSInterface key={posKey} onBillCreated={handleBillCreated} />} />
           </Routes>
@@ -490,7 +461,7 @@ function AppContent() {
       <NotificationSystem ref={notificationRef} />
 
       {/* Startup Attendance Prompt */}
-      <AnimatePresence>
+      <>
         {showAttendancePrompt && (
           <div style={{
             position: 'fixed', inset: 0, zIndex: 2000,
@@ -498,11 +469,7 @@ function AppContent() {
             backgroundColor: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(12px)',
             WebkitBackdropFilter: 'blur(12px)'
           }}>
-            <motion.div
-              initial={{ opacity: 0, y: 20, scale: 0.95 }}
-              animate={{ opacity: 1, y: 0, scale: 1 }}
-              exit={{ opacity: 0, y: 10, scale: 0.95 }}
-              transition={{ duration: 0.25, ease: [0.25, 0.46, 0.45, 0.94] }}
+            <div
               className="liquid-glass-card"
               style={{
                 padding: 'var(--spacing-8)',
@@ -600,13 +567,13 @@ function AppContent() {
                   Yes, Mark Now
                 </Button>
               </div>
-            </motion.div>
+            </div>
           </div>
         )}
-      </AnimatePresence>
+      </>
 
       {/* Salary Day Notification */}
-      <AnimatePresence>
+      <>
         {salaryNotification && (
           <div style={{
             position: 'fixed', inset: 0, zIndex: 2000,
@@ -614,11 +581,7 @@ function AppContent() {
             backgroundColor: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(12px)',
             WebkitBackdropFilter: 'blur(12px)'
           }}>
-            <motion.div
-              initial={{ opacity: 0, y: 20, scale: 0.95 }}
-              animate={{ opacity: 1, y: 0, scale: 1 }}
-              exit={{ opacity: 0, y: 10, scale: 0.95 }}
-              transition={{ duration: 0.25, ease: [0.25, 0.46, 0.45, 0.94] }}
+            <div
               className="liquid-glass-card"
               style={{
                 padding: 'var(--spacing-8)',
@@ -716,10 +679,10 @@ function AppContent() {
                   Go to Salary Manager
                 </Button>
               </div>
-            </motion.div>
+            </div>
           </div>
         )}
-      </AnimatePresence>
+      </>
     </div>
   );
 }

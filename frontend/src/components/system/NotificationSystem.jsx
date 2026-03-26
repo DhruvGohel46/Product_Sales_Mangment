@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback, useImperativeHandle, forwardRef } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+// removed framer-motion
 import { inventoryAPI } from '../../utils/api';
 import { useSettings } from '../../context/SettingsContext';
 
@@ -148,14 +148,10 @@ const NotificationSystem = forwardRef((props, ref) => {
             gap: '10px',
             pointerEvents: 'none' // Allow clicking through container
         }}>
-            <AnimatePresence mode="popLayout">
+            <>
                 {notifications.map(n => (
-                    <motion.div
+                    <div
                         key={n.id}
-                        layout
-                        initial={{ opacity: 0, x: 50, scale: 0.9 }}
-                        animate={{ opacity: 1, x: 0, scale: 1 }}
-                        exit={{ opacity: 0, x: 20, scale: 0.95 }}
                         style={{
                             minWidth: '320px',
                             maxWidth: '400px',
@@ -172,10 +168,7 @@ const NotificationSystem = forwardRef((props, ref) => {
                         }}
                     >
                         {/* Auto-dismiss progress bar (visual only) */}
-                        <motion.div
-                            initial={{ width: '100%' }}
-                            animate={{ width: '0%' }}
-                            transition={{ duration: 6, ease: 'linear' }}
+                        <div
                             style={{
                                 position: 'absolute',
                                 bottom: 0,
@@ -221,9 +214,9 @@ const NotificationSystem = forwardRef((props, ref) => {
                                 <XIcon />
                             </button>
                         </div>
-                    </motion.div>
+                    </div>
                 ))}
-            </AnimatePresence>
+            </>
         </div>
     );
 });

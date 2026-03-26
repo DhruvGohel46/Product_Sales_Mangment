@@ -55,7 +55,6 @@
  */
 import React, { useState, useEffect, useRef } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { motion, AnimatePresence } from 'framer-motion';
 import { useTheme } from '../../context/ThemeContext';
 import { useSettings } from '../../context/SettingsContext';
 import { useAlert } from '../../context/AlertContext';
@@ -378,15 +377,9 @@ const WorkingPOSInterface = ({ onBillCreated }) => {
             {categories.map((category) => {
               const isActive = selectedCategory === category.id;
               return (
-                <motion.button
+                <button
                   key={category.id}
                   onClick={() => setSelectedCategory(category.id)}
-                  whileHover={!isActive ? { 
-                     transform: 'translateX(4px)'
-                   } : {
-                    transform: 'translateX(2px)'
-                  }}
-                  whileTap={{ scale: 0.98 }}
                   className="rounded-lg glass-card"
                   style={{
                     position: 'relative',
@@ -409,8 +402,7 @@ const WorkingPOSInterface = ({ onBillCreated }) => {
                   }}
                 >
                   {isActive && (
-                    <motion.div
-                      layoutId="activeCategory"
+                    <div
                       style={{
                         position: 'absolute',
                         left: 0,
@@ -452,7 +444,7 @@ const WorkingPOSInterface = ({ onBillCreated }) => {
                   }}>
                     {category.name}
                   </span>
-                </motion.button>
+                </button>
               );
             })}
           </div>
@@ -513,12 +505,7 @@ const WorkingPOSInterface = ({ onBillCreated }) => {
               </p>
             </div>
           ) : (
-            <motion.div
-              initial="initial"
-              animate="animate"
-              variants={{
-                  animate: { transition: { staggerChildren: 0.05 } }
-              }}
+            <div
               style={{
                 display: 'grid',
                 gridTemplateColumns: 'repeat(auto-fill, minmax(calc(160px * var(--display-zoom)), 1fr))', // Reduced from 200px
@@ -527,12 +514,8 @@ const WorkingPOSInterface = ({ onBillCreated }) => {
               }}
             >
               {filteredProducts.map((product) => (
-                <motion.div
+                <div
                     key={product.product_id}
-                    variants={{
-                        initial: { opacity: 0, y: 10 },
-                        animate: { opacity: 1, y: 0 }
-                    }}
                 >
                     <div 
                         className="glass-card lift-3d"
@@ -620,9 +603,7 @@ const WorkingPOSInterface = ({ onBillCreated }) => {
                                 </span>
 
                                 {/* Add Button */}
-                                <motion.div
-                                    whileHover={{ scale: 1.1, backgroundColor: 'var(--primary-600)' }}
-                                    whileTap={{ scale: 0.9 }}
+                                <div
                                     style={{
                                         width: 'calc(28px * var(--display-zoom))', 
                                         height: 'calc(28px * var(--display-zoom))',
@@ -639,13 +620,13 @@ const WorkingPOSInterface = ({ onBillCreated }) => {
                                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round">
                                         <path d="M12 5V19M5 12H19" />
                                     </svg>
-                                </motion.div>
+                                </div>
                             </div>
                         </div>
                     </div>
-                </motion.div>
+                </div>
               ))}
-            </motion.div>
+            </div>
           )}
         </div>
       </div>
@@ -719,9 +700,7 @@ const WorkingPOSInterface = ({ onBillCreated }) => {
               height: '60%'
             }}>
               {/* Bobbing Animation */}
-              <motion.div
-                animate={{ y: [0, -8, 0] }}
-                transition={{ repeat: Infinity, duration: 2, ease: "easeInOut" }}
+              <div
                 style={{
                   width: '64px', height: '64px',
                   borderRadius: '16px',
@@ -734,7 +713,7 @@ const WorkingPOSInterface = ({ onBillCreated }) => {
                   <path d="M9 20a1 1 0 1 0 0-2 1 1 0 0 0 0 2Zm8 0a1 1 0 1 0 0-2 1 1 0 0 0 0 2Z" />
                   <path d="M2.05 2.05h2l2.66 12.42a2 2 0 0 0 2 1.58h9.78a2 2 0 0 0 1.95-1.57l1.65-7.43H5.12" />
                 </svg>
-              </motion.div>
+              </div>
               <div style={{ fontSize: '16px', fontWeight: 600, color: currentTheme.colors.text.primary }}>
                 Your cart is empty
               </div>
@@ -890,20 +869,14 @@ const WorkingPOSInterface = ({ onBillCreated }) => {
       }
 
       {/* Clear Confirmation Modal */}
-      <AnimatePresence>
+      <>
         {showClearConfirm && (
-          <motion.div
+          <div
             className="pmOverlay"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
             onClick={cancelClear}
           >
-            <motion.div
+            <div
               className="pmDialog"
-              initial={{ y: 20, scale: 0.95, opacity: 0 }}
-              animate={{ y: 0, scale: 1, opacity: 1 }}
-              exit={{ y: 20, scale: 0.95, opacity: 0 }}
               onClick={(e) => e.stopPropagation()}
             >
               <div className="pmDialogTitle">
@@ -923,10 +896,10 @@ const WorkingPOSInterface = ({ onBillCreated }) => {
                   Yes, Clear Bill
                 </button>
               </div>
-            </motion.div>
-          </motion.div>
+            </div>
+          </div>
         )}
-      </AnimatePresence>
+      </>
     </div >
   );
 };

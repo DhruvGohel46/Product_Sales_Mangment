@@ -286,20 +286,20 @@ export const borderRadius = {
 // Shadows - Human Quality Depth
 export const shadows = {
   none: 'none',
-  sm: '0 1px 2px rgba(0,0,0,0.04)',
-  base: '0 1px 2px rgba(0,0,0,0.04), 0 4px 12px rgba(0,0,0,0.04)',
-  md: '0 4px 6px -1px rgba(0, 0, 0, 0.06), 0 2px 4px -1px rgba(0, 0, 0, 0.04)',
-  lg: '0 8px 12px -2px rgba(0, 0, 0, 0.08), 0 4px 8px -2px rgba(0, 0, 0, 0.04)',
-  xl: '0 12px 20px -4px rgba(0, 0, 0, 0.1), 0 6px 12px -2px rgba(0, 0, 0, 0.05)',
-  '2xl': '0 20px 32px -8px rgba(0, 0, 0, 0.12), 0 10px 20px -4px rgba(0, 0, 0, 0.06)',
+  sm: '0 1px 1px rgba(0,0,0,0.01)',
+  base: '0 1px 1px rgba(0,0,0,0.01), 0 1px 2px rgba(0,0,0,0.02)',
+  md: '0 1px 2px -1px rgba(0, 0, 0, 0.02)',
+  lg: '0 2px 4px -2px rgba(0, 0, 0, 0.03)',
+  xl: '0 4px 8px -2px rgba(0, 0, 0, 0.04)',
+  '2xl': '0 6px 12px -4px rgba(0, 0, 0, 0.05)',
 
   // ReBill Signature Card Shadows (Tinted slate for premium soft volume)
-  card: '0 4px 12px -2px rgba(15, 23, 42, 0.05), 0 12px 32px -4px rgba(15, 23, 42, 0.08)',
-  cardHover: '0 20px 48px -8px rgba(15, 23, 42, 0.12), 0 0 0 1px rgba(255, 106, 0, 0.30)', // Lift + Liquid Glow
+  card: '0 1px 2px rgba(0,0,0,0.02), 0 2px 4px rgba(0,0,0,0.03)',
+  cardHover: '0 4px 8px rgba(0,0,0,0.05), 0 0 0 1px rgba(255, 106, 0, 0.10)', // Minimal lift glow
 
   // Dark Theme Shadows
-  cardDark: '0 1px 0 rgba(255,255,255,0.03), 0 8px 32px rgba(0,0,0,0.40)',
-  cardDarkHover: '0 16px 48px rgba(0,0,0,0.55), 0 0 0 1px rgba(255,106,0,0.3)', // Lift + Glow
+  cardDark: '0 1px 0 rgba(255,255,255,0.01), 0 2px 8px rgba(0,0,0,0.20)',
+  cardDarkHover: '0 6px 16px rgba(0,0,0,0.30), 0 0 0 1px rgba(255,106,0,0.15)', // Minimal lift glow
 
   inner: 'inset 0 1px 2px 0 rgba(0, 0, 0, 0.03)',
 
@@ -360,7 +360,7 @@ const glass = {
     header: 'linear-gradient(135deg, rgba(255, 255, 255, 0.80), rgba(255, 255, 255, 0.40))',
     border: 'rgba(255, 255, 255, 0.8)',
     specular: 'rgba(255, 255, 255, 1)', // Brilliant top-left 3D highlight
-    blur: 'blur(24px)',
+    blur: 'blur(4px)',
   },
   dark: {
     sidebar: 'linear-gradient(135deg, rgba(255, 255, 255, 0.06), rgba(255, 255, 255, 0.01))',
@@ -371,7 +371,7 @@ const glass = {
     header: 'linear-gradient(135deg, rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0.02))',
     border: 'rgba(255, 255, 255, 0.2)',
     specular: 'rgba(255, 255, 255, 0.3)', // For top-left highlights
-    blur: 'blur(20px)',
+    blur: 'blur(2px)',
   }
 };
 

@@ -1,37 +1,44 @@
 .footer {
-  padding-top: 120px;
-  border-top: 1px solid var(--border-dim);
+  padding-top: 80px;
+  background: transparent;
+  position: relative;
+}
+
+.footer::before {
+  display: none;
 }
 
 .ctaSection {
   text-align: center;
   padding: 80px 40px;
-  border: 1px solid var(--border-dim);
-  border-radius: var(--radius-xl);
-  background: radial-gradient(circle at center, rgba(249, 115, 22, 0.06), transparent 70%);
   margin-bottom: 80px;
 }
 
 .ctaTitle {
   font-size: clamp(32px, 5vw, 52px);
   margin-bottom: 40px;
+  color: #0F172A;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  font-family: Georgia, serif;
 }
 
 .ctaButton {
   display: inline-block;
   padding: 20px 48px;
-  background: var(--primary-500);
-  color: var(--text-inverse);
+  background: linear-gradient(135deg, #C2410C 0%, #EA580C 100%);
+  color: #FFFFFF;
   font-weight: 800;
-  border-radius: var(--radius-button);
+  border-radius: 16px;
   font-size: 18px;
-  box-shadow: 0 0 40px rgba(249, 115, 22, 0.3);
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  box-shadow: 0 10px 40px rgba(194, 65, 12, 0.3);
+  transition: all 0.2s ease;
+  text-decoration: none;
 }
 
 .ctaButton:hover {
   transform: translateY(-4px);
-  box-shadow: 0 0 60px rgba(249, 115, 22, 0.45);
+  box-shadow: 0 14px 50px rgba(194, 65, 12, 0.4);
 }
 
 .main {
@@ -39,7 +46,7 @@
   justify-content: space-between;
   gap: 80px;
   padding-bottom: 60px;
-  border-bottom: 1px solid var(--border-dim);
+  border-bottom: 1px solid #E2E8F0;
 }
 
 .brand {
@@ -50,21 +57,25 @@
   display: flex;
   align-items: center;
   gap: 10px;
-  font-family: var(--font-display);
+  font-family: Georgia, serif;
   font-size: 24px;
-  font-weight: 800;
-  color: var(--text-primary);
+  font-weight: 700;
+  color: #0F172A;
   margin-bottom: 16px;
+  text-decoration: none;
 }
 
 .logoIcon {
-  color: var(--primary-500);
+  color: #C2410C;
 }
 
 .tagline {
-  color: var(--text-muted);
-  line-height: 1.6;
-  font-size: 15px;
+  color: #334155;
+  line-height: 1.7;
+  font-size: 16px;
+  font-family: Georgia, serif;
+  font-style: italic;
+  letter-spacing: 0.01em;
 }
 
 .links {
@@ -73,31 +84,39 @@
 }
 
 .group h4 {
-  color: var(--text-primary);
-  font-size: 13px;
+  color: #1E293B;
+  font-size: 14px;
   text-transform: uppercase;
   letter-spacing: 0.1em;
   margin-bottom: 20px;
+  font-weight: 700;
+  font-family: Georgia, serif;
 }
 
 .group {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 14px;
 }
 
 .group a {
-  color: var(--text-muted);
-  font-size: 14px;
+  color: #334155;
+  font-size: 15px;
+  text-decoration: none;
+  transition: color 0.2s;
+  font-family: Georgia, serif;
+  font-style: italic;
+  line-height: 1.6;
+  letter-spacing: 0.01em;
 }
 
 .group a:hover {
-  color: var(--text-primary);
+  color: #C2410C;
 }
 
 .bottom {
   padding: 32px 0;
-  color: var(--text-muted);
+  color: #334155;
   font-size: 13px;
   text-align: center;
 }

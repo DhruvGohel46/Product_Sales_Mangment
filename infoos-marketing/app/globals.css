@@ -157,11 +157,30 @@ button { cursor: pointer; border: none; background: none; font-family: inherit; 
   box-shadow: var(--shadow-hover);
 }
 
+.title-highlight {
+  display: inline-block;
+  background: linear-gradient(135deg, #f97316 0%, #ea580c 100%);
+  color: #FFFFFF;
+  padding: 4px 16px;
+  border-radius: 12px;
+  box-shadow: 0 4px 15px rgba(249, 115, 22, 0.3);
+  margin: 0 4px;
+  line-height: normal;
+}
+
 .text-gradient {
-  background: linear-gradient(135deg, #FFF 0%, var(--primary-400) 100%);
+  background: linear-gradient(135deg, #f97316 0%, #ff9900 100%);
   -webkit-background-clip: text;
   background-clip: text;
   -webkit-text-fill-color: transparent;
+}
+
+@media (max-width: 768px) {
+  .title-highlight {
+    padding: 3px 12px;
+    font-size: 0.9em;
+    border-radius: 10px;
+  }
 }
 
 .section-container {

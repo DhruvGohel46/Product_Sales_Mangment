@@ -1,6 +1,11 @@
 .features {
-  padding: 120px 0;
+  padding: 80px 0;
   position: relative;
+  background: transparent;
+}
+
+.features::before {
+  display: none;
 }
 
 .header {
@@ -11,80 +16,74 @@
 .title {
   font-size: clamp(32px, 4vw, 48px);
   margin-bottom: 16px;
+  color: #FFFFFF;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  font-family: Georgia, serif;
 }
 
 .subtitle {
-  color: var(--text-secondary);
+  color: rgba(255, 255, 255, 0.7);
   font-size: 18px;
   max-width: 500px;
   margin: 0 auto;
+  font-family: Georgia, serif;
+  font-style: italic;
 }
 
-/* No-card grid — clean rows with subtle left border accent */
+/* Simple grid without cards */
 .grid {
   display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 0;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 48px;
+  max-width: 1000px;
+  margin: 0 auto;
 }
 
 .item {
   display: flex;
   align-items: flex-start;
   gap: 20px;
-  padding: 32px 28px;
-  border-bottom: 1px solid var(--border-dim);
-  border-right: 1px solid var(--border-dim);
-  transition: background var(--transition-normal) var(--ease-out);
+  padding: 0;
+  transition: all 0.3s ease;
 }
 
 .item:hover {
-  background: rgba(249, 115, 22, 0.03);
-}
-
-/* Remove right border on even items */
-.item:nth-child(2n) {
-  border-right: none;
-}
-
-/* Remove bottom border on last row */
-.item:nth-last-child(-n+2) {
-  border-bottom: none;
+  transform: translateX(8px);
 }
 
 .iconWrap {
   width: 48px;
   height: 48px;
-  border-radius: var(--radius-md);
-  background: rgba(249, 115, 22, 0.08);
-  border: 1px solid rgba(249, 115, 22, 0.15);
+  border-radius: 12px;
+  background: linear-gradient(135deg, rgba(194, 65, 12, 0.08) 0%, rgba(234, 88, 12, 0.04) 100%);
   display: flex;
   align-items: center;
   justify-content: center;
-  color: var(--primary-400);
+  color: #C2410C;
   flex-shrink: 0;
 }
 
 .itemTitle {
-  font-size: 18px;
-  font-weight: 700;
-  color: var(--text-primary);
-  margin-bottom: 8px;
+  font-size: 20px;
+  font-weight: 600;
+  color: #FFFFFF;
+  margin-bottom: 12px;
+  font-family: Georgia, serif;
+  line-height: 1.3;
 }
 
 .itemDesc {
-  font-size: 15px;
-  color: var(--text-muted);
-  line-height: 1.6;
+  font-size: 16px;
+  color: rgba(255, 255, 255, 0.6);
+  line-height: 1.7;
+  font-family: Georgia, serif;
+  font-style: italic;
+  letter-spacing: 0.01em;
 }
 
 @media (max-width: 768px) {
   .grid {
     grid-template-columns: 1fr;
-  }
-  .item {
-    border-right: none !important;
-  }
-  .item:last-child {
-    border-bottom: none;
   }
 }

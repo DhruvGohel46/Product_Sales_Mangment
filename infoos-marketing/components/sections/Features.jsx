@@ -19,7 +19,7 @@ export default function Features() {
       <div className="section-container">
         <div className={styles.header}>
           <h2 className={styles.title}>
-            Built for <span className="text-gradient">Real Businesses</span>
+            Built for <span className="title-highlight">Real Businesses</span>
           </h2>
           <p className={styles.subtitle}>
             Every feature is driven by feedback from shop owners. No bloat. Just what works.

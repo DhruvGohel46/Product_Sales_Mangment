@@ -35,10 +35,10 @@ def create_app(config_name='default'):
     from routes.reports import reports_bp
     from routes.categories import categories_bp
     from routes.settings import settings_bp
-    from routes.settings import settings_bp
     from routes.inventory import inventory_bp
     from routes.workers import workers_bp
     from routes.reminders import reminders_bp
+    from routes.expenses import expenses_bp
     
     # Load configuration
     app.config.from_object(config[config_name])
@@ -66,6 +66,7 @@ def create_app(config_name='default'):
     app.register_blueprint(inventory_bp)
     app.register_blueprint(workers_bp)
     app.register_blueprint(reminders_bp)
+    app.register_blueprint(expenses_bp)
     
     # Initialize reminder service
     from services.reminder_service import reminder_service
@@ -95,7 +96,8 @@ def create_app(config_name='default'):
                 'settings': '/api/settings',
                 'inventory': '/api/inventory',
                 'workers': '/api/workers',
-                'reminders': '/api/reminders'
+                'reminders': '/api/reminders',
+                'expenses': '/api/expenses'
             }
         })
     

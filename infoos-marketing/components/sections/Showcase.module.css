@@ -1,5 +1,11 @@
 .showcase {
-  padding: 120px 0;
+  padding: 80px 0;
+  background: transparent;
+  position: relative;
+}
+
+.showcase::before {
+  display: none;
 }
 
 .header {
@@ -10,11 +16,17 @@
 .title {
   font-size: clamp(32px, 4vw, 48px);
   margin-bottom: 16px;
+  color: #FFFFFF;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  font-family: Georgia, serif;
 }
 
 .subtitle {
-  color: var(--text-secondary);
+  color: rgba(255, 255, 255, 0.7);
   font-size: 18px;
+  font-family: Georgia, serif;
+  font-style: italic;
 }
 
 .tabs {
@@ -22,6 +34,14 @@
   justify-content: center;
   gap: 8px;
   margin-bottom: 48px;
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(20px);
+  padding: 8px;
+  border-radius: 9999px;
+  width: fit-content;
+  margin-left: auto;
+  margin-right: auto;
+  border: 1px solid rgba(255, 255, 255, 0.1);
 }
 
 .tab {
@@ -29,26 +49,27 @@
   align-items: center;
   gap: 8px;
   padding: 12px 24px;
-  border-radius: var(--radius-full);
+  border-radius: 9999px;
   font-size: 14px;
   font-weight: 600;
-  color: var(--text-muted);
-  border: 1px solid var(--border-dim);
+  color: #64748B;
+  border: none;
   background: transparent;
   transition: all 0.2s ease;
   cursor: pointer;
+  font-family: Georgia, serif;
+  font-style: italic;
 }
 
 .tab:hover {
-  color: var(--text-primary);
-  border-color: var(--border-light);
+  color: #0F172A;
+  background: rgba(255, 255, 255, 0.5);
 }
 
 .tabActive {
-  background: var(--primary-500);
-  color: var(--text-inverse);
-  border-color: var(--primary-500);
-  box-shadow: 0 0 20px rgba(249, 115, 22, 0.25);
+  background: rgba(255, 255, 255, 0.95);
+  color: #0F172A;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
 }
 
 .display {
@@ -57,18 +78,22 @@
 
 .displayContent {
   display: grid;
-  grid-template-columns: 1.5fr 1fr;
-  gap: 48px;
+  grid-template-columns: 1fr 1fr;
+  gap: 60px;
   align-items: center;
+  padding: 40px;
 }
 
 .imageWrap {
-  background: var(--glass-card);
-  backdrop-filter: var(--glass-blur);
-  border: 1px solid var(--glass-border);
-  border-radius: var(--radius-lg);
+  background: rgba(255, 255, 255, 0.05); /* Lighter glass */
+  backdrop-filter: blur(20px) saturate(180%);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 24px;
   overflow: hidden;
-  box-shadow: var(--shadow-card);
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.3);
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .image {
@@ -80,7 +105,9 @@
 .featureList h3 {
   font-size: 28px;
   margin-bottom: 24px;
-  color: var(--text-primary);
+  color: #FFFFFF;
+  font-weight: 600;
+  font-family: Georgia, serif;
 }
 
 .featureList ul {
@@ -88,26 +115,53 @@
   display: flex;
   flex-direction: column;
   gap: 16px;
+  padding: 0;
 }
 
 .featureList li {
   display: flex;
   align-items: center;
   gap: 12px;
-  color: var(--text-secondary);
+  color: rgba(255, 255, 255, 0.7);
   font-size: 16px;
+  font-family: Georgia, serif;
+  font-style: italic;
 }
 
 .dot {
   width: 8px;
   height: 8px;
   border-radius: 50%;
-  background: var(--primary-500);
+  background: linear-gradient(135deg, #E6701E 0%, #FF8A3D 100%);
   flex-shrink: 0;
 }
 
 @media (max-width: 900px) {
+  .tabs {
+    flex-wrap: wrap;
+    border-radius: 20px;
+    width: 90%;
+    justify-content: center;
+    padding: 6px;
+  }
+
+  .tab {
+    padding: 8px 16px;
+    font-size: 13px;
+  }
+
   .displayContent {
     grid-template-columns: 1fr;
+    padding: 24px 16px;
+    gap: 32px;
+  }
+
+  .featureList h3 {
+    font-size: 24px;
+    text-align: center;
+  }
+
+  .featureList ul {
+    align-items: center;
   }
 }

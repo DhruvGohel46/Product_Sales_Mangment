@@ -48,6 +48,7 @@ import { AlertProvider, useAlert } from './context/AlertContext';
 import { SettingsProvider, useSettings } from './context/SettingsContext';
 import { useTheme } from './context/ThemeContext';
 import './styles/typography.css'; // Import global typography system
+
 import { useAnimation } from './hooks/useAnimation';
 import { formatCurrency } from './utils/api';
 import './styles/fonts.css';
@@ -58,6 +59,7 @@ import WorkingPOSInterface from './components/screens/Bill';
 import Analytics from './components/screens/Analytics';
 import ProductManagement from './components/screens/Management';
 import Inventory from './components/screens/Inventory';
+import Expenses from './components/screens/Expenses';
 import Settings from './components/screens/Settings';
 import { settingsAPI } from './api/settings';
 import { setCurrencySymbol } from './utils/api';
@@ -162,6 +164,7 @@ function AppContent() {
     if (pathname.startsWith('/management')) return 'management';
     if (pathname.startsWith('/workers')) return 'workers';
     if (pathname.startsWith('/inventory')) return 'inventory';
+    if (pathname.startsWith('/expenses')) return 'expenses';
     if (pathname.startsWith('/settings')) return 'settings';
     return 'pos';
   };
@@ -218,6 +221,18 @@ function AppContent() {
           <rect x="8" y="2" width="8" height="4" rx="1" ry="1" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
           <path d="M9 12h6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
           <path d="M9 16h6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+        </svg>
+      )
+    },
+    {
+      id: 'expenses',
+      label: 'Expenses',
+      path: '/expenses',
+      icon: (
+        <svg width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z" />
+          <path d="M3 6h18" />
+          <path d="M16 10a4 4 0 0 1-8 0" />
         </svg>
       )
     },
@@ -360,7 +375,7 @@ function AppContent() {
 
           {/* Right Side - Date & Theme */}
           <div style={{
-            width: '200px',
+            width: '300px',
             display: 'flex',
             justifyContent: 'flex-end',
             alignItems: 'center',
@@ -448,6 +463,8 @@ function AppContent() {
             <Route path="/workers/:id" element={<WorkerProfile />} />
             <Route path="/workers/attendance" element={<Attendance />} />
             <Route path="/workers/salary" element={<SalaryManager />} />
+
+            <Route path="/expenses" element={<Expenses />} />
 
             <Route path="/settings" element={<Settings />} />
             <Route path="*" element={<WorkingPOSInterface key={posKey} onBillCreated={handleBillCreated} />} />

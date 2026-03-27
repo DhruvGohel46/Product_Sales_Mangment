@@ -71,6 +71,60 @@ class Bill(db.Model):
     )
 
 # ==========================================
+# BUSINESS EXPENSE MODELS
+# ==========================================
+
+class Expense(db.Model):
+    __tablename__ = 'expenses'
+    
+    id = db.Column(db.String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
+    supplier_name = db.Column(db.String(255), nullable=True)
+    category = db.Column(db.String(100), nullable=False) # 'Inventory Purchase', 'Utility Bill', etc.
+    total_amount = db.Column(db.Float, nullable=False)
+    payment_method = db.Column(db.String(50), default='Cash')
+    expense_date = db.Column(db.DateTime, default=func.now())
+    notes = db.Column(db.Text, nullable=True)
+    created_at = db.Column(db.DateTime, default=func.now())
+    updated_at = db.Column(db.DateTime, default=func.now(), onupdate=func.now())
+    
+    # Relationship
+    items = db.relationship('ExpenseItem', backref='expense', lazy=True, cascade="all, delete-orphan")
+
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'supplier_name': self.supplier_name,
+            'category': self.category,
+            'total_amount': self.total_amount,
+            'payment_method': self.payment_method,
+            'expense_date': self.expense_date.isoformat() if hasattr(self.expense_date, 'isoformat') else self.expense_date,
+            'notes': self.notes,
+            'created_at': self.created_at.isoformat() if self.created_at else None,
+            'items': [item.to_dict() for item in self.items]
+        }
+
+class ExpenseItem(db.Model):
+    __tablename__ = 'expense_items'
+    
+    id = db.Column(db.String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
+    expense_id = db.Column(db.String(36), db.ForeignKey('expenses.id'), nullable=False)
+    product_id = db.Column(db.String(50), nullable=True) # Linked to inventory/product
+    quantity = db.Column(db.String(100), nullable=False, default='1')
+    purchase_price = db.Column(db.Float, nullable=False)
+    subtotal = db.Column(db.Float, nullable=False)
+    created_at = db.Column(db.DateTime, default=func.now())
+
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'expense_id': self.expense_id,
+            'product_id': self.product_id,
+            'quantity': self.quantity,
+            'purchase_price': self.purchase_price,
+            'subtotal': self.subtotal
+        }
+
+# ==========================================
 # WORKER MANAGEMENT SYSTEM MODELS
 # Schema: worker
 # ==========================================

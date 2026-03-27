@@ -35,6 +35,8 @@ class SummaryService:
                     "date": date.today().strftime("%Y-%m-%d"),
                     "total_bills": 0,
                     "total_sales": 0.0,
+                    "total_expenses": sum(expense['total_amount'] for expense in self.db_service.get_todays_expenses()) if hasattr(self.db_service, 'get_todays_expenses') else 0.0,
+                    "net_profit": 0.0 - (sum(expense['total_amount'] for expense in self.db_service.get_todays_expenses()) if hasattr(self.db_service, 'get_todays_expenses') else 0.0),
                     "category_totals": {},
                     "first_bill_time": None,
                     "last_bill_time": None,
@@ -57,10 +59,17 @@ class SummaryService:
             # Get hourly sales breakdown
             hourly_sales = self._calculate_hourly_sales(bills)
             
+            # Get today's expenses
+            expenses = self.db_service.get_todays_expenses()
+            total_expenses = sum(expense['total_amount'] for expense in expenses)
+            net_profit = total_sales - total_expenses
+            
             return {
                 "date": today,
                 "total_bills": total_bills,
                 "total_sales": total_sales,
+                "total_expenses": total_expenses,
+                "net_profit": net_profit,
                 "category_totals": category_totals,
                 "first_bill_time": first_bill_time,
                 "last_bill_time": last_bill_time,
@@ -150,10 +159,14 @@ class SummaryService:
             bills = [bill for bill in all_bills if bill['created_at'].split(' ')[0] == target_date]
             
             if not bills:
+                expenses = self.db_service.get_expenses_by_date(target_date) if hasattr(self.db_service, 'get_expenses_by_date') else []
+                total_expenses = sum(expense['total_amount'] for expense in expenses)
                 return {
                     "date": target_date,
                     "total_bills": 0,
                     "total_sales": 0.0,
+                    "total_expenses": total_expenses,
+                    "net_profit": 0.0 - total_expenses,
                     "category_totals": {},
                     "first_bill_time": None,
                     "last_bill_time": None,
@@ -170,10 +183,17 @@ class SummaryService:
             first_bill_time = min(timestamps).split(' ')[1] if timestamps else None
             last_bill_time = max(timestamps).split(' ')[1] if timestamps else None
             
+            # Get expenses
+            expenses = self.db_service.get_expenses_by_date(target_date) if hasattr(self.db_service, 'get_expenses_by_date') else []
+            total_expenses = sum(expense['total_amount'] for expense in expenses)
+            net_profit = total_sales - total_expenses
+            
             return {
                 "date": target_date,
                 "total_bills": len(bills),
                 "total_sales": total_sales,
+                "total_expenses": total_expenses,
+                "net_profit": net_profit,
                 "category_totals": category_totals,
                 "hourly_sales": hourly_sales,
                 "first_bill_time": first_bill_time,

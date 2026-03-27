@@ -39,7 +39,7 @@ export default function Showcase() {
       <div className="section-container">
         <div className={styles.header}>
           <h2 className={styles.title}>
-            See It <span className="text-gradient">In Action</span>
+            See It <span className="title-highlight">In Action</span>
           </h2>
           <p className={styles.subtitle}>
             Every screen is designed for speed and clarity. No clutter, no learning curve.

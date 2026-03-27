@@ -98,9 +98,10 @@ const renderActiveShape = (props) => {
 // ─── KPI Stat Bar ───
 const AnalyticsStats = ({ stats }) => {
   const items = [
-    { label: 'Net Sales', value: formatCurrency(stats.total_sales || 0), color: '#10B981' },
-    { label: 'Total Orders', value: stats.total_bills || 0, color: '#3B82F6' },
-    { label: 'Avg. Value', value: formatCurrency(stats.average_bill_value || 0), color: '#F59E0B' },
+    { label: 'Gross Sales', value: formatCurrency(stats.total_sales || 0), color: '#3B82F6' },
+    { label: 'Expenses', value: formatCurrency(stats.total_expenses || 0), color: '#EF4444' },
+    { label: 'Net Profit', value: formatCurrency(stats.net_profit || (stats.total_sales || 0)), color: '#10B981' },
+    { label: 'Total Bills', value: stats.total_bills || 0, color: '#F59E0B' },
   ];
 
   return (

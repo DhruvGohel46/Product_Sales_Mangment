@@ -16,7 +16,7 @@ export default function HowItWorks() {
       <div className="section-container">
         <div className={styles.header}>
           <h2 className={styles.title}>
-            Up and Running in <span className="text-gradient">3 Minutes</span>
+            Up and Running in <span className="title-highlight">3 Minutes</span>
           </h2>
           <p className={styles.subtitle}>No cloud setup. No subscriptions. Just install and go.</p>
         </div>

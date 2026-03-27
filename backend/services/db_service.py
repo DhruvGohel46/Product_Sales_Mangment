@@ -836,3 +836,29 @@ class DatabaseService:
             print(f"Error updating settings: {e}")
             db.session.rollback()
             return False
+
+    # ---------------------------------------------------------
+    # EXPENSES MANAGEMENT
+    # ---------------------------------------------------------
+
+    def get_todays_expenses(self) -> List[Dict[str, Any]]:
+        """Get all expenses for today"""
+        try:
+            from models import Expense
+            today = date.today()
+            expenses = Expense.query.filter(func.date(Expense.expense_date) == today).order_by(Expense.created_at.desc()).all()
+            return [expense.to_dict() for expense in expenses]
+        except Exception as e:
+            print(f"Error getting today's expenses: {e}")
+            return []
+
+    def get_expenses_by_date(self, date_str: str) -> List[Dict[str, Any]]:
+        """Get all expenses for a specific date (YYYY-MM-DD)"""
+        try:
+            from models import Expense
+            target_date = datetime.strptime(date_str, '%Y-%m-%d').date()
+            expenses = Expense.query.filter(func.date(Expense.expense_date) == target_date).order_by(Expense.created_at.desc()).all()
+            return [expense.to_dict() for expense in expenses]
+        except Exception as e:
+            print(f"Error getting expenses by date: {e}")
+            return []

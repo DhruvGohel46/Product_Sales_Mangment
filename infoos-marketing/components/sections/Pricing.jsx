@@ -39,7 +39,7 @@ export default function Pricing() {
     <section id="pricing" className={styles.pricing}>
       <div className="section-container">
         <div className={styles.header}>
-          <h2 className={styles.title}>Simple, Transparent <span className="text-gradient">Pricing</span></h2>
+          <h2 className={styles.title}>Simple, Transparent <span className="title-highlight">Pricing</span></h2>
           <p className={styles.subtitle}>Choose the plan that fits your business stage.</p>
         </div>
         

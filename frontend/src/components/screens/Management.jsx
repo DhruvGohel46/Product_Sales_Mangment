@@ -316,7 +316,7 @@ const ProductManagement = () => {
     });
 
     if (product.image_filename) {
-      setPreviewImage(productsAPI.getImageUrl(product.image_filename));
+      setPreviewImage(productsAPI.getImageUrl(product.image_filename, product.updated_at));
     } else {
       setPreviewImage(null);
     }
@@ -799,7 +799,7 @@ const ProductManagement = () => {
                     <div className="pmCardImageContainer">
                       {product.image_filename ? (
                         <img
-                          src={productsAPI.getImageUrl(product.image_filename)}
+                          src={productsAPI.getImageUrl(product.image_filename, product.updated_at)}
                           alt={product.name}
                           className="pmCardImage"
                           onError={(e) => {

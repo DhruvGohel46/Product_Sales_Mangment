@@ -560,7 +560,7 @@ const WorkingPOSInterface = ({ onBillCreated }) => {
 
                             {product.image_filename ? (
                                 <img
-                                    src={productsAPI.getImageUrl(product.image_filename)}
+                                    src={productsAPI.getImageUrl(product.image_filename, product.updated_at)}
                                     alt={product.name}
                                     style={{ width: '100%', height: '100%', objectFit: 'contain' }}
                                     loading="lazy"

@@ -99,12 +99,16 @@ const GlobalTimePicker = ({
     useEffect(() => {
         const handleClickOutside = (event) => {
             if (containerRef.current && !containerRef.current.contains(event.target)) {
+                // Check if clicking inside the portal dropdown
+                const dropdown = document.getElementById(`timepicker-dropdown-${label || 'global'}`);
+                if (dropdown && dropdown.contains(event.target)) return;
+                
                 setIsOpen(false);
             }
         };
-        document.addEventListener('mousedown', handleClickOutside);
+        if (isOpen) document.addEventListener('mousedown', handleClickOutside);
         return () => document.removeEventListener('mousedown', handleClickOutside);
-    }, []);
+    }, [isOpen, label]);
 
     const handleSelection = (type, val) => {
         let newHour = type === 'hour' ? val : hour;

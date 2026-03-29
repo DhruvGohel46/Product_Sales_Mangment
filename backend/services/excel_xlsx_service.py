@@ -616,3 +616,72 @@ class ExcelXLSXService:
         except Exception as e:
             print(f"Error creating weekly report: {e}")
             return None
+
+    def export_expenses_report(self, expenses: List[Dict], title: str, filename: str) -> str:
+        """Create a professional Excel report for business expenses"""
+        try:
+            filepath = os.path.join(self.export_dir, filename)
+            wb = openpyxl.Workbook()
+            ws = wb.active
+            ws.title = "Expenses"
+            
+            # Set column widths
+            ws.column_dimensions['A'].width = 15  # Date
+            ws.column_dimensions['B'].width = 30  # Title/Description
+            ws.column_dimensions['C'].width = 15  # Category
+            ws.column_dimensions['D'].width = 15  # Amount
+            ws.column_dimensions['E'].width = 20  # Payment Method
+            ws.column_dimensions['F'].width = 30  # Notes
+            
+            current_row = self._write_company_header(ws, 'F')
+            
+            # Title
+            ws.merge_cells(f'A{current_row}:F{current_row}')
+            ws[f'A{current_row}'] = title.upper()
+            ws[f'A{current_row}'].font = Font(bold=True, size=14, color="FFFFFF")
+            ws[f'A{current_row}'].fill = PatternFill(start_color="e74c3c", end_color="e74c3c", fill_type="solid")
+            ws[f'A{current_row}'].alignment = Alignment(horizontal="center", vertical="center")
+            current_row += 2
+            
+            # Headers
+            headers = ["Date", "Description", "Category", "Amount", "Method", "Notes"]
+            for col, header in enumerate(headers, 1):
+                cell = ws.cell(row=current_row, column=col, value=header)
+                cell.font = self.header_font
+                cell.fill = PatternFill(start_color="c0392b", end_color="c0392b", fill_type="solid")
+                cell.alignment = self.header_alignment
+                cell.border = self.border
+            current_row += 1
+            
+            total_amount = 0
+            for exp in expenses:
+                ws[f'A{current_row}'] = exp.get('date', '').split('T')[0] if 'T' in exp.get('date', '') else exp.get('date', '')
+                ws[f'B{current_row}'] = exp.get('title', '')
+                ws[f'C{current_row}'] = exp.get('category', '')
+                ws[f'D{current_row}'] = f"{exp.get('amount', 0):.2f}"
+                ws[f'E{current_row}'] = exp.get('payment_method', '')
+                ws[f'F{current_row}'] = exp.get('notes', '')
+                
+                total_amount += exp.get('amount', 0)
+                
+                # Formatting
+                for col in range(1, 7):
+                    cell = ws.cell(row=current_row, column=col)
+                    cell.font = self.data_font
+                    cell.border = self.border
+                    cell.alignment = self.currency_alignment if col == 4 else self.data_alignment
+                current_row += 1
+            
+            # Total Row
+            current_row += 1
+            ws[f'C{current_row}'] = "GRAND TOTAL"
+            ws[f'C{current_row}'].font = Font(bold=True)
+            ws[f'D{current_row}'] = f"{total_amount:.2f}"
+            ws[f'D{current_row}'].font = Font(bold=True)
+            ws[f'D{current_row}'].alignment = self.currency_alignment
+            
+            wb.save(filepath)
+            return filepath
+        except Exception as e:
+            print(f"Error creating expenses report: {e}")
+            return None

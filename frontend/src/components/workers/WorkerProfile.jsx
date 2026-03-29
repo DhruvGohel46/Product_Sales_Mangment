@@ -22,6 +22,8 @@ const WorkerProfile = () => {
     const [advances, setAdvances] = useState([]);
     const [salaryHistory, setSalaryHistory] = useState([]);
     const [attendance, setAttendance] = useState([]);
+    const [expenses, setExpenses] = useState([]);
+    const [totalPaid, setTotalPaid] = useState(0);
     const [activeTab, setActiveTab] = useState('attendance');
     const [loading, setLoading] = useState(true);
 
@@ -37,16 +39,19 @@ const WorkerProfile = () => {
     const loadData = async () => {
         setLoading(true);
         try {
-            const [w, a, s, att] = await Promise.all([
+            const [w, a, s, att, exp] = await Promise.all([
                 workerAPI.getWorker(id),
                 workerAPI.getAdvances(id),
                 workerAPI.getSalaryHistory(id),
-                workerAPI.getWorkerAttendance(id)
+                workerAPI.getWorkerAttendance(id),
+                workerAPI.getWorkerExpenses(id)
             ]);
             setWorker(w);
             setAdvances(a || []);
             setSalaryHistory(s || []);
             setAttendance(att || []);
+            setExpenses(exp?.expenses || []);
+            setTotalPaid(exp?.total_paid || 0);
         } catch (error) {
             console.error(error);
         } finally {
@@ -240,14 +245,13 @@ const WorkerProfile = () => {
                     {/* Stats Info Bar — merged from Overview tab */}
                     {(() => {
                         const presentDays = attendance.filter(a => a.status === 'Present').length;
-                        const totalAdvance = advances.reduce((acc, curr) => acc + curr.amount, 0);
-                        const netPay = worker.salary - totalAdvance;
-                        const hasAdvance = totalAdvance > 0;
+                        const currentCycleAdvance = worker.current_cycle?.advance || 0;
+                        const hasAdvance = currentCycleAdvance > 0;
                         const items = [
                             { label: 'Attendance', value: `${presentDays} Days`, color: '#3B82F6' },
                             { label: 'Daily Wage', value: formatCurrency(worker.salary / 30), color: '#10B981' },
-                            { label: 'Advances', value: formatCurrency(totalAdvance), color: hasAdvance ? '#EF4444' : '#71717A' },
-                            { label: 'Est. Net Pay', value: formatCurrency(netPay), color: '#F97316' },
+                            { label: 'Advances', value: formatCurrency(currentCycleAdvance), color: hasAdvance ? '#EF4444' : '#71717A' },
+                            { label: 'Lifetime Paid', value: formatCurrency(totalPaid), color: '#F97316' },
                         ];
                         return (
                             <div style={{
@@ -302,10 +306,10 @@ const WorkerProfile = () => {
                 display: 'flex',
                 gap: '8px'
             }}>
-
                 <TabButton id="attendance" label="Attendance" icon={IoTime} />
                 <TabButton id="advances" label="Advances" icon={IoWarning} />
                 <TabButton id="salary" label="Salary History" icon={IoCash} />
+                <TabButton id="expenses" label="Expenses" icon={IoBriefcase} />
             </div>
 
             {/* Tab Content Area */}
@@ -317,7 +321,6 @@ const WorkerProfile = () => {
                     exit={{ opacity: 0, y: -10 }}
                     transition={{ duration: 0.2 }}
                 >
-
                     {activeTab === 'attendance' && (
                         <Card title="Attendance Log" style={{ overflow: 'hidden' }}>
                             <table style={{ width: '100%', borderCollapse: 'collapse' }}>
@@ -424,118 +427,149 @@ const WorkerProfile = () => {
                     )}
 
                     {activeTab === 'salary' && (
-                        <div>
-                            {/* Real-time salary calculation display, no generation button */}
-                            <Card style={{ overflow: 'hidden' }}>
-                                <table className="wpTable">
-                                    <thead>
-                                        <tr>
-                                            <th>Period</th>
-                                            <th>Base Salary</th>
-                                            <th>Deductions</th>
-                                            <th>Final Pay</th>
-                                            <th>Status</th>
-                                            <th style={{ textAlign: 'right' }}>Action</th>
+                        <Card style={{ overflow: 'hidden' }}>
+                            <table className="wpTable">
+                                <thead>
+                                    <tr>
+                                        <th>Period</th>
+                                        <th>Base Salary</th>
+                                        <th>Deductions</th>
+                                        <th>Final Pay</th>
+                                        <th>Status</th>
+                                        <th style={{ textAlign: 'right' }}>Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {!salaryHistory.some(p => p.month === new Date().getMonth() + 1 && p.year === new Date().getFullYear()) && (
+                                        <tr style={{ background: isDark ? 'rgba(249, 115, 22, 0.05)' : '#FFF7ED' }}>
+                                            <td style={{ fontWeight: 600, color: 'var(--text-primary)' }}>
+                                                {new Date(worker.current_cycle?.end).toLocaleString('default', { month: 'long', year: 'numeric' })} (Current)
+                                            </td>
+                                            <td style={{ color: 'var(--text-secondary)' }}>{formatCurrency(worker.salary)}</td>
+                                            <td style={{ color: '#EF4444' }}>
+                                                - {formatCurrency(worker.current_cycle?.advance || 0)}
+                                            </td>
+                                            <td style={{ color: '#10B981', fontWeight: 700, fontSize: '1.05rem' }}>
+                                                {formatCurrency(worker.current_cycle?.net_payable || worker.salary)}
+                                            </td>
+                                            <td>
+                                                <span style={{
+                                                    padding: '4px 12px', borderRadius: '99px', fontSize: '0.8rem', fontWeight: 600,
+                                                    background: 'rgba(245, 158, 11, 0.1)',
+                                                    color: '#F59E0B',
+                                                    display: 'inline-flex', alignItems: 'center', gap: '4px'
+                                                }}>
+                                                    <IoTime /> Pending
+                                                </span>
+                                            </td>
+                                            <td style={{ textAlign: 'right' }}>
+                                                <Button
+                                                    size="sm"
+                                                    onClick={handleGenerateSalary}
+                                                    style={{ background: '#10B981', border: 'none', color: 'white' }}
+                                                >
+                                                    Mark Paid
+                                                </Button>
+                                            </td>
                                         </tr>
-                                    </thead>
-                                    <tbody>
-                                        {/* Current Month Row (Real-time) - Only show if not generated yet */}
-                                        {!salaryHistory.some(p => p.month === new Date().getMonth() + 1 && p.year === new Date().getFullYear()) && (
-                                            <tr style={{ background: isDark ? 'rgba(249, 115, 22, 0.05)' : '#FFF7ED' }}>
-                                                <td style={{ fontWeight: 600, color: 'var(--text-primary)' }}>
-                                                    {new Date().toLocaleString('default', { month: 'long', year: 'numeric' })} (Current)
-                                                </td>
-                                                <td style={{ color: 'var(--text-secondary)' }}>{formatCurrency(worker.salary)}</td>
-                                                <td style={{ color: '#EF4444' }}>
-                                                    - {formatCurrency(advances
-                                                        .filter(a => {
-                                                            const d = new Date(a.date);
-                                                            return d.getMonth() === new Date().getMonth() && d.getFullYear() === new Date().getFullYear();
-                                                        })
-                                                        .reduce((acc, curr) => acc + curr.amount, 0)
-                                                    )}
-                                                </td>
-                                                <td style={{ color: '#10B981', fontWeight: 700, fontSize: '1.05rem' }}>
-                                                    {formatCurrency(
-                                                        worker.salary - advances
-                                                            .filter(a => {
-                                                                const d = new Date(a.date);
-                                                                return d.getMonth() === new Date().getMonth() && d.getFullYear() === new Date().getFullYear();
-                                                            })
-                                                            .reduce((acc, curr) => acc + curr.amount, 0)
-                                                    )}
-                                                </td>
-                                                <td>
-                                                    <span style={{
-                                                        padding: '4px 12px', borderRadius: '99px', fontSize: '0.8rem', fontWeight: 600,
-                                                        background: 'rgba(245, 158, 11, 0.1)',
-                                                        color: '#F59E0B',
-                                                        display: 'inline-flex', alignItems: 'center', gap: '4px'
-                                                    }}>
-                                                        <IoTime /> Pending
-                                                    </span>
-                                                </td>
-                                                <td style={{ textAlign: 'right' }}>
+                                    )}
+
+                                    {salaryHistory.map((pay, i) => (
+                                        <tr key={i}>
+                                            <td style={{ fontWeight: 600, color: 'var(--text-primary)' }}>
+                                                {new Date(pay.year, pay.month - 1).toLocaleString('default', { month: 'long', year: 'numeric' })}
+                                            </td>
+                                            <td style={{ color: 'var(--text-secondary)' }}>{formatCurrency(pay.base_salary)}</td>
+                                            <td style={{ color: '#EF4444' }}>- {formatCurrency(pay.advance_deduction)}</td>
+                                            <td style={{ color: '#10B981', fontWeight: 700, fontSize: '1.05rem' }}>{formatCurrency(pay.final_salary)}</td>
+                                            <td>
+                                                <span style={{
+                                                    padding: '4px 12px', borderRadius: '99px', fontSize: '0.8rem', fontWeight: 600,
+                                                    background: pay.paid ? 'rgba(16, 185, 129, 0.1)' : 'rgba(245, 158, 11, 0.1)',
+                                                    color: pay.paid ? '#16A34A' : '#F59E0B',
+                                                    display: 'inline-flex', alignItems: 'center', gap: '4px'
+                                                }}>
+                                                    {pay.paid ? <IoCheckmarkCircle /> : <IoTime />}
+                                                    {pay.paid ? 'Paid' : 'Unpaid'}
+                                                </span>
+                                            </td>
+                                            <td style={{ textAlign: 'right' }}>
+                                                {!pay.paid && (
                                                     <Button
                                                         size="sm"
-                                                        onClick={handleGenerateSalary}
+                                                        onClick={async () => {
+                                                            try {
+                                                                await workerAPI.markPaid(pay.payment_id);
+                                                                loadData();
+                                                            } catch (e) { showError('Failed to mark paid'); }
+                                                        }}
                                                         style={{ background: '#10B981', border: 'none', color: 'white' }}
                                                     >
                                                         Mark Paid
                                                     </Button>
-                                                </td>
-                                            </tr>
-                                        )}
+                                                )}
+                                            </td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
+                        </Card>
+                    )}
 
-                                        {/* History Rows */}
-                                        {salaryHistory.map((pay, i) => (
-                                            <tr key={i}>
-                                                <td style={{ fontWeight: 600, color: 'var(--text-primary)' }}>
-                                                    {new Date(pay.year, pay.month - 1).toLocaleString('default', { month: 'long', year: 'numeric' })}
-                                                </td>
-                                                <td style={{ color: 'var(--text-secondary)' }}>{formatCurrency(pay.base_salary)}</td>
-                                                <td style={{ color: '#EF4444' }}>- {formatCurrency(pay.advance_deduction)}</td>
-                                                <td style={{ color: '#10B981', fontWeight: 700, fontSize: '1.05rem' }}>{formatCurrency(pay.final_salary)}</td>
-                                                <td>
-                                                    <span style={{
-                                                        padding: '4px 12px', borderRadius: '99px', fontSize: '0.8rem', fontWeight: 600,
-                                                        background: pay.paid ? 'rgba(16, 185, 129, 0.1)' : 'rgba(245, 158, 11, 0.1)',
-                                                        color: pay.paid ? '#16A34A' : '#F59E0B',
-                                                        display: 'inline-flex', alignItems: 'center', gap: '4px'
-                                                    }}>
-                                                        {pay.paid ? <IoCheckmarkCircle /> : <IoTime />}
-                                                        {pay.paid ? 'Paid' : 'Unpaid'}
-                                                    </span>
-                                                </td>
-                                                <td style={{ textAlign: 'right' }}>
-                                                    {!pay.paid && (
-                                                        <Button
-                                                            size="sm"
-                                                            onClick={async () => {
-                                                                try {
-                                                                    await workerAPI.markPaid(pay.payment_id);
-                                                                    loadData();
-                                                                } catch (e) { showError('Failed to mark paid'); }
-                                                            }}
-                                                            style={{ background: '#10B981', border: 'none', color: 'white' }}
-                                                        >
-                                                            Mark Paid
-                                                        </Button>
-                                                    )}
-                                                </td>
-                                            </tr>
-                                        ))}
-                                    </tbody>
-                                </table>
-                            </Card>
-                        </div>
+                    {activeTab === 'expenses' && (
+                        <Card title="Linked Business Expenses" style={{ overflow: 'hidden' }}>
+                            <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+                                <thead style={{ background: isDark ? 'rgba(255,255,255,0.02)' : '#F9FAFB' }}>
+                                    <tr>
+                                        <th style={{ padding: '16px', textAlign: 'left', fontSize: '0.75rem', textTransform: 'uppercase', color: currentTheme.colors.text.tertiary }}>Date</th>
+                                        <th style={{ padding: '16px', textAlign: 'left', fontSize: '0.75rem', textTransform: 'uppercase', color: currentTheme.colors.text.tertiary }}>Description</th>
+                                        <th style={{ padding: '16px', textAlign: 'left', fontSize: '0.75rem', textTransform: 'uppercase', color: currentTheme.colors.text.tertiary }}>Category</th>
+                                        <th style={{ padding: '16px', textAlign: 'right', fontSize: '0.75rem', textTransform: 'uppercase', color: currentTheme.colors.text.tertiary }}>Amount</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {expenses.map((exp) => (
+                                        <tr key={exp.id} style={{ borderBottom: `1px solid ${currentTheme.colors.border}` }}>
+                                            <td style={{ padding: '16px', fontWeight: 500 }}>{new Date(exp.date).toLocaleDateString()}</td>
+                                            <td style={{ padding: '16px', color: currentTheme.colors.text.primary }}>{exp.title}</td>
+                                            <td style={{ padding: '16px' }}>
+                                                <span style={{
+                                                    padding: '4px 10px', borderRadius: '6px', fontSize: '0.8rem', 
+                                                    background: 'rgba(249, 115, 22, 0.1)', color: '#F97316'
+                                                }}>
+                                                    {exp.category}
+                                                </span>
+                                            </td>
+                                            <td style={{ padding: '16px', textAlign: 'right', fontWeight: 700, color: currentTheme.colors.text.primary }}>
+                                                {formatCurrency(exp.amount)}
+                                            </td>
+                                        </tr>
+                                    ))}
+                                    {expenses.length === 0 && (
+                                        <tr>
+                                            <td colSpan="4" style={{ padding: '40px', textAlign: 'center', color: currentTheme.colors.text.secondary }}>
+                                                No expenses linked to this worker
+                                            </td>
+                                        </tr>
+                                    )}
+                                </tbody>
+                                {expenses.length > 0 && (
+                                    <tfoot style={{ background: isDark ? 'rgba(249, 115, 22, 0.03)' : '#FFF7ED' }}>
+                                        <tr>
+                                            <td colSpan="3" style={{ padding: '16px', textAlign: 'right', fontWeight: 700, color: currentTheme.colors.text.secondary }}>Total Lifetime Payout</td>
+                                            <td style={{ padding: '16px', textAlign: 'right', fontWeight: 800, color: '#F97316', fontSize: '1.1rem' }}>
+                                                {formatCurrency(totalPaid)}
+                                            </td>
+                                        </tr>
+                                    </tfoot>
+                                )}
+                            </table>
+                        </Card>
                     )}
                 </motion.div>
-            </AnimatePresence >
+            </AnimatePresence>
         </PageContainer>
     );
 };
 
 export default WorkerProfile;
-
-

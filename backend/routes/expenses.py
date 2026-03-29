@@ -1,6 +1,7 @@
 import uuid
 from flask import Blueprint, jsonify, request
-from models import db, Inventory, func
+from models import db, Inventory, func, extract
+from datetime import date, timedelta
 
 # We will define Expense and ExpenseItem in models.py
 from models import Expense, ExpenseItem
@@ -9,10 +10,34 @@ expenses_bp = Blueprint('expenses', __name__, url_prefix='/api/expenses')
 
 @expenses_bp.route('', methods=['GET'])
 def get_expenses():
-    """Get all expenses"""
+    """Get all expenses with optional filtering"""
     try:
         limit = request.args.get('limit', 100, type=int)
-        expenses = Expense.query.order_by(Expense.created_at.desc()).limit(limit).all()
+        category = request.args.get('category')
+        worker_id = request.args.get('worker_id')
+        
+        query = Expense.query
+        
+        range_type = request.args.get('range')
+        if range_type:
+            today = date.today()
+            if range_type == 'today':
+                query = query.filter(func.date(Expense.date) == today)
+            elif range_type == 'week':
+                start_week = today - timedelta(days=today.weekday())
+                query = query.filter(Expense.date >= start_week)
+            elif range_type == 'month':
+                query = query.filter(extract('month', Expense.date) == today.month,
+                                     extract('year', Expense.date) == today.year)
+            elif range_type == 'year':
+                query = query.filter(extract('year', Expense.date) == today.year)
+
+        if category:
+            query = query.filter_by(category=category)
+        if worker_id:
+            query = query.filter_by(worker_id=worker_id)
+            
+        expenses = query.order_by(Expense.date.desc()).limit(limit).all()
         
         return jsonify({
             'success': True,
@@ -52,25 +77,34 @@ def create_expense():
         data = request.json
         
         # Validate required fields
-        if not data.get('category') or not data.get('total_amount'):
+        if not data.get('title') or not data.get('category') or not data.get('amount'):
             return jsonify({
                 'success': False,
-                'message': 'Category and total amount are required'
+                'message': 'Title, category and amount are required'
             }), 400
             
+        amount = float(data.get('amount'))
+        if amount <= 0:
+             return jsonify({
+                'success': False,
+                'message': 'Amount must be greater than zero'
+            }), 400
+
         # Create Expense
         new_expense = Expense(
             id=str(uuid.uuid4()),
-            supplier_name=data.get('supplier_name'),
+            title=data.get('title'),
             category=data.get('category'),
-            total_amount=float(data.get('total_amount')),
+            amount=amount,
             payment_method=data.get('payment_method', 'Cash'),
-            expense_date=data.get('expense_date') or func.now(),
+            worker_id=data.get('worker_id'),
+            date=data.get('date') or func.now(),
             notes=data.get('notes', '')
         )
         
         db.session.add(new_expense)
         
+        # Optional: Handle items if provided (backwards compatibility)
         items = data.get('items', [])
         for item in items:
             product_id = item.get('product_id') or item.get('name')
@@ -87,13 +121,9 @@ def create_expense():
             db.session.add(expense_item)
             
             # Update inventory if it's an inventory purchase
-            if new_expense.category == 'Inventory Purchase' and product_id:
-                # Try to parse quantity as float for inventory update
+            if new_expense.category == 'Supplies' and product_id:
                 try:
-                    # Remove all non-numeric characters except decimal point for basic parsing?
-                    # Or just try direct float conversion. Let's try direct first.
-                    # If it's something like "5 kg", it will fail, which is correct (can't auto-update stock with text).
-                    quantity_float = float(quantity_str.split()[0]) # Try taking the first part if it's "5 kg"
+                    quantity_float = float(quantity_str.split()[0])
                 except (ValueError, IndexError):
                     quantity_float = 0
                 
@@ -132,18 +162,19 @@ def update_expense(expense_id):
             return jsonify({'success': False, 'message': 'Expense not found'}), 404
             
         # Update Expense fields
-        expense.supplier_name = data.get('supplier_name', expense.supplier_name)
+        expense.title = data.get('title', expense.title)
         expense.category = data.get('category', expense.category)
-        expense.total_amount = float(data.get('total_amount', expense.total_amount))
+        if 'amount' in data:
+            expense.amount = float(data.get('amount'))
         expense.payment_method = data.get('payment_method', expense.payment_method)
-        if data.get('expense_date'):
-            expense.expense_date = data.get('expense_date')
+        expense.worker_id = data.get('worker_id', expense.worker_id)
+        if data.get('date'):
+            expense.date = data.get('date')
         expense.notes = data.get('notes', expense.notes)
         
-        # Update Items (Simplified system: usually just one item)
+        # Update Items (Optional)
         items_data = data.get('items', [])
         if items_data:
-            # Clear old items and add new ones
             ExpenseItem.query.filter_by(expense_id=expense_id).delete()
             for item in items_data:
                 product_id = item.get('product_id') or item.get('name')

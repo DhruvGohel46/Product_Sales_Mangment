@@ -15,31 +15,7 @@ def get_workers():
     attendance_map = WorkerService.get_today_attendance()
     
     # Calculate Salary Cycle Period
-    from models import Settings
-    salary_day_setting = Settings.query.get('salary_day')
-    salary_day = int(salary_day_setting.value) if salary_day_setting else 1
-    
-    today = date.today()
-    if today.day >= salary_day:
-        # Current cycle: This month's salary_day to Next month's salary_day - 1
-        start_date = date(today.year, today.month, salary_day)
-        # End date is just for query, we can query > start_date
-        next_month = today.month + 1 if today.month < 12 else 1
-        next_year = today.year if today.month < 12 else today.year + 1
-        end_date = date(next_year, next_month, salary_day) # up to next start
-    else:
-        # Current cycle: Previous month's salary_day to This month's salary_day - 1
-        prev_month = today.month - 1 if today.month > 1 else 12
-        prev_year = today.year if today.month > 1 else today.year - 1
-        start_date = date(prev_year, prev_month, salary_day)
-        end_date = date(today.year, today.month, salary_day) # up to today's start
-
-    # Get advances for this period
-    # Note: using end_date as inclusive/exclusive might vary, let's assume get_advances_sum_map handles inclusive
-    # We want up to BEFORE the next cycle starts.
-    # Actually, pass end_date - 1 day to be precise for inclusive filter
-    from datetime import timedelta
-    inclusive_end_date = end_date - timedelta(days=1)
+    start_date, inclusive_end_date = WorkerService._get_finance_cycle_dates()
     
     advances_map = WorkerService.get_advances_sum_map(start_date, inclusive_end_date)
     
@@ -74,6 +50,14 @@ def get_worker(worker_id):
     if not worker:
         return jsonify({'success': False, 'message': 'Worker not found'}), 404
     
+    # Calculate Current Cycle Stats for this specific worker
+    start_date, end_date = WorkerService._get_finance_cycle_dates()
+    current_advance = db.session.query(func.sum(Advance.amount)).filter(
+        Advance.worker_id == worker_id,
+        Advance.date >= start_date,
+        Advance.date <= end_date
+    ).scalar() or 0.0
+
     return jsonify({
         'worker_id': worker.worker_id,
         'name': worker.name,
@@ -83,7 +67,13 @@ def get_worker(worker_id):
         'salary': worker.salary,
         'join_date': worker.join_date.isoformat() if worker.join_date else None,
         'status': worker.status,
-        'photo': worker.photo
+        'photo': worker.photo,
+        'current_cycle': {
+            'start': start_date.isoformat(),
+            'end': end_date.isoformat(),
+            'advance': float(current_advance),
+            'net_payable': float(worker.salary - current_advance)
+        }
     })
 
 @workers_bp.route('/api/workers/<worker_id>', methods=['PUT'])
@@ -120,6 +110,25 @@ def get_advances(worker_id):
         'reason': a.reason,
         'date': a.date.isoformat()
     } for a in advances])
+
+@workers_bp.route('/api/workers/<worker_id>/expenses', methods=['GET'])
+def get_worker_expenses(worker_id):
+    """Get all expenses linked to a specific worker"""
+    try:
+        from models import Expense
+        expenses = Expense.query.filter_by(worker_id=worker_id).order_by(Expense.date.desc()).all()
+        total_paid = sum(e.amount for e in expenses)
+        
+        return jsonify({
+            'success': True,
+            'expenses': [e.to_dict() for e in expenses],
+            'total_paid': total_paid
+        })
+    except Exception as e:
+        return jsonify({
+            'success': False,
+            'message': f'Error fetching worker expenses: {str(e)}'
+        }), 500
 
 # SALARY
 @workers_bp.route('/api/workers/<worker_id>/salary-history', methods=['GET'])
@@ -186,25 +195,8 @@ def get_worker_stats():
     active_worker_ids = {w.worker_id for w in workers}
     
     # Calculate Salary Cycle Period for Advances
-    from models import Settings
-    salary_day_setting = Settings.query.get('salary_day')
-    salary_day = int(salary_day_setting.value) if salary_day_setting else 1
+    start_date, inclusive_end_date = WorkerService._get_finance_cycle_dates()
     
-    today = date.today()
-    if today.day >= salary_day:
-        start_date = date(today.year, today.month, salary_day)
-        next_month = today.month + 1 if today.month < 12 else 1
-        next_year = today.year if today.month < 12 else today.year + 1
-        end_date = date(next_year, next_month, salary_day)
-    else:
-        prev_month = today.month - 1 if today.month > 1 else 12
-        prev_year = today.year if today.month > 1 else today.year - 1
-        start_date = date(prev_year, prev_month, salary_day)
-        end_date = date(today.year, today.month, salary_day)
-
-    from datetime import timedelta
-    inclusive_end_date = end_date - timedelta(days=1)
-
     # Calculate Total Advances for CURRENT SALARY CYCLE (Active Workers Only)
     total_advances = db.session.query(func.sum(Advance.amount)).join(Worker).filter(
         Worker.status == 'active',
@@ -212,7 +204,15 @@ def get_worker_stats():
         Advance.date <= inclusive_end_date
     ).scalar() or 0.0
 
-    net_payable = total_salary - float(total_advances)
+    # Calculate Total Salaries ALREADY PAID for this cycle
+    # Usually we match based on the 'month/year' associated with this cycle's end date
+    paid_salaries = db.session.query(func.sum(SalaryPayment.final_salary)).filter(
+        SalaryPayment.month == inclusive_end_date.month,
+        SalaryPayment.year == inclusive_end_date.year,
+        SalaryPayment.paid == True
+    ).scalar() or 0.0
+
+    net_payable = total_salary - float(total_advances) - float(paid_salaries)
     
     # Get today's attendance
     today_attendance = WorkerService.get_today_attendance()

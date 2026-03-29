@@ -778,6 +778,96 @@ th.sorted .sort-arrow {
   line-height: 1.6;
 }
 
+/* ─── Premium Expense Table (used in Expenses Tab) ─── */
+.premium-expense-card {
+  height: 100%;
+  border-radius: calc(32px * var(--display-zoom));
+  background: var(--glass-card);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+  border: 1px solid var(--glass-border);
+  padding: calc(24px * var(--display-zoom));
+  overflow: hidden;
+  box-shadow: var(--shadow-xl);
+}
+
+.expense-list-table-wrap {
+  flex: 1;
+  overflow-y: auto;
+  border-radius: calc(20px * var(--display-zoom));
+  background: var(--surface-primary);
+  border: 1px solid var(--border-primary);
+  margin-top: 16px;
+  max-height: 500px;
+}
+
+.expense-list-table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  font-size: 0.88rem;
+}
+
+.expense-list-table thead th {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  background: var(--bg-secondary);
+  color: var(--text-tertiary);
+  font-weight: 700;
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  padding: 16px 20px;
+  text-align: left;
+  border-bottom: 2px solid var(--border-primary);
+}
+
+.expense-list-table tbody tr {
+  transition: all 0.2s ease;
+}
+
+.expense-list-table tbody tr:hover {
+  background: rgba(var(--primary-rgb, 99, 102, 241), 0.04);
+}
+
+.expense-list-table td {
+  padding: 16px 20px;
+  color: var(--text-primary);
+  border-bottom: 1px solid var(--border-primary);
+  vertical-align: middle;
+}
+
+.expense-category-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  border-radius: 8px;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+}
+
+.expense-amount-cell {
+  font-weight: 800;
+  font-size: 1rem;
+  color: var(--text-primary);
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+}
+
+.expense-title-cell {
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.expense-date-cell {
+  color: var(--text-secondary);
+  font-size: 0.82rem;
+}
+
 /* ─── Modal / Dialog Styles (preserved) ─── */
 .pmOverlay {
   position: fixed;

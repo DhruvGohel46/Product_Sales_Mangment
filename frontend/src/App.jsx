@@ -74,6 +74,12 @@ import Attendance from './components/workers/Attendance';
 import SalaryManager from './components/workers/SalaryManager';
 import { workerAPI } from './api/workers';
 
+// Reminders
+import { ReminderProvider, useReminders } from './context/ReminderContext';
+import ReminderAlert from './components/ui/ReminderAlert';
+import Reminders from './components/screens/Reminders';
+import { IoAlarmOutline, IoSyncOutline } from 'react-icons/io5';
+
 // Import UI components
 import Button from './components/ui/Button';
 import Card from './components/ui/Card';
@@ -89,13 +95,15 @@ import { darkTheme } from './styles/theme';
     const scale = localStorage.getItem('text_scale');
     if (zoom) document.documentElement.style.setProperty('--display-zoom', zoom);
     if (scale) document.documentElement.style.setProperty('--text-scale', scale);
-  } catch (_) {}
+  } catch (_) { }
 })();
 
 function AppContent() {
   const { currentTheme, toggleTheme, isDark } = useTheme();
   const { settings } = useSettings();
   const { pageVariants, pageTransition } = useAnimation();
+  const { activeAlerts, dismissReminder } = useReminders();
+  const [showNotificationPanel, setShowNotificationPanel] = useState(false);
 
   const { addToast, showSuccess: alertSuccess } = useAlert();
 
@@ -245,6 +253,17 @@ function AppContent() {
           <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
           <path d="M3.27 6.96L12 12.01l8.73-5.05" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
           <path d="M12 22.08V12" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+        </svg>
+      )
+    },
+    {
+      id: 'reminders',
+      label: 'Reminders',
+      path: '/reminders',
+      icon: (
+        <svg width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <circle cx="12" cy="12" r="10" />
+          <polyline points="12 6 12 12 16 14" />
         </svg>
       )
     },
@@ -402,26 +421,134 @@ function AppContent() {
               {todayLabel}
             </div>
 
-            {/* Theme Toggle */}
-            <button
-              onClick={toggleTheme}
-              className="rounded-lg"
-              style={{
-                width: '40px',
-                height: '40px',
-                padding: 0,
-                border: 'none',
-                backgroundImage: 'var(--glass-card)',
-                color: 'var(--text-primary)',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                cursor: 'pointer',
-                backdropFilter: 'var(--glass-blur)',
-                WebkitBackdropFilter: 'var(--glass-blur)',
-                border: '1px solid var(--glass-border)',
-                transition: 'all var(--transition-normal) var(--ease-out)',
-              }}
+              {/* Notification & Theme */}
+            <div style={{ display: 'flex', gap: '8px', position: 'relative' }}>
+              <button
+                onClick={() => setShowNotificationPanel(!showNotificationPanel)}
+                className="rounded-lg"
+                style={{
+                  width: '40px',
+                  height: '40px',
+                  border: '1px solid var(--glass-border)',
+                  backgroundImage: 'var(--glass-card)',
+                  color: activeAlerts.length > 0 ? 'var(--primary-500)' : 'var(--text-primary)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  cursor: 'pointer',
+                  position: 'relative',
+                  transition: 'all 0.2s'
+                }}
+              >
+                <IoAlarmOutline size={22} className={activeAlerts.length > 0 ? 'ringing' : ''} />
+                {activeAlerts.length > 0 && (
+                  <span style={{
+                    position: 'absolute',
+                    top: '-4px',
+                    right: '-4px',
+                    width: '18px',
+                    height: '18px',
+                    background: '#ef4444',
+                    color: 'white',
+                    borderRadius: '50%',
+                    fontSize: '10px',
+                    fontWeight: 'bold',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    boxShadow: '0 0 12px rgba(239, 68, 68, 0.4)'
+                  }}>
+                    {activeAlerts.length}
+                  </span>
+                )}
+              </button>
+
+              {showNotificationPanel && (
+                <div style={{
+                  position: 'absolute',
+                  top: '120%',
+                  right: '0',
+                  width: '320px',
+                  background: 'var(--glass-card)',
+                  border: '1px solid var(--glass-border)',
+                  borderRadius: '16px',
+                  boxShadow: '0 20px 40px rgba(0,0,0,0.3)',
+                  backdropFilter: 'blur(16px)',
+                  WebkitBackdropFilter: 'blur(16px)',
+                  zIndex: 1000,
+                  overflow: 'hidden',
+                  animation: 'slideDown 0.3s cubic-bezier(0, 0, 0.2, 1)'
+                }}>
+                  <div style={{
+                    padding: '16px',
+                    borderBottom: '1px solid var(--glass-border)',
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    alignItems: 'center'
+                  }}>
+                    <h3 style={{ margin: 0, fontSize: '15px', fontWeight: 800 }}>Reminder Queue</h3>
+                    <span style={{ fontSize: '12px', color: 'var(--text-muted)' }}>{activeAlerts.length} Active</span>
+                  </div>
+                  <div style={{ maxHeight: '400px', overflowY: 'auto', padding: '10px' }}>
+                    {activeAlerts.length > 0 ? activeAlerts.map(alert => (
+                      <div key={alert.id} style={{
+                        padding: '12px',
+                        marginBottom: '8px',
+                        background: 'rgba(255,255,255,0.03)',
+                        border: '1px solid var(--glass-border)',
+                        borderRadius: '12px',
+                        display: 'flex',
+                        gap: '12px'
+                      }}>
+                        <div style={{ flex: 1 }}>
+                          <h4 style={{ margin: '0 0 4px 0', fontSize: '14px', fontWeight: 700 }}>{alert.title}</h4>
+                          <p style={{ margin: 0, fontSize: '12px', color: 'var(--text-muted)' }}>{new Date(alert.reminder_time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</p>
+                        </div>
+                        <button 
+                          onClick={() => dismissReminder(alert.id)}
+                          style={{
+                            background: 'rgba(249, 115, 22, 0.1)',
+                            border: 'none',
+                            color: 'var(--primary-500)',
+                            padding: '4px 8px',
+                            borderRadius: '8px',
+                            fontSize: '11px',
+                            fontWeight: 800,
+                            cursor: 'pointer'
+                          }}
+                        >
+                          DONE
+                        </button>
+                      </div>
+                    )) : (
+                      <div style={{ padding: '30px 20px', textAlign: 'center' }}>
+                        <IoSyncOutline size={32} style={{ opacity: 0.2, marginBottom: '10px' }} />
+                        <p style={{ margin: 0, fontSize: '13px', color: 'var(--text-muted)' }}>The queue is empty. Good job!</p>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
+
+              <button
+                onClick={toggleTheme}
+                className="rounded-lg"
+                style={{
+                  width: '40px',
+                  height: '40px',
+                  padding: 0,
+                  border: 'none',
+                  backgroundImage: 'var(--glass-card)',
+                  color: 'var(--text-primary)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  cursor: 'pointer',
+                  backdropFilter: 'var(--glass-blur)',
+                  WebkitBackdropFilter: 'var(--glass-blur)',
+                  border: '1px solid var(--glass-border)',
+                  transition: 'all var(--transition-normal) var(--ease-out)',
+                }}
               onMouseEnter={(e) => {
                 e.currentTarget.style.backgroundImage = 'var(--glass-header)';
                 e.currentTarget.style.transform = 'translateY(-2px)';
@@ -436,7 +563,8 @@ function AppContent() {
               ) : (
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" /></svg>
               )}
-            </button>
+              </button>
+            </div>
           </div>
         </header>
 
@@ -465,7 +593,7 @@ function AppContent() {
             <Route path="/workers/salary" element={<SalaryManager />} />
 
             <Route path="/expenses" element={<Expenses />} />
-
+            <Route path="/reminders" element={<Reminders />} />
             <Route path="/settings" element={<Settings />} />
             <Route path="*" element={<WorkingPOSInterface key={posKey} onBillCreated={handleBillCreated} />} />
           </Routes>
@@ -539,7 +667,7 @@ function AppContent() {
                   </p>
                 </div>
               </div>
-              <p style={{ 
+              <p style={{
                 color: 'var(--text-secondary)',
                 fontSize: 'var(--text-base)',
                 lineHeight: '1.6',
@@ -548,10 +676,10 @@ function AppContent() {
               }}>
                 You haven't marked worker attendance for today yet. Would you like to do it now?
               </p>
-              <div style={{ 
-                display: 'flex', 
-                gap: 'var(--spacing-3)', 
-                justifyContent: 'flex-end' 
+              <div style={{
+                display: 'flex',
+                gap: 'var(--spacing-3)',
+                justifyContent: 'flex-end'
               }}>
                 <Button
                   variant="ghost"
@@ -571,8 +699,8 @@ function AppContent() {
                     setShowAttendancePrompt(false);
                     navigate('/workers/attendance');
                   }}
-                  style={{ 
-                    background: 'var(--primary-500)', 
+                  style={{
+                    background: 'var(--primary-500)',
                     border: 'none',
                     borderRadius: 'var(--radius-lg)',
                     padding: 'var(--spacing-3) var(--spacing-5)',
@@ -651,7 +779,7 @@ function AppContent() {
                   </p>
                 </div>
               </div>
-              <p style={{ 
+              <p style={{
                 color: 'var(--text-secondary)',
                 fontSize: 'var(--text-base)',
                 lineHeight: '1.6',
@@ -660,10 +788,10 @@ function AppContent() {
               }}>
                 Today is designated salary day. Would you like to review and process worker salaries now?
               </p>
-              <div style={{ 
-                display: 'flex', 
-                gap: 'var(--spacing-3)', 
-                justifyContent: 'flex-end' 
+              <div style={{
+                display: 'flex',
+                gap: 'var(--spacing-3)',
+                justifyContent: 'flex-end'
               }}>
                 <Button
                   variant="ghost"
@@ -683,8 +811,8 @@ function AppContent() {
                     setSalaryNotification(false);
                     navigate('/workers/salary');
                   }}
-                  style={{ 
-                    background: 'var(--success-500)', 
+                  style={{
+                    background: 'var(--success-500)',
                     border: 'none',
                     borderRadius: 'var(--radius-lg)',
                     padding: 'var(--spacing-3) var(--spacing-5)',
@@ -699,6 +827,9 @@ function AppContent() {
             </div>
           </div>
         )}
+
+        {/* Global Reminders */}
+        <ReminderAlert />
       </>
     </div>
   );
@@ -709,9 +840,11 @@ export default function App() {
     <ThemeProvider>
       <AlertProvider>
         <SettingsProvider>
-          <HashRouter>
-            <AppContent />
-          </HashRouter>
+          <ReminderProvider>
+            <HashRouter>
+              <AppContent />
+            </HashRouter>
+          </ReminderProvider>
         </SettingsProvider>
       </AlertProvider>
     </ThemeProvider>

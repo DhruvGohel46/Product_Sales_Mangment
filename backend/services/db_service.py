@@ -846,7 +846,7 @@ class DatabaseService:
         try:
             from models import Expense
             today = date.today()
-            expenses = Expense.query.filter(func.date(Expense.expense_date) == today).order_by(Expense.created_at.desc()).all()
+            expenses = Expense.query.filter(func.date(Expense.date) == today).order_by(Expense.created_at.desc()).all()
             return [expense.to_dict() for expense in expenses]
         except Exception as e:
             print(f"Error getting today's expenses: {e}")
@@ -857,8 +857,23 @@ class DatabaseService:
         try:
             from models import Expense
             target_date = datetime.strptime(date_str, '%Y-%m-%d').date()
-            expenses = Expense.query.filter(func.date(Expense.expense_date) == target_date).order_by(Expense.created_at.desc()).all()
+            expenses = Expense.query.filter(func.date(Expense.date) == target_date).order_by(Expense.created_at.desc()).all()
             return [expense.to_dict() for expense in expenses]
         except Exception as e:
             print(f"Error getting expenses by date: {e}")
+            return []
+
+    def get_expenses_by_range(self, start_date: str, end_date: str) -> List[Dict[str, Any]]:
+        """Get expenses in date range (YYYY-MM-DD inclusive)"""
+        try:
+            from models import Expense
+            s_date = datetime.strptime(start_date, '%Y-%m-%d').date()
+            e_date = datetime.strptime(end_date, '%Y-%m-%d').date()
+            expenses = Expense.query.filter(
+                func.date(Expense.date) >= s_date,
+                func.date(Expense.date) <= e_date
+            ).order_by(Expense.date.asc()).all()
+            return [expense.to_dict() for expense in expenses]
+        except Exception as e:
+            print(f"Error getting expenses range: {e}")
             return []

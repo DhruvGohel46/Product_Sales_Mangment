@@ -8,7 +8,7 @@ import Card from '../ui/Card';
 import Button from '../ui/Button';
 import ExpenseFormModal from '../expenses/ExpenseFormModal';
 import ExpenseDetailsModal from '../expenses/ExpenseDetailsModal';
-import { FiPlus, FiShoppingBag, FiTruck, FiTool, FiZap, FiMoreHorizontal, FiEdit2, FiTrash2 } from 'react-icons/fi';
+import { FiPlus, FiShoppingBag, FiTruck, FiTool, FiZap, FiMoreHorizontal, FiEdit2, FiTrash2, FiSearch, FiFilter, FiUser, FiHome, FiCreditCard, FiDollarSign } from 'react-icons/fi';
 
 export default function Expenses() {
   const { currentTheme } = useTheme();
@@ -18,10 +18,12 @@ export default function Expenses() {
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [editingExpense, setEditingExpense] = useState(null);
   const [selectedExpense, setSelectedExpense] = useState(null);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [filterCategory, setFilterCategory] = useState('All');
 
   useEffect(() => {
     fetchExpenses();
-  }, []);
+  }, [filterCategory]);
 
   const fetchExpenses = async () => {
     try {
@@ -86,101 +88,186 @@ export default function Expenses() {
 
   const formatDate = (dateString) => {
     if (!dateString) return 'N/A';
-    return new Date(dateString).toLocaleDateString();
+    const date = new Date(dateString);
+    return date.toLocaleDateString('en-GB', { day: '2-digit', month: 'short' });
   };
 
   const getCategoryIcon = (category) => {
     switch (category) {
-      case 'Inventory Purchase': return <FiShoppingBag />;
-      case 'Supplier Payment': return <FiTruck />;
+      case 'Salary': return <FiUser />;
+      case 'Utilities': return <FiZap />;
+      case 'Rent': return <FiHome />;
+      case 'Supplies': return <FiShoppingBag />;
       case 'Equipment': return <FiTool />;
-      case 'Utility Bill': return <FiZap />;
-      default: return <FiMoreHorizontal />;
+      case 'Transport': return <FiTruck />;
+      case 'Maintenance': return <FiTool />;
+      default: return <FiDollarSign />;
     }
   };
 
+  const filteredExpenses = expenses.filter(expense => {
+    const matchesSearch = expense.title.toLowerCase().includes(searchQuery.toLowerCase()) || 
+                          (expense.worker_name && expense.worker_name.toLowerCase().includes(searchQuery.toLowerCase()));
+    const matchesCategory = filterCategory === 'All' || expense.category === filterCategory;
+    return matchesSearch && matchesCategory;
+  });
+
+  const categories = ['All', 'Salary', 'Utilities', 'Rent', 'Maintenance', 'Supplies', 'Equipment', 'Transport', 'Other'];
+
   return (
     <motion.div
-      initial={{ opacity: 0, scale: 0.98 }}
-      animate={{ opacity: 1, scale: 1 }}
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
       className="glass-panel"
       style={{
         display: 'flex',
         flexDirection: 'column',
         height: '100%',
         margin: 'var(--spacing-4)',
-        borderRadius: 'var(--radius-2xl)',
+        borderRadius: 'var(--radius-3xl)',
         overflow: 'hidden',
         background: 'var(--glass-panel)',
+        border: '1px solid var(--glass-border)',
+        boxShadow: 'var(--shadow-xl)',
       }}
     >
       {/* Header */}
       <div style={{
-        padding: 'var(--spacing-6)',
-        borderBottom: '1px solid var(--glass-border)',
+        padding: 'var(--spacing-8) var(--spacing-8) var(--spacing-6) var(--spacing-8)',
         display: 'flex',
         justifyContent: 'space-between',
-        alignItems: 'center',
+        alignItems: 'flex-start',
       }}>
         <div>
-          <h2 style={{ fontSize: 'var(--text-2xl)', fontWeight: '600', margin: 0, color: 'var(--text-primary)' }}>
-            Expenses & Purchases
+          <h2 style={{ fontSize: 'var(--text-3xl)', fontWeight: '700', margin: 0, color: 'var(--text-primary)', letterSpacing: '-0.02em' }}>
+            Expenses
           </h2>
-          <p style={{ margin: 'var(--spacing-1) 0 0 0', color: 'var(--text-secondary)' }}>
-            Record inventory purchases and business expenses
+          <p style={{ margin: 'var(--spacing-1) 0 0 0', color: 'var(--text-secondary)', fontSize: 'var(--text-lg)' }}>
+            Track business spending and operational costs
           </p>
         </div>
         <Button
           variant="primary"
           onClick={() => setIsFormOpen(true)}
-          style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-2)' }}
+          style={{ 
+            display: 'flex', 
+            alignItems: 'center', 
+            gap: 'var(--spacing-2)',
+            padding: 'var(--spacing-3) var(--spacing-6)',
+            borderRadius: 'var(--radius-xl)',
+            fontSize: 'var(--text-base)',
+            fontWeight: '600'
+          }}
         >
-          <FiPlus /> Record Expense
+          <FiPlus size={20} /> Add Expense
         </Button>
       </div>
 
-      {/* Expenses List */}
-      <div style={{ flex: 1, overflowY: 'auto', padding: 'var(--spacing-6)' }}>
+      {/* Controls: Search & Filter */}
+      <div style={{
+        padding: '0 var(--spacing-8) var(--spacing-6) var(--spacing-8)',
+        display: 'flex',
+        gap: 'var(--spacing-4)',
+        alignItems: 'center',
+      }}>
+        <div style={{ position: 'relative', flex: 1 }}>
+          <FiSearch style={{ position: 'absolute', left: '16px', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-tertiary)' }} />
+          <input 
+            type="text" 
+            placeholder="Search expenses or workers..." 
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            style={{
+              width: '100%',
+              padding: '12px 12px 12px 48px',
+              borderRadius: 'var(--radius-xl)',
+              background: 'var(--glass-card)',
+              border: '1px solid var(--glass-border)',
+              color: 'var(--text-primary)',
+              fontSize: 'var(--text-sm)',
+              outline: 'none',
+              transition: 'border-color 0.2s',
+            }}
+            onFocus={(e) => e.target.style.borderColor = 'var(--primary-500)'}
+            onBlur={(e) => e.target.style.borderColor = 'var(--glass-border)'}
+          />
+        </div>
+        
+        <div style={{ display: 'flex', gap: 'var(--spacing-2)', overflowX: 'auto', paddingBottom: '4px' }}>
+          {categories.map(cat => (
+            <button
+              key={cat}
+              onClick={() => setFilterCategory(cat)}
+              style={{
+                padding: '8px 16px',
+                borderRadius: 'var(--radius-full)',
+                background: filterCategory === cat ? 'var(--primary-500)' : 'var(--glass-card)',
+                color: filterCategory === cat ? 'white' : 'var(--text-secondary)',
+                border: '1px solid ' + (filterCategory === cat ? 'var(--primary-500)' : 'var(--glass-border)'),
+                fontSize: 'var(--text-xs)',
+                fontWeight: '600',
+                cursor: 'pointer',
+                transition: 'all 0.2s',
+                whiteSpace: 'nowrap'
+              }}
+            >
+              {cat}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* Expenses Table */}
+      <div style={{ flex: 1, overflowY: 'auto', padding: '0 var(--spacing-8) var(--spacing-8) var(--spacing-8)' }}>
         {loading ? (
-          <div style={{ textAlign: 'center', color: 'var(--text-secondary)', padding: 'var(--spacing-8)' }}>
+          <div style={{ textAlign: 'center', color: 'var(--text-secondary)', padding: 'var(--spacing-12)' }}>
+            <div className="spinner" style={{ marginBottom: 'var(--spacing-4)' }}></div>
             Loading expenses...
           </div>
-        ) : expenses.length === 0 ? (
-          <div style={{ textAlign: 'center', color: 'var(--text-tertiary)', padding: 'var(--spacing-8)' }}>
-            No expenses recorded yet.
+        ) : filteredExpenses.length === 0 ? (
+          <div style={{ 
+            textAlign: 'center', 
+            color: 'var(--text-tertiary)', 
+            padding: 'var(--spacing-12)',
+            background: 'var(--glass-card)',
+            borderRadius: 'var(--radius-2xl)',
+            border: '1px dashed var(--glass-border)'
+          }}>
+            No expenses found matching your criteria.
           </div>
         ) : (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--spacing-2)' }}>
-            {/* List Header */}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--spacing-3)' }}>
+            {/* Table Header */}
             <div style={{
-              padding: '0 var(--spacing-4) var(--spacing-2) var(--spacing-4)',
+              padding: 'var(--spacing-2) var(--spacing-6)',
               display: 'flex',
               alignItems: 'center',
               gap: 'var(--spacing-4)',
-              borderBottom: '1px solid var(--glass-border)',
               color: 'var(--text-muted)',
-              fontSize: '11px',
-              fontWeight: '600',
+              fontSize: 'var(--text-xs)',
+              fontWeight: '700',
               textTransform: 'uppercase',
-              letterSpacing: '0.05em'
+              letterSpacing: '0.1em'
             }}>
-              <div style={{ width: '36px', flexShrink: 0 }}></div> {/* Icon spacer */}
-              <div style={{ flex: 2, minWidth: '150px' }}>Product / Service</div>
-              <div style={{ flex: 1, minWidth: '120px' }}>Category</div>
-              <div style={{ width: '100px', textAlign: 'center' }}>Date</div>
-              <div style={{ width: '110px', textAlign: 'right' }}>Amount</div>
-              <div style={{ width: '90px', textAlign: 'center' }}>Payment</div>
-              <div style={{ width: '80px', textAlign: 'right' }}>Actions</div>
+              <div style={{ width: '40px' }}></div>
+              <div style={{ width: '100px' }}>Date</div>
+              <div style={{ flex: 2 }}>Title</div>
+              <div style={{ flex: 1 }}>Category</div>
+              <div style={{ flex: 1 }}>Worker</div>
+              <div style={{ width: '120px' }}>Payment</div>
+              <div style={{ width: '120px', textAlign: 'right' }}>Amount</div>
+              <div style={{ width: '80px' }}></div>
             </div>
 
-            {expenses.map((expense) => (
+            {filteredExpenses.map((expense) => (
               <motion.div
                 key={expense.id}
-                whileHover={{ scale: 1.005 }}
+                layout
+                whileHover={{ y: -2, backgroundColor: 'rgba(255, 255, 255, 0.03)' }}
                 onClick={() => setSelectedExpense(expense)}
                 style={{
-                  padding: 'var(--spacing-3) var(--spacing-4)',
-                  borderRadius: 'var(--radius-lg)',
+                  padding: 'var(--spacing-4) var(--spacing-6)',
+                  borderRadius: 'var(--radius-2xl)',
                   background: 'var(--glass-card)',
                   border: '1px solid var(--glass-border)',
                   cursor: 'pointer',
@@ -188,84 +275,101 @@ export default function Expenses() {
                   alignItems: 'center',
                   gap: 'var(--spacing-4)',
                   boxShadow: 'var(--shadow-sm)',
-                  fontSize: 'var(--text-sm)'
+                  transition: 'all 0.2s ease',
+                  position: 'relative'
                 }}
               >
-                {/* Icon Column */}
+                {/* Visual Accent */}
                 <div style={{
-                  width: '36px', height: '36px',
-                  borderRadius: 'var(--radius-md)',
+                  position: 'absolute',
+                  left: 0, top: '20%', bottom: '20%',
+                  width: '3px',
+                  borderRadius: '0 4px 4px 0',
+                  background: 'var(--primary-500)',
+                  opacity: 0.6
+                }}></div>
+
+                {/* Icon */}
+                <div style={{
+                  width: '40px', height: '40px',
+                  borderRadius: '12px',
                   background: 'var(--glass-header)',
                   display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  color: 'var(--primary-500)', fontSize: '1.2rem', flexShrink: 0
+                  color: 'var(--primary-400)', fontSize: '1.2rem', flexShrink: 0
                 }}>
                   {getCategoryIcon(expense.category)}
                 </div>
 
-                {/* Name Column */}
-                <div style={{ flex: 2, minWidth: '150px' }}>
-                  <h3 style={{ margin: 0, fontSize: 'var(--text-sm)', color: 'var(--text-primary)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                    {expense.supplier_name || (expense.items && expense.items[0]?.product_id) || expense.category}
+                {/* Date */}
+                <div style={{ width: '100px', fontSize: 'var(--text-sm)', fontWeight: '600', color: 'var(--text-primary)' }}>
+                  {formatDate(expense.date)}
+                </div>
+
+                {/* Title */}
+                <div style={{ flex: 2, minWidth: 0 }}>
+                  <h3 style={{ margin: 0, fontSize: 'var(--text-sm)', color: 'var(--text-primary)', fontWeight: '600', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                    {expense.title}
                   </h3>
                 </div>
 
-                {/* Category Column */}
-                <div style={{ flex: 1, minWidth: '120px', color: 'var(--text-secondary)' }}>
-                  {expense.category}
-                </div>
-
-                {/* Date Column */}
-                <div style={{ width: '100px', color: 'var(--text-secondary)', textAlign: 'center' }}>
-                  {formatDate(expense.expense_date)}
-                </div>
-
-                {/* Amount Column */}
-                <div style={{ width: '110px', textAlign: 'right', fontWeight: 'bold', color: 'var(--text-primary)' }}>
-                  {formatCurrency(expense.total_amount)}
-                </div>
-
-                {/* Payment Column */}
-                <div style={{ width: '90px', textAlign: 'center' }}>
+                {/* Category */}
+                <div style={{ flex: 1 }}>
                   <span style={{ 
-                    padding: '2px 8px',
-                    borderRadius: 'var(--radius-full)',
-                    background: 'var(--glass-border)',
-                    fontSize: '11px',
+                    padding: '4px 10px',
+                    borderRadius: 'var(--radius-lg)',
+                    background: 'rgba(255, 255, 255, 0.05)',
+                    fontSize: 'var(--text-xs)',
                     color: 'var(--text-secondary)',
+                    fontWeight: '500'
                   }}>
-                    {expense.payment_method}
+                    {expense.category}
                   </span>
                 </div>
+
+                {/* Worker */}
+                <div style={{ flex: 1, color: 'var(--text-secondary)', fontSize: 'var(--text-sm)', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  {expense.worker_name ? (
+                    <>
+                      <FiUser size={14} style={{ color: 'var(--primary-400)' }} />
+                      {expense.worker_name}
+                    </>
+                  ) : (
+                    <span style={{ opacity: 0.3 }}>—</span>
+                  )}
+                </div>
+
+                {/* Payment */}
+                <div style={{ width: '120px', display: 'flex', alignItems: 'center', gap: '8px', color: 'var(--text-secondary)', fontSize: 'var(--text-sm)' }}>
+                  <FiCreditCard size={14} />
+                  {expense.payment_method}
+                </div>
+
+                {/* Amount */}
+                <div style={{ width: '120px', textAlign: 'right', fontWeight: '700', color: 'var(--text-primary)', fontSize: 'var(--text-base)' }}>
+                  {formatCurrency(expense.amount)}
+                </div>
                 
-                {/* Actions Column */}
-                <div style={{ display: 'flex', gap: 'var(--spacing-2)', width: '80px', justifyContent: 'flex-end', flexShrink: 0 }}>
+                {/* Actions */}
+                <div style={{ width: '80px', display: 'flex', gap: 'var(--spacing-1)', justifyContent: 'flex-end' }}>
                   <button
                     onClick={(e) => {
                       e.stopPropagation();
                       setEditingExpense(expense);
                     }}
-                    style={{
-                      background: 'none', border: 'none',
-                      padding: '4px', borderRadius: '4px',
-                      color: 'var(--primary-500)', cursor: 'pointer',
-                      display: 'flex', alignItems: 'center', justifyContent: 'center'
-                    }}
+                    className="icon-button"
+                    style={{ color: 'var(--primary-400)' }}
                   >
-                    <FiEdit2 size={14} />
+                    <FiEdit2 size={16} />
                   </button>
                   <button
                     onClick={(e) => {
                       e.stopPropagation();
                       handleDeleteExpense(expense.id);
                     }}
-                    style={{
-                      background: 'none', border: 'none',
-                      padding: '4px', borderRadius: '4px',
-                      color: '#ef4444', cursor: 'pointer',
-                      display: 'flex', alignItems: 'center', justifyContent: 'center'
-                    }}
+                    className="icon-button"
+                    style={{ color: '#ff4d4d' }}
                   >
-                    <FiTrash2 size={14} />
+                    <FiTrash2 size={16} />
                   </button>
                 </div>
               </motion.div>

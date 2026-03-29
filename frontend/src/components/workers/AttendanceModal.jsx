@@ -68,9 +68,13 @@ const AttendanceModal = ({
         if (isOpen && workers) {
             const initialData = {};
             workers.forEach(worker => {
+                // Normalize status from backend (e.g. "Present" -> "present")
+                const backendStatus = worker.today_attendance || 'not_marked';
+                const status = backendStatus.toLowerCase().replace(' ', '_');
+                
                 initialData[worker.worker_id] = {
-                    status: 'not_marked',
-                    check_in: null,
+                    status: status === 'not_marked' ? 'not_marked' : (status === 'absent' ? 'absent' : 'present'),
+                    check_in: null, // Times are only fetched for certain views, or we could fetch today's full record
                     check_out: null,
                     worker: worker
                 };
@@ -87,8 +91,7 @@ const AttendanceModal = ({
         
         try {
             const now = new Date();
-            const response = await workerAPI.markAttendance({
-                worker_id: workerId,
+            const response = await workerAPI.markAttendance(workerId, {
                 date: now.toISOString().split('T')[0],
                 check_in: now.toTimeString().split(' ')[0].substring(0, 5),
                 status: 'present'
@@ -130,8 +133,7 @@ const AttendanceModal = ({
         
         try {
             const now = new Date();
-            const response = await workerAPI.updateAttendance({
-                worker_id: workerId,
+            const response = await workerAPI.updateAttendance(workerId, {
                 date: now.toISOString().split('T')[0],
                 check_out: now.toTimeString().split(' ')[0].substring(0, 5)
             });
@@ -169,8 +171,7 @@ const AttendanceModal = ({
         setProcessingIds(prev => new Set(prev).add(workerId));
         
         try {
-            const response = await workerAPI.markAttendance({
-                worker_id: workerId,
+            const response = await workerAPI.markAttendance(workerId, {
                 date: new Date().toISOString().split('T')[0],
                 status: 'absent'
             });
@@ -211,8 +212,7 @@ const AttendanceModal = ({
         try {
             const now = new Date();
             const attendancePromises = workers.map(worker => 
-                workerAPI.markAttendance({
-                    worker_id: worker.worker_id,
+                workerAPI.markAttendance(worker.worker_id, {
                     date: now.toISOString().split('T')[0],
                     check_in: now.toTimeString().split(' ')[0].substring(0, 5),
                     status: 'present'
@@ -505,7 +505,7 @@ const AttendanceModal = ({
                                         display: 'flex',
                                         gap: '8px'
                                     }}>
-                                        {attendance.status !== 'present' && (
+                                        {(attendance.status !== 'present' || !attendance.check_in) && (
                                             <motion.button
                                                 whileHover={{ scale: 1.05 }}
                                                 whileTap={{ scale: 0.95 }}
@@ -559,7 +559,7 @@ const AttendanceModal = ({
                                             </motion.button>
                                         )}
 
-                                        {attendance.status === 'not_marked' && (
+                                        {(attendance.status === 'not_marked' || attendance.status === 'present') && (
                                             <motion.button
                                                 whileHover={{ scale: 1.05 }}
                                                 whileTap={{ scale: 0.95 }}

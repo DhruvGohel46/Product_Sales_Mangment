@@ -1,4 +1,4 @@
-from models import db, Worker, Advance, SalaryPayment, Attendance
+from models import db, Worker, Advance, SalaryPayment, Attendance, Expense
 from datetime import datetime, date
 import uuid
 from sqlalchemy import func, extract, and_
@@ -64,6 +64,19 @@ class WorkerService:
             date=date.today()
         )
         db.session.add(advance)
+        
+        # ALSO RECORD AS EXPENSE
+        expense = Expense(
+            title=f"Worker Advance: {advance.worker.name}",
+            amount=amount,
+            category="Advance",
+            date=date.today(),
+            worker_id=worker_id,
+            payment_method="Cash", # Default for advances
+            notes=f"Advance given for: {reason}"
+        )
+        db.session.add(expense)
+        
         db.session.commit()
         return advance
 
@@ -71,20 +84,65 @@ class WorkerService:
     def get_advances(worker_id):
         return Advance.query.filter_by(worker_id=worker_id).order_by(Advance.date.desc()).all()
 
+    @staticmethod
+    def _get_finance_cycle_dates():
+        """Helper to get current cycle start/end dates based on settings."""
+        from models import Settings
+        salary_day_setting = Settings.query.filter_by(key='salary_day').first()
+        salary_day = int(salary_day_setting.value) if (salary_day_setting and salary_day_setting.value) else 1
+        
+        today = date.today()
+        if today.day >= salary_day:
+            start_date = date(today.year, today.month, salary_day)
+            # End is next month's salary_day - 1
+            next_month = today.month + 1 if today.month < 12 else 1
+            next_year = today.year if today.month < 12 else today.year + 1
+            end_date = date(next_year, next_month, salary_day)
+        else:
+            prev_month = today.month - 1 if today.month > 1 else 12
+            prev_year = today.year if today.month > 1 else today.year - 1
+            start_date = date(prev_year, prev_month, salary_day)
+            end_date = date(today.year, today.month, salary_day)
+            
+        from datetime import timedelta
+        inclusive_end_date = end_date - timedelta(days=1)
+        return start_date, inclusive_end_date
+
     # SALARY MANAGEMENT
     @staticmethod
-    def generate_salary(worker_id, month, year):
+    def generate_salary(worker_id, month=None, year=None):
         worker = Worker.query.get(worker_id)
         if not worker:
             return None
         
-        # Calculate total advances for the month
-        # Note: Advances are usually deducted from the month they are taken in, or accumulated.
-        # Assuming current month advances are deducted.
+        # If month/year not provided, use current cycle
+        if not month or not year:
+            start_date, end_date = WorkerService._get_finance_cycle_dates()
+            # For saving in payment record, we use the end month as the 'period' month
+            # (e.g., if cycle is May 15 - June 14, it's considered June's salary or May's salary?)
+            # Usually it's the month the cycle ends in or starts in. 
+            # We use month/year from end_date for naming consistency.
+            month = end_date.month
+            year = end_date.year
+        else:
+            # If explicit month/year provided (e.g. from history generator), calculate cycle for that month
+            from models import Settings
+            salary_day_setting = Settings.query.filter_by(key='salary_day').first()
+            salary_day = int(salary_day_setting.value) if (salary_day_setting and salary_day_setting.value) else 1
+            
+            # For explicit month, cycle starts at salary_day of month-1 and ends at salary_day-1 of month
+            prev_m = month - 1 if month > 1 else 12
+            prev_y = year if month > 1 else year - 1
+            start_date = date(prev_y, prev_m, salary_day)
+            end_date = date(year, month, salary_day)
+            from datetime import timedelta
+            end_date = end_date - timedelta(days=1)
+
+        # Calculate total advances for the SPECIFIC cycle period
         total_advances = db.session.query(func.sum(Advance.amount)).filter(
             Advance.worker_id == worker_id,
-            extract('month', Advance.date) == month,
-            extract('year', Advance.date) == year
+            Advance.date >= start_date,
+            Advance.date <= end_date
         ).scalar() or 0.0
 
         final_salary = worker.salary - total_advances
@@ -120,6 +178,19 @@ class WorkerService:
         if payment:
             payment.paid = True
             payment.paid_date = date.today()
+            
+            # ALSO RECORD AS EXPENSE
+            expense = Expense(
+                title=f"Salary Payment: {payment.worker.name} ({payment.month}/{payment.year})",
+                amount=payment.final_salary,
+                category="Salary",
+                date=date.today(),
+                worker_id=payment.worker_id,
+                payment_method="Bank Transfer", # Common default for salary
+                notes=f"Base: {payment.base_salary}, Deduction: {payment.advance_deduction}"
+            )
+            db.session.add(expense)
+            
             db.session.commit()
             return True
         return False

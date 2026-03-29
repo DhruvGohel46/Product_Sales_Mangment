@@ -422,7 +422,7 @@ export const darkTheme = {
       primary: '#e5e5e5',
       secondary: '#a3a3a3',
       muted: '#737373',
-      inverse: '#121212',
+      inverse: '#ffffff',
     },
     border: '#2C2F36',
     focus: colors.primary[500],

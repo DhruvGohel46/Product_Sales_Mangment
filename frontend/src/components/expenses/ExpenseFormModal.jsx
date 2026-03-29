@@ -3,46 +3,61 @@ import { motion, AnimatePresence } from 'framer-motion';
 import Button from '../ui/Button';
 import { GlobalSelect, GlobalDatePicker } from '../ui';
 import { formatCurrency } from '../../utils/api';
-import { FiX } from 'react-icons/fi';
+import { workerAPI } from '../../api/workers';
+import { FiX, FiInfo, FiDollarSign, FiTag, FiUser, FiCreditCard, FiCalendar, FiMessageSquare } from 'react-icons/fi';
 
 export default function ExpenseFormModal({ onClose, onSubmit, initialData = null }) {
   const [formData, setFormData] = useState({
-    supplier_name: '',
-    category: 'Inventory Purchase',
+    title: '',
+    category: 'Other',
+    amount: '',
     payment_method: 'Cash',
-    expense_date: new Date().toISOString().split('T')[0],
-    notes: '',
-    product_name: '',
-    quantity: '1',
-    total_amount: ''
+    worker_id: '',
+    date: new Date().toISOString().split('T')[0],
+    notes: ''
   });
 
+  const [workers, setWorkers] = useState([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [loadingWorkers, setLoadingWorkers] = useState(false);
 
   useEffect(() => {
+    fetchWorkers();
     if (initialData) {
-      // Extract first item details for the simplified form
-      const firstItem = initialData.items && initialData.items[0] ? initialData.items[0] : {};
-      
       setFormData({
-        supplier_name: initialData.supplier_name || '',
-        category: initialData.category || 'Inventory Purchase',
+        title: initialData.title || '',
+        category: initialData.category || 'Other',
+        amount: initialData.amount || '',
         payment_method: initialData.payment_method || 'Cash',
-        expense_date: initialData.expense_date ? new Date(initialData.expense_date).toISOString().split('T')[0] : new Date().toISOString().split('T')[0],
-        notes: initialData.notes || '',
-        product_name: firstItem.product_id || '',
-        quantity: firstItem.quantity || '1',
-        total_amount: initialData.total_amount || ''
+        worker_id: initialData.worker_id || '',
+        date: initialData.date ? new Date(initialData.date).toISOString().split('T')[0] : new Date().toISOString().split('T')[0],
+        notes: initialData.notes || ''
       });
     }
   }, [initialData]);
 
+  const fetchWorkers = async () => {
+    try {
+      setLoadingWorkers(true);
+      const res = await workerAPI.getWorkers();
+      if (Array.isArray(res)) {
+        setWorkers(res.map(w => ({ value: w.worker_id, label: w.name })));
+      }
+    } catch (e) {
+      console.error('Failed to fetch workers', e);
+    } finally {
+      setLoadingWorkers(false);
+    }
+  };
+
   const categoryOptions = [
-    { value: 'Inventory Purchase', label: 'Inventory Purchase' },
-    { value: 'Utility Bill', label: 'Utility Bill' },
-    { value: 'Equipment', label: 'Equipment' },
-    { value: 'Supplier Payment', label: 'Supplier Payment' },
+    { value: 'Salary', label: 'Salary' },
+    { value: 'Utilities', label: 'Utilities' },
+    { value: 'Rent', label: 'Rent' },
     { value: 'Maintenance', label: 'Maintenance' },
+    { value: 'Supplies', label: 'Supplies' },
+    { value: 'Equipment', label: 'Equipment' },
+    { value: 'Transport', label: 'Transport' },
     { value: 'Other', label: 'Other' }
   ];
 
@@ -51,7 +66,7 @@ export default function ExpenseFormModal({ onClose, onSubmit, initialData = null
     { value: 'UPI', label: 'UPI' },
     { value: 'Card', label: 'Card' },
     { value: 'Bank Transfer', label: 'Bank Transfer' },
-    { value: 'Credit', label: 'Credit' }
+    { value: 'Other', label: 'Other' }
   ];
 
   const handleInputChange = (e) => {
@@ -61,195 +76,236 @@ export default function ExpenseFormModal({ onClose, onSubmit, initialData = null
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (Number(formData.amount) <= 0) return;
+    
     setIsSubmitting(true);
-    
-    // Send as a single item in the array for backend compatibility
-    await onSubmit({
-      ...formData,
-      total_amount: Number(formData.total_amount),
-      items: [{
-        name: formData.product_name,
-        quantity: formData.quantity,
-        purchase_price: Number(formData.total_amount), // Use total as price since it's 1 entry
-        subtotal: Number(formData.total_amount)
-      }]
-    });
-    
-    setIsSubmitting(false);
+    try {
+      await onSubmit({
+        ...formData,
+        amount: Number(formData.amount),
+        worker_id: formData.worker_id || null
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
     <div style={{
       position: 'fixed', inset: 0, zIndex: 1000,
       display: 'flex', alignItems: 'center', justifyContent: 'center',
-      backgroundColor: 'rgba(0,0,0,0.5)', backdropFilter: 'blur(1px)',
-      WebkitBackdropFilter: 'blur(1px)', padding: 'var(--spacing-4)'
+      backgroundColor: 'rgba(0,0,0,0.7)', backdropFilter: 'blur(8px)',
+      WebkitBackdropFilter: 'blur(8px)', padding: 'var(--spacing-4)'
     }}>
       <motion.div
-        initial={{ opacity: 0, y: 20, scale: 0.95 }}
-        animate={{ opacity: 1, y: 0, scale: 1 }}
-        exit={{ opacity: 0, scale: 0.95 }}
+        initial={{ opacity: 0, scale: 0.9, y: 20 }}
+        animate={{ opacity: 1, scale: 1, y: 0 }}
+        exit={{ opacity: 0, scale: 0.9, y: 20 }}
         className="liquid-glass-card"
         style={{
-          width: '100%', maxWidth: '600px', maxHeight: '90vh',
+          width: '100%', maxWidth: '650px', maxHeight: '95vh',
           display: 'flex', flexDirection: 'column',
-          borderRadius: 'var(--radius-2xl)',
-          backgroundColor: 'var(--surface-primary, #18181b)',
+          borderRadius: 'var(--radius-3xl)',
+          backgroundColor: 'rgba(24, 24, 27, 0.95)',
           border: '1px solid var(--glass-border)',
-          boxShadow: 'var(--shadow-xl)',
+          boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.5)',
           overflow: 'hidden',
-          zIndex: 1001
+          zIndex: 1001,
+          fontFamily: 'Inter, system-ui, sans-serif'
         }}
       >
+        {/* Modal Header */}
         <div style={{
-          padding: 'var(--spacing-5) var(--spacing-6)',
-          borderBottom: '1px solid var(--glass-border)',
+          padding: 'var(--spacing-6) var(--spacing-8)',
           display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-          background: 'var(--glass-header)'
+          background: 'linear-gradient(to right, rgba(249, 115, 22, 0.1), transparent)',
+          borderBottom: '1px solid var(--glass-border)'
         }}>
-          <h2 style={{ margin: 0, fontSize: 'var(--text-xl)', color: 'var(--text-primary)' }}>
-            {initialData ? 'Edit' : 'Record'} Expense / Purchase
-          </h2>
-          <button onClick={onClose} style={{
-            background: 'none', border: 'none', color: 'var(--text-secondary)',
-            cursor: 'pointer', fontSize: '1.25rem', padding: 'var(--spacing-2)'
-          }}>
-            <FiX />
+          <div>
+            <h2 style={{ margin: 0, fontSize: 'var(--text-2xl)', fontWeight: '700', color: 'var(--text-primary)', letterSpacing: '-0.02em' }}>
+              {initialData ? 'Update' : 'Record'} Expense
+            </h2>
+            <p style={{ margin: 'var(--spacing-1) 0 0 0', color: 'var(--text-tertiary)', fontSize: 'var(--text-sm)' }}>
+              Fill in the details to track your business spending
+            </p>
+          </div>
+          <button 
+            onClick={onClose} 
+            className="icon-button"
+            style={{ 
+              backgroundColor: 'rgba(255, 255, 255, 0.05)',
+              borderRadius: '50%',
+              padding: '8px'
+            }}
+          >
+            <FiX size={20} />
           </button>
         </div>
 
         <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', flex: 1, overflow: 'hidden' }}>
-          <div style={{ padding: 'var(--spacing-6)', overflowY: 'auto', flex: 1 }}>
+          <div style={{ padding: 'var(--spacing-8)', overflowY: 'auto', flex: 1, display: 'flex', flexDirection: 'column', gap: 'var(--spacing-6)' }}>
             
-            {/* Meta Information */}
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 'var(--spacing-4)', marginBottom: 'var(--spacing-6)' }}>
-              <div style={{ gridColumn: 'span 2' }}>
-                <label style={{ display: 'block', fontSize: 'var(--text-sm)', color: 'var(--text-secondary)', marginBottom: 'var(--spacing-2)' }}>Product / Service Name</label>
-                <input
-                  name="product_name"
-                  value={formData.product_name}
-                  onChange={handleInputChange}
-                  required
-                  placeholder="e.g. Milk, Electricity Bill, New Chairs"
-                  style={{
-                    width: '100%', padding: 'var(--spacing-3)',
-                    background: 'var(--glass-card)', border: '1px solid var(--glass-border)',
-                    borderRadius: 'var(--radius-lg)', color: 'var(--text-primary)'
-                  }}
-                />
-              </div>
+            {/* Title Section */}
+            <div className="form-group">
+              <label style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: 'var(--text-sm)', fontWeight: '600', color: 'var(--text-secondary)', marginBottom: 'var(--spacing-3)' }}>
+                <FiInfo size={14} style={{ color: 'var(--primary-400)' }} />
+                Expense Title
+              </label>
+              <input
+                name="title"
+                value={formData.title}
+                onChange={handleInputChange}
+                required
+                placeholder="e.g. March Electricity Bill, Shop Maintenance"
+                style={{
+                  width: '100%', padding: '16px',
+                  background: 'rgba(255, 255, 255, 0.03)', border: '1px solid var(--glass-border)',
+                  borderRadius: 'var(--radius-xl)', color: 'var(--text-primary)',
+                  fontSize: 'var(--text-base)', outline: 'none', transition: 'all 0.2s'
+                }}
+                onFocus={(e) => e.target.style.borderColor = 'var(--primary-500)'}
+                onBlur={(e) => e.target.style.borderColor = 'var(--glass-border)'}
+              />
+            </div>
 
-              <div>
-                <label style={{ display: 'block', fontSize: 'var(--text-sm)', color: 'var(--text-secondary)', marginBottom: 'var(--spacing-2)' }}>Quantity (Short Answer)</label>
-                <input
-                  name="quantity"
-                  value={formData.quantity}
-                  onChange={handleInputChange}
-                  placeholder="e.g. 5 kg, 10 units"
-                  style={{
-                    width: '100%', padding: 'var(--spacing-3)',
-                    background: 'var(--glass-card)', border: '1px solid var(--glass-border)',
-                    borderRadius: 'var(--radius-lg)', color: 'var(--text-primary)'
-                  }}
-                />
-              </div>
-
-              <div>
-                <label style={{ display: 'block', fontSize: 'var(--text-sm)', color: 'var(--text-secondary)', marginBottom: 'var(--spacing-2)' }}>Total Amount</label>
-                <input
-                  type="number"
-                  name="total_amount"
-                  min="0"
-                  step="0.01"
-                  value={formData.total_amount}
-                  onChange={handleInputChange}
-                  placeholder="0.00"
-                  required
-                  style={{
-                    width: '100%', padding: 'var(--spacing-3)',
-                    background: 'var(--glass-card)', border: '1px solid var(--glass-border)',
-                    borderRadius: 'var(--radius-lg)', color: 'var(--text-primary)',
-                    fontSize: 'var(--text-lg)', fontWeight: 'bold'
-                  }}
-                />
-              </div>
-
-              <div>
-                <label style={{ display: 'block', fontSize: 'var(--text-sm)', color: 'var(--text-secondary)', marginBottom: 'var(--spacing-2)' }}>Supplier / Payee (Optional)</label>
-                <input
-                  name="supplier_name"
-                  value={formData.supplier_name}
-                  onChange={handleInputChange}
-                  placeholder="e.g. ABC Wholesale"
-                  style={{
-                    width: '100%', padding: 'var(--spacing-3)',
-                    background: 'var(--glass-card)', border: '1px solid var(--glass-border)',
-                    borderRadius: 'var(--radius-lg)', color: 'var(--text-primary)'
-                  }}
-                />
-              </div>
-              
-              <div>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 'var(--spacing-6)' }}>
+              {/* Category */}
+              <div className="form-group">
+                <label style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: 'var(--text-sm)', fontWeight: '600', color: 'var(--text-secondary)', marginBottom: 'var(--spacing-3)' }}>
+                  <FiTag size={14} style={{ color: 'var(--primary-400)' }} />
+                  Category
+                </label>
                 <GlobalSelect
-                  label="Expense Category"
                   options={categoryOptions}
                   value={formData.category}
                   onChange={(val) => handleInputChange({ target: { name: 'category', value: val } })}
                 />
               </div>
-              <div>
+
+              {/* Amount */}
+              <div className="form-group">
+                <label style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: 'var(--text-sm)', fontWeight: '600', color: 'var(--text-secondary)', marginBottom: 'var(--spacing-3)' }}>
+                  <FiDollarSign size={14} style={{ color: 'var(--primary-400)' }} />
+                  Amount (₹)
+                </label>
+                <div style={{ position: 'relative' }}>
+                  <span style={{ position: 'absolute', left: '16px', top: '50%', transform: 'translateY(-50%)', color: 'var(--primary-400)', fontWeight: '700' }}>₹</span>
+                  <input
+                    type="number"
+                    name="amount"
+                    min="0"
+                    step="0.01"
+                    value={formData.amount}
+                    onChange={handleInputChange}
+                    placeholder="0.00"
+                    required
+                    style={{
+                      width: '100%', padding: '16px 16px 16px 36px',
+                      background: 'rgba(255, 255, 255, 0.03)', border: '1px solid var(--glass-border)',
+                      borderRadius: 'var(--radius-xl)', color: 'var(--text-primary)',
+                      fontSize: 'var(--text-lg)', fontWeight: '700', outline: 'none'
+                    }}
+                    onFocus={(e) => e.target.style.borderColor = 'var(--primary-500)'}
+                    onBlur={(e) => e.target.style.borderColor = 'var(--glass-border)'}
+                  />
+                </div>
+              </div>
+
+              {/* Worker Selection */}
+              <div className="form-group">
+                <label style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: 'var(--text-sm)', fontWeight: '600', color: 'var(--text-secondary)', marginBottom: 'var(--spacing-3)' }}>
+                  <FiUser size={14} style={{ color: 'var(--primary-400)' }} />
+                  Link to Worker (Optional)
+                </label>
                 <GlobalSelect
-                  label="Payment Method"
+                  options={[{ value: '', label: 'None' }, ...workers]}
+                  value={formData.worker_id}
+                  placeholder={loadingWorkers ? 'Loading workers...' : 'Select a worker'}
+                  onChange={(val) => handleInputChange({ target: { name: 'worker_id', value: val } })}
+                />
+              </div>
+
+              {/* Payment Method */}
+              <div className="form-group">
+                <label style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: 'var(--text-sm)', fontWeight: '600', color: 'var(--text-secondary)', marginBottom: 'var(--spacing-3)' }}>
+                  <FiCreditCard size={14} style={{ color: 'var(--primary-400)' }} />
+                  Payment Method
+                </label>
+                <GlobalSelect
                   options={paymentOptions}
                   value={formData.payment_method}
                   onChange={(val) => handleInputChange({ target: { name: 'payment_method', value: val } })}
                 />
               </div>
-              <div>
+
+              {/* Date Selection */}
+              <div className="form-group">
+                <label style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: 'var(--text-sm)', fontWeight: '600', color: 'var(--text-secondary)', marginBottom: 'var(--spacing-3)' }}>
+                  <FiCalendar size={14} style={{ color: 'var(--primary-400)' }} />
+                  Date
+                </label>
                 <GlobalDatePicker
-                  label="Date"
-                  value={formData.expense_date}
-                  onChange={(val) => handleInputChange({ target: { name: 'expense_date', value: val } })}
+                  value={formData.date}
+                  onChange={(val) => handleInputChange({ target: { name: 'date', value: val } })}
                 />
               </div>
             </div>
 
-            <div>
-              <label style={{ display: 'block', fontSize: 'var(--text-sm)', color: 'var(--text-secondary)', marginBottom: 'var(--spacing-2)' }}>Notes</label>
+            {/* Notes Section */}
+            <div className="form-group">
+              <label style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: 'var(--text-sm)', fontWeight: '600', color: 'var(--text-secondary)', marginBottom: 'var(--spacing-3)' }}>
+                <FiMessageSquare size={14} style={{ color: 'var(--primary-400)' }} />
+                Notes
+              </label>
               <textarea
                 name="notes"
                 value={formData.notes}
                 onChange={handleInputChange}
-                placeholder="Optional notes or remarks"
+                placeholder="Add any additional details or context..."
                 rows={3}
                 style={{
-                  width: '100%', padding: 'var(--spacing-3)',
-                  background: 'var(--glass-card)', border: '1px solid var(--glass-border)',
-                  borderRadius: 'var(--radius-lg)', color: 'var(--text-primary)',
-                  resize: 'vertical'
+                  width: '100%', padding: '16px',
+                  background: 'rgba(255, 255, 255, 0.03)', border: '1px solid var(--glass-border)',
+                  borderRadius: 'var(--radius-xl)', color: 'var(--text-primary)',
+                  fontSize: 'var(--text-sm)', outline: 'none', transition: 'all 0.2s', resize: 'none'
                 }}
+                onFocus={(e) => e.target.style.borderColor = 'var(--primary-500)'}
+                onBlur={(e) => e.target.style.borderColor = 'var(--glass-border)'}
               />
             </div>
 
           </div>
 
+          {/* Modal Footer */}
           <div style={{
-            padding: 'var(--spacing-4) var(--spacing-6)',
+            padding: 'var(--spacing-6) var(--spacing-8)',
             borderTop: '1px solid var(--glass-border)',
-            background: 'var(--glass-card)',
+            background: 'rgba(255, 255, 255, 0.02)',
             display: 'flex', justifyContent: 'space-between', alignItems: 'center'
           }}>
             <div>
-              <span style={{ color: 'var(--text-secondary)', fontSize: 'var(--text-sm)', marginRight: 'var(--spacing-3)' }}>Grand Total</span>
-              <strong style={{ color: 'var(--primary-500)', fontSize: 'var(--text-2xl)' }}>
-                {formatCurrency(Number(formData.total_amount) || 0)}
+              <span style={{ color: 'var(--text-tertiary)', fontSize: 'var(--text-sm)', marginRight: 'var(--spacing-3)' }}>Amount Due</span>
+              <strong style={{ color: 'var(--primary-500)', fontSize: 'var(--text-2xl)', fontWeight: '800' }}>
+                {formatCurrency(Number(formData.amount) || 0)}
               </strong>
             </div>
             
             <div style={{ display: 'flex', gap: 'var(--spacing-3)' }}>
-              <Button variant="ghost" type="button" onClick={onClose}>Cancel</Button>
-              <Button variant="primary" type="submit" disabled={isSubmitting || Number(formData.total_amount) <= 0}>
-                {isSubmitting ? 'Saving...' : initialData ? 'Update Record' : 'Save Record'}
+              <Button 
+                variant="ghost" 
+                type="button" 
+                onClick={onClose}
+                style={{ padding: '12px 24px', borderRadius: 'var(--radius-xl)' }}
+              >
+                Cancel
+              </Button>
+              <Button 
+                variant="primary" 
+                type="submit" 
+                disabled={isSubmitting || !formData.title || Number(formData.amount) <= 0}
+                style={{ padding: '12px 32px', borderRadius: 'var(--radius-xl)', fontWeight: '700' }}
+              >
+                {isSubmitting ? 'Saving...' : initialData ? 'Update Expense' : 'Confirm Expense'}
               </Button>
             </div>
           </div>

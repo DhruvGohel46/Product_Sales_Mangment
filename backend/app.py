@@ -37,7 +37,6 @@ def create_app(config_name='default'):
     from routes.settings import settings_bp
     from routes.inventory import inventory_bp
     from routes.workers import workers_bp
-    from routes.reminders import reminders_bp
     from routes.expenses import expenses_bp
     
     # Load configuration
@@ -65,12 +64,8 @@ def create_app(config_name='default'):
     app.register_blueprint(settings_bp)
     app.register_blueprint(inventory_bp)
     app.register_blueprint(workers_bp)
-    app.register_blueprint(reminders_bp)
     app.register_blueprint(expenses_bp)
     
-    # Initialize reminder service
-    from services.reminder_service import reminder_service
-    reminder_service.init_app(app)
 
     # Serve product images
     @app.route('/api/images/<path:filename>')
@@ -78,7 +73,7 @@ def create_app(config_name='default'):
         from flask import send_from_directory
         # Use DATA_DIR from config, assuming images are in 'images' subdir
         images_dir = os.path.join(app.config['DATA_DIR'], 'images')
-        return send_from_directory(images_dir, filename)
+        return send_from_directory(images_dir, filename, max_age=2592000)
     
     # Root endpoint
     @app.route('/')

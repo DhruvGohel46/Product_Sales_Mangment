@@ -174,3 +174,25 @@ def get_product_sales():
             'success': False,
             'message': f'Internal server error: {str(e)}'
         }), 500
+
+
+@summary_bp.route('/range', methods=['GET'])
+def get_range_summary():
+    """Get aggregated summary for a date range"""
+    try:
+        from datetime import date
+        range_type = request.args.get('range', 'week') # week, month, year
+        date_param = request.args.get('date', date.today().strftime('%Y-%m-%d'))
+        
+        summary = summary_service.get_range_summary(range_type, date_param)
+        
+        return jsonify({
+            'success': True,
+            'summary': summary
+        }), 200
+        
+    except Exception as e:
+        return jsonify({
+            'success': False,
+            'message': str(e)
+        }), 500

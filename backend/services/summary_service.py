@@ -35,8 +35,8 @@ class SummaryService:
                     "date": date.today().strftime("%Y-%m-%d"),
                     "total_bills": 0,
                     "total_sales": 0.0,
-                    "total_expenses": sum(expense['total_amount'] for expense in self.db_service.get_todays_expenses()) if hasattr(self.db_service, 'get_todays_expenses') else 0.0,
-                    "net_profit": 0.0 - (sum(expense['total_amount'] for expense in self.db_service.get_todays_expenses()) if hasattr(self.db_service, 'get_todays_expenses') else 0.0),
+                    "total_expenses": sum(expense['amount'] for expense in self.db_service.get_todays_expenses()) if hasattr(self.db_service, 'get_todays_expenses') else 0.0,
+                    "net_profit": 0.0 - (sum(expense['amount'] for expense in self.db_service.get_todays_expenses()) if hasattr(self.db_service, 'get_todays_expenses') else 0.0),
                     "category_totals": {},
                     "first_bill_time": None,
                     "last_bill_time": None,
@@ -61,7 +61,7 @@ class SummaryService:
             
             # Get today's expenses
             expenses = self.db_service.get_todays_expenses()
-            total_expenses = sum(expense['total_amount'] for expense in expenses)
+            total_expenses = sum(expense['amount'] for expense in expenses)
             net_profit = total_sales - total_expenses
             
             return {
@@ -75,7 +75,8 @@ class SummaryService:
                 "last_bill_time": last_bill_time,
                 "average_bill_value": average_bill_value,
                 "hourly_sales": hourly_sales,
-                "peak_hour": self._get_peak_hour(hourly_sales)
+                "peak_hour": self._get_peak_hour(hourly_sales),
+                "expense_category_totals": self._calculate_expense_category_totals(expenses)
             }
             
         except Exception as e:
@@ -160,7 +161,7 @@ class SummaryService:
             
             if not bills:
                 expenses = self.db_service.get_expenses_by_date(target_date) if hasattr(self.db_service, 'get_expenses_by_date') else []
-                total_expenses = sum(expense['total_amount'] for expense in expenses)
+                total_expenses = sum(expense['amount'] for expense in expenses)
                 return {
                     "date": target_date,
                     "total_bills": 0,
@@ -185,7 +186,7 @@ class SummaryService:
             
             # Get expenses
             expenses = self.db_service.get_expenses_by_date(target_date) if hasattr(self.db_service, 'get_expenses_by_date') else []
-            total_expenses = sum(expense['total_amount'] for expense in expenses)
+            total_expenses = sum(expense['amount'] for expense in expenses)
             net_profit = total_sales - total_expenses
             
             return {
@@ -199,7 +200,8 @@ class SummaryService:
                 "first_bill_time": first_bill_time,
                 "last_bill_time": last_bill_time,
                 "average_bill_value": total_sales / len(bills) if bills else 0.0,
-                "peak_hour": self._get_peak_hour(hourly_sales)
+                "peak_hour": self._get_peak_hour(hourly_sales),
+                "expense_category_totals": self._calculate_expense_category_totals(expenses)
             }
                 
         except Exception as e:
@@ -407,3 +409,90 @@ class SummaryService:
             return {
                 "error": str(e)
             }
+
+    def _calculate_expense_category_totals(self, expenses: List[Dict]) -> Dict[str, float]:
+        """Calculate total expenses per category"""
+        totals = {}
+        for exp in expenses:
+            cat = exp.get('category', 'Other')
+            amount = exp.get('amount', 0.0)
+            totals[cat] = totals.get(cat, 0.0) + amount
+        return totals
+
+    def get_range_summary(self, range_type: str, reference_date: str) -> Dict:
+        """
+        Generate summary for a range: week, month, year
+        Aggregates sales and expenses
+        """
+        try:
+            from datetime import timedelta
+            import calendar
+            ref_date = datetime.strptime(reference_date, '%Y-%m-%d').date()
+            
+            start_date = ref_date
+            end_date = ref_date
+            
+            if range_type == 'week':
+                start_date = ref_date - timedelta(days=ref_date.weekday())
+                end_date = start_date + timedelta(days=6)
+            elif range_type == 'month':
+                start_date = ref_date.replace(day=1)
+                last_day = calendar.monthrange(ref_date.year, ref_date.month)[1]
+                end_date = ref_date.replace(day=last_day)
+            elif range_type == 'year':
+                start_date = ref_date.replace(month=1, day=1)
+                end_date = ref_date.replace(month=12, day=31)
+            
+            start_str = start_date.strftime('%Y-%m-%d')
+            end_str = end_date.strftime('%Y-%m-%d')
+            
+            # Fetch bills and expenses for range
+            bills = self.db_service.get_bills_by_date_range(start_str, end_str)
+            expenses = self.db_service.get_expenses_by_range(start_str, end_str) if hasattr(self.db_service, 'get_expenses_by_range') else []
+            
+            total_sales = sum(bill['total_amount'] for bill in bills)
+            total_expenses = sum(expense['amount'] for expense in expenses)
+            
+            # Category totals
+            category_totals = self._calculate_category_totals(bills)
+            expense_category_totals = self._calculate_expense_category_totals(expenses)
+            
+            # Product breakdown (reusing logic)
+            product_sales = {}
+            import json
+            all_products = self.db_service.get_all_products(include_inactive=True)
+            product_map = {p['product_id']: p for p in all_products}
+            
+            for bill in bills:
+                items = json.loads(bill['items']) if isinstance(bill['items'], str) else bill['items']
+                for item in items:
+                    pid = item['product_id']
+                    if pid not in product_sales:
+                        pinfo = product_map.get(pid)
+                        product_sales[pid] = {
+                            'name': item['name'],
+                            'category': pinfo['category'] if pinfo else 'unknown',
+                            'quantity': 0,
+                            'total_amount': 0.0
+                        }
+                    product_sales[pid]['quantity'] += item['quantity']
+                    product_sales[pid]['total_amount'] += (item['price'] * item['quantity'])
+            
+            sorted_products = sorted(product_sales.values(), key=lambda x: x['total_amount'], reverse=True)
+
+            return {
+                "range": range_type,
+                "start_date": start_str,
+                "end_date": end_str,
+                "total_sales": total_sales,
+                "total_expenses": total_expenses,
+                "net_profit": total_sales - total_expenses,
+                "total_bills": len(bills),
+                "category_totals": category_totals,
+                "expense_category_totals": expense_category_totals,
+                "average_bill_value": total_sales / len(bills) if bills else 0.0,
+                "products": sorted_products
+            }
+        except Exception as e:
+            print(f"Error in range summary: {e}")
+            return {"error": str(e)}

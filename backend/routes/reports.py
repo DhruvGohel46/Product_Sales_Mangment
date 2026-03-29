@@ -1,4 +1,5 @@
 from flask import Blueprint, request, jsonify, send_file
+from sqlalchemy import extract
 from services.db_service import DatabaseService
 from services.excel_service import ExcelService
 from services.excel_xlsx_service import ExcelXLSXService
@@ -347,3 +348,54 @@ def export_weekly_excel():
             'success': False,
             'message': f'Internal server error: {str(e)}'
         }), 500
+
+@reports_bp.route('/excel/expenses', methods=['GET'])
+def export_expenses():
+    """Export expenses for a simplified range"""
+    try:
+        from models import Expense
+        from sqlalchemy import func
+        from datetime import timedelta
+        
+        range_type = request.args.get('range', 'today') # today, week, month, year
+        today = date.today()
+        
+        query = Expense.query
+        if range_type == 'today':
+            query = query.filter(func.date(Expense.date) == today)
+            title = f"Daily Expenses - {today}"
+            filename = f"Expenses_{today}.xlsx"
+        elif range_type == 'week':
+            start_week = today - timedelta(days=today.weekday())
+            query = query.filter(Expense.date >= start_week)
+            title = f"Weekly Expenses - {start_week} to {today}"
+            filename = f"Expenses_Weekly_{today}.xlsx"
+        elif range_type == 'month':
+            query = query.filter(extract('month', Expense.date) == today.month, 
+                                 extract('year', Expense.date) == today.year)
+            title = f"Monthly Expenses - {today.strftime('%B %Y')}"
+            filename = f"Expenses_Monthly_{today.month}_{today.year}.xlsx"
+        elif range_type == 'year':
+            query = query.filter(extract('year', Expense.date) == today.year)
+            title = f"Yearly Expenses - {today.year}"
+            filename = f"Expenses_Yearly_{today.year}.xlsx"
+        
+        # Need extract import for month/year queries
+        from sqlalchemy import extract
+
+        expenses = query.order_by(Expense.date.desc()).all()
+        expense_list = [e.to_dict() for e in expenses]
+        
+        filepath = excel_xlsx_service.export_expenses_report(expense_list, title, filename)
+        
+        if not filepath:
+            return jsonify({'success': False, 'message': 'Failed to generate report'}), 500
+            
+        return send_file(
+            filepath,
+            as_attachment=True,
+            download_name=filename,
+            mimetype='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+        )
+    except Exception as e:
+        return jsonify({'success': False, 'message': str(e)}), 500

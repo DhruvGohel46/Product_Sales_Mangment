@@ -82,9 +82,10 @@ export const productsAPI = {
 
   deleteImage: (productId) => api.delete(`/api/products/${productId}/image`),
 
-  getImageUrl: (filename) => {
+  getImageUrl: (filename, updatedAt) => {
     if (!filename) return null;
-    return `${API_BASE_URL}/api/images/${filename}`;
+    const v = updatedAt ? `?v=${new Date(updatedAt).getTime()}` : '';
+    return `${API_BASE_URL}/api/images/${filename}${v}`;
   },
 
   // Toggle favorite status
@@ -154,6 +155,9 @@ export const summaryAPI = {
 
   // Get quick dashboard stats
   getQuickStats: () => api.get('/api/summary/quick-stats'),
+
+  // Get range-based summary (Week/Month/Year)
+  getRangeSummary: (range, date) => api.get('/api/summary/range', { params: { range, date } }),
 };
 
 // Reports APIs
@@ -174,6 +178,10 @@ export const reportsAPI = {
   // Export weekly sales as Excel (by reference date)
   exportWeeklyExcel: (date) =>
     api.get(`/api/reports/excel/weekly?date=${date}`, { responseType: 'blob' }),
+
+  // Export expenses as Excel
+  exportExpensesExcel: (range = 'today') =>
+    api.get(`/api/reports/excel/expenses?range=${range}`, { responseType: 'blob' }),
 
   // Export today's bills as XML
   exportTodayXML: () =>

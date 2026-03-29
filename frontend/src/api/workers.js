@@ -88,5 +88,10 @@ export const workerAPI = {
     checkMonthlySalaryStatus: async (month, year) => {
         const response = await api.get(`/api/workers/salary/status?month=${month}&year=${year}`);
         return response.data;
+    },
+
+    getWorkerExpenses: async (id) => {
+        const response = await api.get(`/api/workers/${id}/expenses`);
+        return response.data;
     }
 };

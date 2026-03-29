@@ -10,3 +10,7 @@ onnxruntime>=1.16.0
 psycopg2-binary==2.9.11
 Flask-SQLAlchemy==3.0.5
 APScheduler==3.10.4
+fastapi==0.103.1
+uvicorn==0.23.2
+python-socketio==5.9.0
+sqlalchemy>=2.0.0

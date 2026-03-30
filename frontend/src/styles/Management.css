@@ -5,12 +5,17 @@
   padding: calc(22px * var(--display-zoom));
   height: 100%;
   overflow-y: auto;
+  background:
+    radial-gradient(1100px 620px at 12% 0%, rgba(59, 130, 246, 0.06), transparent 50%),
+    radial-gradient(900px 520px at 90% 10%, rgba(249, 115, 22, 0.05), transparent 55%),
+    linear-gradient(180deg, #0c1118 0%, #0f141b 100%);
 }
 
 .pmPage {
   display: flex;
   flex-direction: column;
   gap: calc(18px * var(--display-zoom));
+  position: relative;
 }
 
 /* Header */
@@ -21,19 +26,33 @@
   justify-content: space-between;
   gap: calc(12px * var(--display-zoom));
   padding: calc(20px * var(--display-zoom));
-  border: 1px solid var(--glass-border);
+  border: 1px solid color-mix(in srgb, var(--glass-border) 75%, transparent);
   border-radius: calc(20px * var(--display-zoom));
-  background: transparent;
+  background:
+    linear-gradient(135deg, rgba(255, 255, 255, 0.06), rgba(255, 255, 255, 0.02)),
+    var(--glass-card);
   backdrop-filter: var(--glass-blur);
   -webkit-backdrop-filter: var(--glass-blur);
   margin: 0px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.12);
   transition: all 0.2s ease;
+  position: relative;
+  overflow: hidden;
 }
 
 .pmHeader:hover {
   border-color: var(--primary-300);
-  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 16px 36px rgba(0, 0, 0, 0.16);
+}
+
+.pmHeader::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(600px 220px at 0% 0%, rgba(255, 255, 255, 0.08), transparent 60%),
+    radial-gradient(600px 220px at 100% 0%, rgba(249, 115, 22, 0.08), transparent 60%);
+  pointer-events: none;
 }
 
 /* ... existing styles ... */
@@ -56,6 +75,7 @@
   font-weight: var(--weight-bold);
   color: var(--text-primary);
   white-space: nowrap;
+  text-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
 }
 
 .pmHeaderActions {
@@ -72,12 +92,12 @@
   padding: calc(15px * var(--display-zoom));
   min-height: calc(38px * var(--display-zoom));
   border-radius: calc(10px * var(--display-zoom));
-  border: 1px solid color-mix(in srgb, var(--accent) 55%, var(--border-subtle));
-  background: var(--accent);
+  border: 1px solid color-mix(in srgb, var(--accent) 45%, var(--border-subtle));
+  background: linear-gradient(135deg, color-mix(in srgb, var(--accent) 85%, #ffffff 10%), var(--accent));
   color: white;
   font-weight: var(--weight-semibold);
   font-size: var(--font-md);
-  box-shadow: 0 8px 18px rgba(0, 0, 0, 0.10);
+  box-shadow: 0 10px 22px rgba(0, 0, 0, 0.16);
 }
 
 .pmPrimaryCta:hover {
@@ -97,20 +117,32 @@
 
 /* Section panels (unique POS layout treatment) */
 .pmPanel {
-  border: 1px solid var(--glass-border);
+  border: 1px solid color-mix(in srgb, var(--glass-border) 75%, transparent);
   border-radius: calc(16px * var(--display-zoom));
-  background: var(--glass-card);
+  background:
+    linear-gradient(135deg, rgba(255, 255, 255, 0.05), rgba(255, 255, 255, 0.02)),
+    var(--glass-card);
   backdrop-filter: var(--glass-blur);
   -webkit-backdrop-filter: var(--glass-blur);
-  box-shadow: var(--shadow-card);
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.12);
   padding: calc(20px * var(--display-zoom));
   transition: all 0.2s ease;
   margin: calc(10px * var(--display-zoom)) 0px;
+  position: relative;
+  overflow: hidden;
 }
 
 .pmPanel:hover {
   border-color: var(--primary-300);
-  box-shadow: var(--shadow-card-hover);
+  box-shadow: 0 16px 36px rgba(0, 0, 0, 0.16);
+}
+
+.pmPanel::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(500px 180px at 0% 0%, rgba(255, 255, 255, 0.07), transparent 60%);
+  pointer-events: none;
 }
 
 .pmPanelTight {
@@ -215,7 +247,8 @@
   font-weight: var(--weight-bold);
   color: var(--text-primary);
   letter-spacing: var(--tracking-tight);
-  margin: calc(10px * var(--display-zoom));
+  margin: calc(6px * var(--display-zoom)) calc(10px * var(--display-zoom));
+  text-shadow: 0 8px 20px rgba(0, 0, 0, 0.18);
 }
 
 .pmGridHint {
@@ -235,21 +268,37 @@
 .pmCard {
   position: relative;
   border-radius: calc(16px * var(--display-zoom));
-  border: 1px solid var(--border-primary);
-  background: var(--surface);
+  border: 1px solid color-mix(in srgb, var(--border-primary) 80%, transparent);
+  background:
+    linear-gradient(145deg, rgba(255, 255, 255, 0.06), rgba(255, 255, 255, 0.02)),
+    var(--surface);
   display: flex;
   flex-direction: column;
   overflow: hidden;
   padding: calc(20px * var(--display-zoom));
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  box-shadow: 0 12px 26px rgba(0, 0, 0, 0.12);
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   min-height: calc(180px * var(--display-zoom));
 }
 
 .pmCard:hover {
   transform: translateY(-4px);
-  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.12);
+  box-shadow: 0 16px 34px rgba(0, 0, 0, 0.18);
   border-color: var(--primary-300);
+}
+
+.pmCard::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(420px 160px at 0% 0%, rgba(255, 255, 255, 0.08), transparent 60%);
+  pointer-events: none;
+  z-index: 0;
+}
+
+.pmCard > * {
+  position: relative;
+  z-index: 1;
 }
 
 .pmCardInactive {
@@ -283,7 +332,7 @@
   justify-content: space-between;
   margin-bottom: calc(12px * var(--display-zoom));
   padding-bottom: calc(12px * var(--display-zoom));
-  border-bottom: 1px solid var(--border-primary);
+  border-bottom: 1px solid color-mix(in srgb, var(--border-primary) 80%, transparent);
 }
 
 .pmCardTop .pmName {
@@ -309,11 +358,11 @@
 .pmCardImageContainer {
   width: 100%;
   height: calc(160px * var(--display-zoom));
-  background: var(--bg-secondary);
+  background: color-mix(in srgb, var(--bg-secondary) 85%, #0f1724);
   display: flex;
   align-items: center;
   justify-content: center;
-  border-bottom: 1px solid var(--border-primary);
+  border-bottom: 1px solid color-mix(in srgb, var(--border-primary) 80%, transparent);
   overflow: hidden;
 }
 
@@ -384,6 +433,7 @@
   font-weight: var(--weight-extrabold);
   color: var(--primary);
   letter-spacing: var(--tracking-tight);
+  text-shadow: 0 6px 14px rgba(0, 0, 0, 0.18);
 }
 
 .pmMetaRow {
@@ -408,11 +458,12 @@
   gap: calc(6px * var(--display-zoom));
   padding: calc(6px * var(--display-zoom)) calc(10px * var(--display-zoom));
   border-radius: 999px;
-  font-size: var(--font-md);
+  font-size: var(--font-sm);
   font-weight: var(--weight-semibold);
+  letter-spacing: 0.02em;
   line-height: 1;
   border: 1px solid var(--border-primary);
-  background: color-mix(in srgb, var(--surface) 86%, var(--bg-secondary));
+  background: color-mix(in srgb, var(--surface) 88%, var(--bg-secondary));
   color: var(--text-secondary);
   white-space: nowrap;
   transition: all 0.2s ease;
@@ -456,6 +507,7 @@
   border-radius: 999px;
   flex: 0 0 auto;
   transition: background-color 220ms ease, box-shadow 220ms ease, transform 220ms ease;
+  box-shadow: 0 0 0 6px color-mix(in srgb, rgba(255,255,255,0.04) 50%, transparent);
 }
 
 .pmStatusActive .pmStatusDot {
@@ -824,10 +876,10 @@
   align-items: center;
   gap: calc(6px * var(--display-zoom));
   padding: calc(8px * var(--display-zoom)) calc(12px * var(--display-zoom));
-  border: 1px solid var(--border-subtle);
+  border: 1px solid color-mix(in srgb, var(--border-subtle) 80%, transparent);
   border-radius: calc(8px * var(--display-zoom));
-  background: var(--surface);
-  color: var(--text-secondary);
+  background: color-mix(in srgb, var(--surface) 92%, var(--bg-secondary));
+  color: var(--text-primary);
   font-size: var(--font-md);
   font-weight: 500;
   cursor: pointer;
@@ -837,7 +889,8 @@
 
 .pmActionBtn:hover {
   transform: translateY(-1px);
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 6px 14px rgba(0, 0, 0, 0.12);
+  border-color: var(--primary-300);
 }
 
 /* Edit Button - Neutral/Primary */

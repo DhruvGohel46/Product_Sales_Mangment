@@ -9,6 +9,7 @@ import Button from '../ui/Button';
 import ExpenseFormModal from '../expenses/ExpenseFormModal';
 import ExpenseDetailsModal from '../expenses/ExpenseDetailsModal';
 import { FiPlus, FiShoppingBag, FiTruck, FiTool, FiZap, FiMoreHorizontal, FiEdit2, FiTrash2, FiSearch, FiFilter, FiUser, FiHome, FiCreditCard, FiDollarSign } from 'react-icons/fi';
+import '../../styles/Expenses.css';
 
 export default function Expenses() {
   const { currentTheme } = useTheme();
@@ -118,7 +119,7 @@ export default function Expenses() {
     <motion.div
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
-      className="glass-panel"
+      className="glass-panel expenses-panel"
       style={{
         display: 'flex',
         flexDirection: 'column',
@@ -132,23 +133,24 @@ export default function Expenses() {
       }}
     >
       {/* Header */}
-      <div style={{
+      <div className="expenses-header" style={{
         padding: 'var(--spacing-8) var(--spacing-8) var(--spacing-6) var(--spacing-8)',
         display: 'flex',
         justifyContent: 'space-between',
         alignItems: 'flex-start',
       }}>
         <div>
-          <h2 style={{ fontSize: 'var(--text-3xl)', fontWeight: '700', margin: 0, color: 'var(--text-primary)', letterSpacing: '-0.02em' }}>
+          <h2 className="expenses-title" style={{ fontSize: 'var(--text-3xl)', fontWeight: '700', margin: 0, color: 'var(--text-primary)', letterSpacing: '-0.02em' }}>
             Expenses
           </h2>
-          <p style={{ margin: 'var(--spacing-1) 0 0 0', color: 'var(--text-secondary)', fontSize: 'var(--text-lg)' }}>
+          <p className="expenses-subtitle" style={{ margin: 'var(--spacing-1) 0 0 0', color: 'var(--text-secondary)', fontSize: 'var(--text-lg)' }}>
             Track business spending and operational costs
           </p>
         </div>
         <Button
           variant="primary"
           onClick={() => setIsFormOpen(true)}
+          className="expenses-add-btn"
           style={{ 
             display: 'flex', 
             alignItems: 'center', 
@@ -164,52 +166,29 @@ export default function Expenses() {
       </div>
 
       {/* Controls: Search & Filter */}
-      <div style={{
+      <div className="expenses-controls" style={{
         padding: '0 var(--spacing-8) var(--spacing-6) var(--spacing-8)',
         display: 'flex',
         gap: 'var(--spacing-4)',
         alignItems: 'center',
       }}>
-        <div style={{ position: 'relative', flex: 1 }}>
-          <FiSearch style={{ position: 'absolute', left: '16px', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-tertiary)' }} />
-          <input 
+        <div className="expenses-search">
+          <FiSearch className="expenses-search-icon" />
+          <input
+            className="expenses-search-input"
             type="text" 
             placeholder="Search expenses or workers..." 
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            style={{
-              width: '100%',
-              padding: '12px 12px 12px 48px',
-              borderRadius: 'var(--radius-xl)',
-              background: 'var(--glass-card)',
-              border: '1px solid var(--glass-border)',
-              color: 'var(--text-primary)',
-              fontSize: 'var(--text-sm)',
-              outline: 'none',
-              transition: 'border-color 0.2s',
-            }}
-            onFocus={(e) => e.target.style.borderColor = 'var(--primary-500)'}
-            onBlur={(e) => e.target.style.borderColor = 'var(--glass-border)'}
           />
         </div>
         
-        <div style={{ display: 'flex', gap: 'var(--spacing-2)', overflowX: 'auto', paddingBottom: '4px' }}>
+        <div className="expenses-filters">
           {categories.map(cat => (
             <button
               key={cat}
               onClick={() => setFilterCategory(cat)}
-              style={{
-                padding: '8px 16px',
-                borderRadius: 'var(--radius-full)',
-                background: filterCategory === cat ? 'var(--primary-500)' : 'var(--glass-card)',
-                color: filterCategory === cat ? 'white' : 'var(--text-secondary)',
-                border: '1px solid ' + (filterCategory === cat ? 'var(--primary-500)' : 'var(--glass-border)'),
-                fontSize: 'var(--text-xs)',
-                fontWeight: '600',
-                cursor: 'pointer',
-                transition: 'all 0.2s',
-                whiteSpace: 'nowrap'
-              }}
+              className={`expenses-filter-btn ${filterCategory === cat ? 'is-active' : ''}`}
             >
               {cat}
             </button>
@@ -236,101 +215,56 @@ export default function Expenses() {
             No expenses found matching your criteria.
           </div>
         ) : (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--spacing-3)' }}>
+          <div className="expenses-list">
             {/* Table Header */}
-            <div style={{
-              padding: 'var(--spacing-2) var(--spacing-6)',
-              display: 'flex',
-              alignItems: 'center',
-              gap: 'var(--spacing-4)',
-              color: 'var(--text-muted)',
-              fontSize: 'var(--text-xs)',
-              fontWeight: '700',
-              textTransform: 'uppercase',
-              letterSpacing: '0.1em'
-            }}>
-              <div style={{ width: '40px' }}></div>
-              <div style={{ width: '100px' }}>Date</div>
-              <div style={{ flex: 2 }}>Title</div>
-              <div style={{ flex: 1 }}>Category</div>
-              <div style={{ flex: 1 }}>Worker</div>
-              <div style={{ width: '120px' }}>Payment</div>
-              <div style={{ width: '120px', textAlign: 'right' }}>Amount</div>
-              <div style={{ width: '80px' }}></div>
+            <div className="expenses-table-head">
+              <div className="head-spacer"></div>
+              <div className="head-date">Date</div>
+              <div className="head-title">Title</div>
+              <div className="head-category">Category</div>
+              <div className="head-worker">Worker</div>
+              <div className="head-payment">Payment</div>
+              <div className="head-amount">Amount</div>
+              <div className="head-actions"></div>
             </div>
 
             {filteredExpenses.map((expense) => (
               <motion.div
                 key={expense.id}
                 layout
-                whileHover={{ y: -2, backgroundColor: 'rgba(255, 255, 255, 0.03)' }}
+                whileHover={{ y: -2 }}
                 onClick={() => setSelectedExpense(expense)}
-                style={{
-                  padding: 'var(--spacing-4) var(--spacing-6)',
-                  borderRadius: 'var(--radius-2xl)',
-                  background: 'var(--glass-card)',
-                  border: '1px solid var(--glass-border)',
-                  cursor: 'pointer',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: 'var(--spacing-4)',
-                  boxShadow: 'var(--shadow-sm)',
-                  transition: 'all 0.2s ease',
-                  position: 'relative'
-                }}
+                className="expense-row"
               >
-                {/* Visual Accent */}
-                <div style={{
-                  position: 'absolute',
-                  left: 0, top: '20%', bottom: '20%',
-                  width: '3px',
-                  borderRadius: '0 4px 4px 0',
-                  background: 'var(--primary-500)',
-                  opacity: 0.6
-                }}></div>
-
                 {/* Icon */}
-                <div style={{
-                  width: '40px', height: '40px',
-                  borderRadius: '12px',
-                  background: 'var(--glass-header)',
-                  display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  color: 'var(--primary-400)', fontSize: '1.2rem', flexShrink: 0
-                }}>
+                <div className="expense-icon">
                   {getCategoryIcon(expense.category)}
                 </div>
 
                 {/* Date */}
-                <div style={{ width: '100px', fontSize: 'var(--text-sm)', fontWeight: '600', color: 'var(--text-primary)' }}>
+                <div className="expense-date">
                   {formatDate(expense.date)}
                 </div>
 
                 {/* Title */}
-                <div style={{ flex: 2, minWidth: 0 }}>
-                  <h3 style={{ margin: 0, fontSize: 'var(--text-sm)', color: 'var(--text-primary)', fontWeight: '600', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                <div className="expense-title">
+                  <h3>
                     {expense.title}
                   </h3>
                 </div>
 
                 {/* Category */}
-                <div style={{ flex: 1 }}>
-                  <span style={{ 
-                    padding: '4px 10px',
-                    borderRadius: 'var(--radius-lg)',
-                    background: 'rgba(255, 255, 255, 0.05)',
-                    fontSize: 'var(--text-xs)',
-                    color: 'var(--text-secondary)',
-                    fontWeight: '500'
-                  }}>
+                <div className="expense-category">
+                  <span className="expense-category-pill">
                     {expense.category}
                   </span>
                 </div>
 
                 {/* Worker */}
-                <div style={{ flex: 1, color: 'var(--text-secondary)', fontSize: 'var(--text-sm)', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <div className="expense-worker">
                   {expense.worker_name ? (
                     <>
-                      <FiUser size={14} style={{ color: 'var(--primary-400)' }} />
+                      <FiUser size={14} className="expense-worker-icon" />
                       {expense.worker_name}
                     </>
                   ) : (
@@ -339,18 +273,18 @@ export default function Expenses() {
                 </div>
 
                 {/* Payment */}
-                <div style={{ width: '120px', display: 'flex', alignItems: 'center', gap: '8px', color: 'var(--text-secondary)', fontSize: 'var(--text-sm)' }}>
-                  <FiCreditCard size={14} />
+                <div className="expense-payment">
+                  <FiCreditCard size={14} className="expense-payment-icon" />
                   {expense.payment_method}
                 </div>
 
                 {/* Amount */}
-                <div style={{ width: '120px', textAlign: 'right', fontWeight: '700', color: 'var(--text-primary)', fontSize: 'var(--text-base)' }}>
+                <div className="expense-amount">
                   {formatCurrency(expense.amount)}
                 </div>
                 
                 {/* Actions */}
-                <div style={{ width: '80px', display: 'flex', gap: 'var(--spacing-1)', justifyContent: 'flex-end' }}>
+                <div className="expense-actions">
                   <button
                     onClick={(e) => {
                       e.stopPropagation();

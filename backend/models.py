@@ -193,6 +193,59 @@ class Attendance(db.Model):
     check_out = db.Column(db.Time, nullable=True)
     created_at = db.Column(db.DateTime, default=func.now())
 
+# ==========================================
+# REMINDER SYSTEM MODELS
+# ==========================================
+
+class Reminder(db.Model):
+    __tablename__ = 'reminders'
+
+    id = db.Column(db.String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
+    user_id = db.Column(db.String(50), nullable=False, default="admin")
+    title = db.Column(db.String(255), nullable=False)
+    description = db.Column(db.Text, nullable=True)
+    reminder_time = db.Column(db.DateTime, nullable=False)
+    status = db.Column(db.String(20), default='pending')  # 'pending', 'triggered', 'completed'
+    repeat_type = db.Column(db.String(20), default='once')  # 'once', 'daily', 'weekly', 'monthly'
+    is_active = db.Column(db.Boolean, default=True)
+    is_dismissed = db.Column(db.Boolean, default=False)
+    triggered_at = db.Column(db.DateTime, nullable=True)
+    last_triggered_at = db.Column(db.DateTime, nullable=True)
+    created_at = db.Column(db.DateTime, default=func.now())
+    updated_at = db.Column(db.DateTime, default=func.now(), onupdate=func.now())
+
+    __table_args__ = (
+        db.Index('idx_reminder_time', 'reminder_time'),
+        db.Index('idx_status', 'status'),
+        db.Index('idx_user_id', 'user_id'),
+    )
+
+    def to_dict(self):
+        return {
+            "id": self.id,
+            "user_id": self.user_id,
+            "title": self.title,
+            "description": self.description,
+            "reminder_time": self.reminder_time.isoformat() if self.reminder_time else None,
+            "status": self.status,
+            "repeat_type": self.repeat_type,
+            "is_active": self.is_active,
+            "is_dismissed": self.is_dismissed,
+            "triggered_at": self.triggered_at.isoformat() if self.triggered_at else None,
+            "last_triggered_at": self.last_triggered_at.isoformat() if self.last_triggered_at else None,
+            "created_at": self.created_at.isoformat() if self.created_at else None,
+            "updated_at": self.updated_at.isoformat() if self.updated_at else None,
+        }
+
+    @classmethod
+    def from_dict(cls, data):
+        """Create a Reminder instance from a dictionary"""
+        reminder = cls()
+        for key, value in data.items():
+            if hasattr(reminder, key):
+                setattr(reminder, key, value)
+        return reminder
+
 
 
 

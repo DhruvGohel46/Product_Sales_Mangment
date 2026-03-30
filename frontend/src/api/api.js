@@ -158,4 +158,33 @@ export const downloadFile = (blob, filename) => {
   window.URL.revokeObjectURL(url);
 };
 
+// Generic API request function
+export const apiRequest = async (method, url, data = null) => {
+  try {
+    const config = {
+      method,
+      url,
+    };
+    
+    if (data && (method === 'POST' || method === 'PUT' || method === 'PATCH')) {
+      config.data = data;
+    }
+    
+    const response = await api(config);
+    
+    return {
+      success: true,
+      data: response.data,
+    };
+  } catch (error) {
+    console.error(`API ${method} ${url} failed:`, error);
+    
+    return {
+      success: false,
+      error: error.response?.data?.message || error.message || 'Request failed',
+      status: error.response?.status || 0,
+    };
+  }
+};
+
 export default api;

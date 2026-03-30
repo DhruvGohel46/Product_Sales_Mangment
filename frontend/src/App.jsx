@@ -334,7 +334,7 @@ function AppContent() {
             alignItems: 'center',
             justifyContent: 'space-between',
             padding: '0 var(--spacing-6)',
-            zIndex: 40,
+            zIndex: 2000,
             flexShrink: 0,
             transition: 'filter var(--transition-normal) var(--ease-out)',
           }}
@@ -469,13 +469,13 @@ function AppContent() {
                   top: '120%',
                   right: '0',
                   width: '320px',
-                  background: 'var(--glass-card)',
+                  background: 'rgba(24, 28, 34, 0.92)',
                   border: '1px solid var(--glass-border)',
                   borderRadius: '16px',
-                  boxShadow: '0 20px 40px rgba(0,0,0,0.3)',
-                  backdropFilter: 'blur(16px)',
-                  WebkitBackdropFilter: 'blur(16px)',
-                  zIndex: 1000,
+                  boxShadow: '0 14px 28px rgba(0,0,0,0.28)',
+                  backdropFilter: 'blur(6px)',
+                  WebkitBackdropFilter: 'blur(6px)',
+                  zIndex: 3000,
                   overflow: 'hidden',
                   animation: 'slideDown 0.3s cubic-bezier(0, 0, 0.2, 1)'
                 }}>

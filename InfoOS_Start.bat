@@ -5,7 +5,7 @@ echo    POS System - Fast Food Shop
 echo ========================================
 echo.
 
-echo Starting Backend Server with Dashboard Auto-Refresh...
+echo Starting Backend Server (including Reminders)...
 cd backend
 start "POS Backend" cmd /k "python app.py"
 

@@ -119,7 +119,7 @@ class ReminderService:
     def _calculate_next_trigger_time(self, reminder: Reminder) -> Optional[datetime]:
         """Calculate the next trigger time for a reminder"""
         try:
-            if reminder.repeat_type == 'once':
+            if reminder.repeat_type == 'none':
                 # For one-time reminders, check if it was already triggered
                 if reminder.last_triggered_at:
                     return None
@@ -142,6 +142,41 @@ class ReminderService:
                     today_trigger += timedelta(days=1)
                 
                 return today_trigger
+            
+            elif reminder.repeat_type == 'weekly':
+                # For weekly reminders, find the next occurrence on the same day of week
+                now = datetime.utcnow()
+                reminder_time = reminder.reminder_time
+                
+                # Calculate days until next occurrence of the same weekday
+                days_ahead = (reminder_time.weekday() - now.weekday()) % 7
+                if days_ahead == 0 and reminder_time.time() <= now.time():
+                    days_ahead = 7
+                
+                next_trigger = now.replace(hour=reminder_time.hour, minute=reminder_time.minute, second=reminder_time.second, microsecond=0) + timedelta(days=days_ahead)
+                return next_trigger
+            
+            elif reminder.repeat_type == 'monthly':
+                # For monthly reminders, find the next occurrence on the same day of month
+                now = datetime.utcnow()
+                reminder_time = reminder.reminder_time
+                
+                # Try current month
+                try:
+                    this_month = now.replace(day=reminder_time.day, hour=reminder_time.hour, minute=reminder_time.minute, second=reminder_time.second, microsecond=0)
+                    if this_month > now:
+                        return this_month
+                except ValueError:
+                    pass  # Day doesn't exist in current month
+                
+                # Try next month
+                try:
+                    next_month = (now.replace(day=1) + timedelta(days=32)).replace(day=reminder_time.day, hour=reminder_time.hour, minute=reminder_time.minute, second=reminder_time.second, microsecond=0)
+                    return next_month
+                except ValueError:
+                    # If day doesn't exist, use last day of next month
+                    next_month = (now.replace(day=1) + timedelta(days=32)).replace(day=1) - timedelta(days=1)
+                    return next_month.replace(hour=reminder_time.hour, minute=reminder_time.minute, second=reminder_time.second, microsecond=0)
             
             return None
             

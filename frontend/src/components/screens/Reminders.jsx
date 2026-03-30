@@ -21,18 +21,11 @@ const Reminders = () => {
     const [description, setDescription] = useState('');
     const [date, setDate] = useState(new Date().toISOString().split('T')[0]);
     const [time, setTime] = useState('10:00');
-    const [repeat, setRepeat] = useState('none');
+    const [repeat, setRepeat] = useState('Once');
     const [filter, setFilter] = useState('all');
     const [isSubmitting, setIsSubmitting] = useState(false);
 
     // Stats Calculation
-    const stats = {
-        total: reminders.length,
-        active: reminders.filter(r => r.status === 'pending').length,
-        triggered: reminders.filter(r => r.status === 'triggered').length,
-        completed: reminders.filter(r => r.status === 'completed' || r.is_dismissed).length
-    };
-
     const handleSubmit = async (e) => {
         e.preventDefault();
         
@@ -53,7 +46,8 @@ const Reminders = () => {
             await createReminder({
                 title,
                 description,
-                reminder_time: selectedDateTime.toISOString(),
+                // Send a local-time string so backend stores it as intended, not shifted to UTC.
+                reminder_time: `${date}T${time}`,
                 repeat_type: repeat,
                 user_id: 'admin'
             });
@@ -80,8 +74,7 @@ const Reminders = () => {
         
         if (confirmed) {
             try {
-                // If context has delete method, use it
-                // await deleteReminder(id);
+                await deleteReminder(id);
                 fetchReminders();
                 showSuccess("Reminder removed.");
             } catch (err) {
@@ -122,26 +115,6 @@ const Reminders = () => {
                 >
                     <IoSyncOutline className={isSubmitting ? 'spinning' : ''} /> Refresh Sync
                 </Button>
-            </div>
-
-            {/* ─── ZONE 1: Total Stats Bar ───────────────────────────────── */}
-            <div className="statsBar">
-                <div className="statBarItem">
-                    <IoCalendarOutline size={20} className="blue" />
-                    <span>{stats.active} Active</span>
-                </div>
-                <div className="statBarItem">
-                    <IoAlarmOutline size={20} className="orange" />
-                    <span>{stats.triggered} Triggered</span>
-                </div>
-                <div className="statBarItem">
-                    <IoAddCircle size={20} className="green" />
-                    <span>{stats.completed} Completed</span>
-                </div>
-                <div className="statDivider" />
-                <div className="statBarItem total">
-                    <span>{stats.total} Total Tasks</span>
-                </div>
             </div>
 
             {/* ─── ZONE 2: Global Action Bar ────────────────────────────── */}
@@ -233,17 +206,22 @@ const Reminders = () => {
                                 <div className="barStatusIndicator" />
                                 <div className="barLabel">
                                     <h4>{rem.title}</h4>
-                                    <p>{rem.description || 'No description'}</p>
+                                    {rem.description ? <p>{rem.description}</p> : null}
                                 </div>
                                 <div className="barTime">
-                                    <IoCalendarOutline />
-                                    <span>{new Date(rem.reminder_time).toDateString()}</span>
-                                    <IoAlarmOutline />
-                                    <span>{new Date(rem.reminder_time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
+                                    <div className="barTimeRow">
+                                        <IoCalendarOutline />
+                                        <span>{new Date(rem.reminder_time).toDateString()}</span>
+                                    </div>
+                                    <span className="barTimeSep">•</span>
+                                    <div className="barTimeRow">
+                                        <IoAlarmOutline />
+                                        <span>{new Date(rem.reminder_time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
+                                    </div>
                                 </div>
                                 <div className="barType">
-                                    {rem.repeat_type !== 'none' ? <IoSyncOutline className="spinning" /> : <div style={{width: 14}} />}
-                                    <span>{rem.repeat_type}</span>
+                                    {rem.repeat_type !== 'none' ? <IoSyncOutline className="spinning" /> : null}
+                                    {rem.repeat_type !== 'none' ? <span>{rem.repeat_type}</span> : null}
                                 </div>
                                 <div className="barActions">
                                     {rem.status === 'pending' && (

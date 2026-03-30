@@ -74,12 +74,12 @@ const ReminderAlert = () => {
                             </div>
 
                             {/* Dismiss Button */}
-                            <motion.button
-                                whileHover={{ scale: 1.05, backgroundColor: '#ef4444' }}
-                                whileTap={{ scale: 0.95 }}
-                                onClick={() => dismissReminder(alert.id)}
-                                className="dismissBtn"
-                            >
+                        <motion.button
+                            whileHover={{ scale: 1.05, backgroundColor: 'rgba(255,255,255,0.16)' }}
+                            whileTap={{ scale: 0.95 }}
+                            onClick={() => dismissReminder(alert.id)}
+                            className="dismissBtn"
+                        >
                                 <IoCloseCircle size={18} /> DISMISS
                             </motion.button>
                         </div>

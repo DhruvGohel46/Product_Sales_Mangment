@@ -23,7 +23,7 @@ async def join(sid, data):
     if user_id not in connected_users:
         connected_users[user_id] = []
     connected_users[user_id].append(sid)
-    await sio.enter_room(sid, f"user_{user_id}")
+    sio.enter_room(sid, f"user_{user_id}")
     logger.info(f"User {user_id} joined room user_{user_id} via {sid}")
 
 @sio.event

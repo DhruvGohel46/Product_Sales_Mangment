@@ -13,14 +13,63 @@ load_dotenv()
 
 
 def start_dashboard_refresher():
-    """Start the dashboard refresher in a separate thread"""
+    """Start the dashboard refresher and reminder checker in a separate thread"""
     from dashboard_refresher import DashboardRefresher
+    from models import db, Reminder
+    import time
+    from datetime import datetime
+    
+    # Run dashboard refresher
     try:
         refresher = DashboardRefresher()
         print("Dashboard Refresher started - Daily refresh at 12:01 AM")
-        refresher.start_scheduler()
+        
+        # Start dash refresher thread
+        import threading
+        dash_thread = threading.Thread(target=refresher.start_scheduler, daemon=True)
+        dash_thread.start()
     except Exception as e:
         print(f"Failed to start dashboard refresher: {e}")
+
+    # Start reminder checker loop
+    # Re-using the same background logic structure for reminders
+    def check_reminders_loop():
+        # Access application instance through create_app inside thread
+        from app import create_app
+        import traceback
+        local_app = create_app('default') # Re-create or use existing? 
+        # Better: use current_app context or create a context once.
+        with local_app.app_context():
+            while True:
+                try:
+                    # Use local time since reminders are stored as local datetime strings.
+                    now = datetime.now()
+                    triggered_reminders = Reminder.query.filter(
+                        Reminder.status == 'pending',
+                        Reminder.reminder_time <= now
+                    ).all()
+                    
+                    for reminder in triggered_reminders:
+                        print(f"🔔 Reminder Triggered: {reminder.title}")
+                        reminder.status = 'triggered'
+                        reminder.triggered_at = now
+                        reminder.last_triggered_at = now
+                        db.session.commit()
+                        # Notification could be added here later if Sockets are needed
+                        
+                except Exception as e:
+                    print(f"Error in reminder checker: {e}")
+                    db.session.rollback()
+                    traceback.print_exc()
+                finally:
+                    # Reset the scoped session so one failed transaction does not
+                    # poison future reminder checks in this thread.
+                    db.session.remove()
+                time.sleep(10) # Check every 10 seconds
+
+    reminder_thread = threading.Thread(target=check_reminders_loop, daemon=True)
+    reminder_thread.start()
+    print("Reminder micro-checker started - Checking every 10s")
 
 
 def create_app(config_name='default'):
@@ -38,6 +87,7 @@ def create_app(config_name='default'):
     from routes.inventory import inventory_bp
     from routes.workers import workers_bp
     from routes.expenses import expenses_bp
+    from routes.reminders import reminders_bp
     
     # Load configuration
     app.config.from_object(config[config_name])
@@ -65,6 +115,7 @@ def create_app(config_name='default'):
     app.register_blueprint(inventory_bp)
     app.register_blueprint(workers_bp)
     app.register_blueprint(expenses_bp)
+    app.register_blueprint(reminders_bp)
     
 
     # Serve product images
@@ -136,7 +187,8 @@ def create_app(config_name='default'):
 if __name__ == '__main__':
     import argparse
     import sys
-    
+    from sqlalchemy import text
+
     # Parse command line arguments
     parser = argparse.ArgumentParser(description='POS Backend Server')
     parser.add_argument('--data-dir', help='Path to data directory')
@@ -159,13 +211,26 @@ if __name__ == '__main__':
         with app.app_context():
             # Ensure worker schema exists (PostgreSQL specific)
             try:
-                from sqlalchemy import text
                 db.session.execute(text("CREATE SCHEMA IF NOT EXISTS worker"))
                 db.session.commit()
             except Exception as e:
                 print(f"Schema creation warning (ignore if using SQLite): {e}")
 
             db.create_all()
+
+            # Ensure reminder table has columns added in newer model versions.
+            try:
+                db.session.execute(
+                    text("ALTER TABLE reminders ADD COLUMN IF NOT EXISTS is_active BOOLEAN DEFAULT TRUE")
+                )
+                db.session.execute(
+                    text("ALTER TABLE reminders ADD COLUMN IF NOT EXISTS last_triggered_at TIMESTAMP")
+                )
+                db.session.commit()
+            except Exception as e:
+                print(f"Reminder column patch warning: {e}")
+                db.session.rollback()
+
             print("Database tables created/verified")
     except Exception as e:
         print(f"Error creating database tables: {e}")

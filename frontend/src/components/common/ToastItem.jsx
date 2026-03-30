@@ -1,7 +1,7 @@
 /**
  * ToastItem — Premium toast notification with progress bar & hover-pause
  */
-import React, { useState, useEffect, useRef, useCallback } from 'react';
+import React, { useState, useEffect, useRef, useCallback, forwardRef } from 'react';
 import { motion } from 'framer-motion';
 
 // ─── SVG Icons ───
@@ -49,7 +49,7 @@ const ICONS = {
     info: InfoIcon,
 };
 
-const ToastItem = ({ toast, onClose }) => {
+const ToastItem = forwardRef(({ toast, onClose }, ref) => {
     const { type, title, description, duration, action, timestamp } = toast;
     const [progress, setProgress] = useState(100);
     const [isPaused, setIsPaused] = useState(false);
@@ -104,6 +104,7 @@ const ToastItem = ({ toast, onClose }) => {
 
     return (
         <motion.div
+            ref={ref}
             layout
             initial={{ opacity: 0, y: 20, scale: 0.95 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
@@ -141,8 +142,8 @@ const ToastItem = ({ toast, onClose }) => {
                 <CloseIcon />
             </button>
 
-                    </motion.div>
+        </motion.div>
     );
-};
+});
 
 export default ToastItem;

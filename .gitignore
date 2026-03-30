@@ -51,8 +51,7 @@ frontend/build/
 .env.test.local
 .env.production.local
 
-# Data exports (keep XML data, ignore exports)
-backend/data/
+
 # Logs
 *.log
 logs/
@@ -64,7 +63,6 @@ logs/
 backend/data/bills/
 backend/data/archive/
 backend/data/images/
-backend/requirements.txt
 backend/data/products.db
 
 data\products.db

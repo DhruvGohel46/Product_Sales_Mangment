@@ -19,7 +19,7 @@ class PrinterService:
             'printer_enabled': settings.get('printer_enabled', 'false') == 'true',
             'shop_address': settings.get('shop_address', ''),
             'shop_contact': settings.get('shop_contact', ''),
-            'is_80mm': settings.get('printer_width', '58mm') == '80mm'
+            'is_80mm': str(settings.get('printer_width', '58mm')).strip().lower() == '80mm'
         }
 
     def _find_champ_printer(self):
@@ -167,7 +167,7 @@ class PrinterService:
                     init_commands = b'\x1B@'
                     
                     # Character size
-                    char_size_cmd = b'\x2B!\x08' # Bold
+                    char_size_cmd = b'\x1B!\x08' # Bold
                     
                     text_bytes = text.encode('utf-8')
                     

@@ -57,6 +57,9 @@ class WorkerService:
     # ADVANCE MANAGEMENT
     @staticmethod
     def add_advance(worker_id, amount, reason):
+        worker = Worker.query.get(worker_id)
+        worker_name = worker.name if worker else "Unknown Worker"
+        
         advance = Advance(
             worker_id=worker_id,
             amount=amount,
@@ -67,7 +70,7 @@ class WorkerService:
         
         # ALSO RECORD AS EXPENSE
         expense = Expense(
-            title=f"Worker Advance: {advance.worker.name}",
+            title=f"Worker Advance: {worker_name}",
             amount=amount,
             category="Advance",
             date=date.today(),

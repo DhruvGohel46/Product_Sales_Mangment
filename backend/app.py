@@ -127,7 +127,20 @@ def create_app(config_name='default'):
         # Use DATA_DIR from config, assuming images are in 'images' subdir
         images_dir = os.path.join(app.config['DATA_DIR'], 'images')
         return send_from_directory(images_dir, filename, max_age=2592000)
-    
+        
+    # Serve sounds
+    @app.route('/api/sounds/<path:filename>')
+    def serve_sound(filename):
+        from flask import send_from_directory
+        # Sounds are stored in the 'Sound' subdirectory
+        sounds_dir = os.path.join(app.config['DATA_DIR'], 'Sound')
+        # Return the file without caching so changes are reflected immediately
+        response = send_from_directory(sounds_dir, filename)
+        response.headers['Cache-Control'] = 'no-cache, no-store, must-revalidate'
+        response.headers['Pragma'] = 'no-cache'
+        response.headers['Expires'] = '0'
+        return response
+
     # Root endpoint
     @app.route('/')
     def index():

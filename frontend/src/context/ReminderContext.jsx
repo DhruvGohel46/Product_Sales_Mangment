@@ -12,7 +12,8 @@ export const ReminderProvider = ({ children }) => {
 
     // Sound management
     useEffect(() => {
-        audioRef.current = new Audio("/sounds/reminder.mp3");
+        // use timestamp to prevent caching the audio file
+        audioRef.current = new Audio("/api/sounds/reminder.mp3?v=" + new Date().getTime());
         audioRef.current.loop = true;
         audioRef.current.playbackRate = 2.0;
     }, []);

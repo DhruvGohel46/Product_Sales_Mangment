@@ -29,23 +29,25 @@ class DashboardRefresher:
         self.app = create_app('default')
         
     def refresh_dashboard_data(self):
-        """Refresh dashboard by clearing old data and resetting counters"""
+        """Refresh dashboard by reconciling daily summaries"""
         with self.app.app_context():
             try:
                 logger.info("Refreshing dashboard data...")
                 
-                # In PostgreSQL migration, we are preserving history in the main table
-                # rather than archiving to separate files. 
-                # So we simply log the maintenance task.
+                # Reconcile yesterday's daily summary (safety net)
+                try:
+                    from services.aggregation_service import update_daily_summary
+                    yesterday = datetime.now() - timedelta(days=1)
+                    update_daily_summary(yesterday.date())
+                    logger.info(f"Reconciled daily summary for {yesterday.date()}")
+                    
+                    # Also reconcile today (in case of missed updates)
+                    update_daily_summary()
+                    logger.info(f"Reconciled daily summary for today")
+                except Exception as e:
+                    logger.error(f"Aggregation reconciliation error: {e}")
                 
-                # If there are specific counters to reset in Settings, do it here.
-                # Example:
-                # setting = Settings.query.get('daily_counter')
-                # if setting:
-                #     setting.value = '0'
-                #     db.session.commit()
-                
-                logger.info("Dashboard maintenance check completed (No action needed for PostgreSQL)")
+                logger.info("Dashboard maintenance completed")
                 return True
                 
             except Exception as e:

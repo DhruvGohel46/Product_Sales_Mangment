@@ -88,6 +88,7 @@ def create_app(config_name='default'):
     from routes.workers import workers_bp
     from routes.expenses import expenses_bp
     from routes.reminders import reminders_bp
+    from routes.pos import pos_bp
     
     # Load configuration
     app.config.from_object(config[config_name])
@@ -116,6 +117,7 @@ def create_app(config_name='default'):
     app.register_blueprint(workers_bp)
     app.register_blueprint(expenses_bp)
     app.register_blueprint(reminders_bp)
+    app.register_blueprint(pos_bp)
     
 
     # Serve product images

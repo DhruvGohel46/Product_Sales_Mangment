@@ -3,6 +3,7 @@ from models import db, Worker, Advance, SalaryPayment, Attendance
 from sqlalchemy import func, extract
 from services.worker_service import WorkerService
 from datetime import datetime, date
+import cache
 
 workers_bp = Blueprint('workers', __name__)
 
@@ -40,6 +41,7 @@ def create_worker():
     data = request.json
     try:
         worker = WorkerService.create_worker(data)
+        cache.invalidate('workers')
         return jsonify({'success': True, 'worker_id': worker.worker_id}), 201
     except Exception as e:
         return jsonify({'success': False, 'error': str(e)}), 400
@@ -82,6 +84,7 @@ def update_worker(worker_id):
     worker = WorkerService.update_worker(worker_id, data)
     if not worker:
         return jsonify({'success': False, 'message': 'Worker not found'}), 404
+    cache.invalidate('workers')
     return jsonify({'success': True})
 
 @workers_bp.route('/api/workers/<worker_id>', methods=['DELETE'])

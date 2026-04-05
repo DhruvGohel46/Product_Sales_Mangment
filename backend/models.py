@@ -35,6 +35,11 @@ class Product(db.Model):
     created_at = db.Column(db.DateTime, default=func.now())
     updated_at = db.Column(db.DateTime, default=func.now(), onupdate=func.now())
 
+    __table_args__ = (
+        db.Index('idx_products_category_id', 'category_id'),
+        db.Index('idx_products_active', 'active'),
+    )
+
     category_rel = db.relationship('Category', backref='products')
 
 class Inventory(db.Model):
@@ -67,7 +72,9 @@ class Bill(db.Model):
 
 
     __table_args__ = (
-        db.UniqueConstraint('bill_no', 'created_at', name='idx_daily_bill_unique'), 
+        db.UniqueConstraint('bill_no', 'created_at', name='idx_daily_bill_unique'),
+        db.Index('idx_bills_created_at', 'created_at'),
+        db.Index('idx_bills_status', 'status'),
     )
 
 # ==========================================
@@ -87,6 +94,10 @@ class Expense(db.Model):
     notes = db.Column(db.Text, nullable=True)
     created_at = db.Column(db.DateTime, default=func.now())
     updated_at = db.Column(db.DateTime, default=func.now(), onupdate=func.now())
+
+    __table_args__ = (
+        db.Index('idx_expenses_date', 'date'),
+    )
     
     # Relationship
     worker = db.relationship('Worker', backref=db.backref('expenses', lazy=True))
@@ -246,6 +257,41 @@ class Reminder(db.Model):
                 setattr(reminder, key, value)
         return reminder
 
+# ==========================================
+# PRE-AGGREGATED ANALYTICS
+# ==========================================
 
+class DailySalesSummary(db.Model):
+    """Pre-aggregated daily sales summary for fast analytics queries.
+    
+    Instead of scanning millions of bill rows, analytics reads from this
+    small summary table.  Updated in real-time after every bill/expense
+    and reconciled nightly by dashboard_refresher.
+    """
+    __tablename__ = 'daily_sales_summary'
 
+    date = db.Column(db.Date, primary_key=True)
+    total_sales = db.Column(db.Float, default=0.0)
+    total_orders = db.Column(db.Integer, default=0)
+    total_expenses = db.Column(db.Float, default=0.0)
+    net_profit = db.Column(db.Float, default=0.0)
+    average_bill_value = db.Column(db.Float, default=0.0)
+    top_products_json = db.Column(db.Text, default='[]')  # JSON of top 10 products
+    updated_at = db.Column(db.DateTime, default=func.now(), onupdate=func.now())
 
+    __table_args__ = (
+        db.Index('idx_daily_summary_date', 'date'),
+    )
+
+    def to_dict(self):
+        import json as _json
+        return {
+            'date': self.date.isoformat() if self.date else None,
+            'total_sales': self.total_sales,
+            'total_orders': self.total_orders,
+            'total_expenses': self.total_expenses,
+            'net_profit': self.net_profit,
+            'average_bill_value': self.average_bill_value,
+            'top_products': _json.loads(self.top_products_json) if self.top_products_json else [],
+            'updated_at': self.updated_at.isoformat() if self.updated_at else None,
+        }

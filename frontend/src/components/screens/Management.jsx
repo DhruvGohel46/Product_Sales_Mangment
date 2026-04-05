@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { useDebounce } from '../../hooks/useDebounce';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAnimation } from '../../hooks/useAnimation';
 import { productsAPI, categoriesAPI, handleAPIError, formatCurrency } from '../../utils/api';
@@ -74,6 +75,7 @@ const ProductManagement = () => {
   const [editingProduct, setEditingProduct] = useState(null);
   const [pendingDeactivate, setPendingDeactivate] = useState(null);
   const [query, setQuery] = useState('');
+  const debouncedQuery = useDebounce(query, 300);
   const [categoryFilter, setCategoryFilter] = useState('all');
   const [productViewTab, setProductViewTab] = useState('active'); // active | inactive
   const [imageUploading, setImageUploading] = useState(false);
@@ -353,9 +355,9 @@ const ProductManagement = () => {
       return !p.active;
     })
     .filter((p) => {
-      const searchMatch = !query ||
-        p.name.toLowerCase().includes(query.toLowerCase()) ||
-        p.product_id.toLowerCase().includes(query.toLowerCase());
+      const searchMatch = !debouncedQuery ||
+        p.name.toLowerCase().includes(debouncedQuery.toLowerCase()) ||
+        p.product_id.toLowerCase().includes(debouncedQuery.toLowerCase());
       return searchMatch;
     })
     .filter((p) => (categoryFilter === 'all' ? true : p.category_id === parseInt(categoryFilter)));

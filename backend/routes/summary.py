@@ -196,3 +196,64 @@ def get_range_summary():
             'success': False,
             'message': str(e)
         }), 500
+
+
+@summary_bp.route('/aggregated', methods=['GET'])
+def get_aggregated_summary():
+    """
+    Get pre-aggregated daily summaries for a date range.
+    
+    Uses the daily_sales_summary table for O(1) lookups
+    instead of scanning the entire bills table.
+    
+    Query params:
+      start: YYYY-MM-DD (required)
+      end:   YYYY-MM-DD (defaults to today)
+    """
+    try:
+        from datetime import date as dt_date
+        from models import DailySalesSummary
+        
+        start = request.args.get('start')
+        end = request.args.get('end', dt_date.today().strftime('%Y-%m-%d'))
+        
+        if not start:
+            return jsonify({
+                'success': False,
+                'message': 'start date parameter is required (YYYY-MM-DD)'
+            }), 400
+        
+        summaries = DailySalesSummary.query.filter(
+            DailySalesSummary.date >= start,
+            DailySalesSummary.date <= end
+        ).order_by(DailySalesSummary.date.asc()).all()
+        
+        # Aggregate totals across the range
+        total_sales = sum(s.total_sales for s in summaries)
+        total_orders = sum(s.total_orders for s in summaries)
+        total_expenses = sum(s.total_expenses for s in summaries)
+        net_profit = total_sales - total_expenses
+        
+        return jsonify({
+            'success': True,
+            'range': {
+                'start': start,
+                'end': end,
+                'days': len(summaries)
+            },
+            'totals': {
+                'total_sales': total_sales,
+                'total_orders': total_orders,
+                'total_expenses': total_expenses,
+                'net_profit': net_profit,
+                'average_daily_sales': total_sales / len(summaries) if summaries else 0,
+                'average_bill_value': total_sales / total_orders if total_orders > 0 else 0,
+            },
+            'daily': [s.to_dict() for s in summaries]
+        }), 200
+        
+    except Exception as e:
+        return jsonify({
+            'success': False,
+            'message': f'Aggregation query failed: {str(e)}'
+        }), 500

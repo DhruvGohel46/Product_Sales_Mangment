@@ -80,6 +80,9 @@ import ReminderAlert from './components/ui/ReminderAlert';
 import Reminders from './components/screens/Reminders';
 import { IoAlarmOutline, IoSyncOutline } from 'react-icons/io5';
 
+// POS Data Bootstrap (load-once pattern)
+import { POSDataProvider } from './context/POSDataContext';
+
 // Import UI components
 import Button from './components/ui/Button';
 import Card from './components/ui/Card';
@@ -840,11 +843,13 @@ export default function App() {
     <ThemeProvider>
       <AlertProvider>
         <SettingsProvider>
-          <ReminderProvider>
-            <HashRouter>
-              <AppContent />
-            </HashRouter>
-          </ReminderProvider>
+          <POSDataProvider>
+            <ReminderProvider>
+              <HashRouter>
+                <AppContent />
+              </HashRouter>
+            </ReminderProvider>
+          </POSDataProvider>
         </SettingsProvider>
       </AlertProvider>
     </ThemeProvider>

@@ -1,6 +1,7 @@
 from flask import Blueprint, request, jsonify
 from services.db_service import DatabaseService
 from config import config
+import cache
 import os
 import re
 from werkzeug.utils import secure_filename
@@ -59,6 +60,9 @@ def create_product():
         success = db.create_product(product_data)
         
         if success:
+            # Invalidate product caches
+            cache.invalidate('products')
+            cache.invalidate('products_with_stock')
             return jsonify({
                 'success': True,
                 'message': 'Product created successfully',
@@ -84,16 +88,23 @@ def create_product():
 
 @products_bp.route('', methods=['GET'])
 def get_all_products():
-    """Get all active products"""
+    """Get all active products (cached)"""
     try:
         include_inactive = request.args.get('include_inactive', 'false').lower() == 'true'
         include_deleted = request.args.get('include_deleted', 'false').lower() == 'true'
         include_stock = request.args.get('include_stock', 'false').lower() == 'true'
         
-        if include_stock:
-            products = db.get_all_products_with_stock(include_inactive=include_inactive)
-        else:
-            products = db.get_all_products(include_inactive=include_inactive)
+        # Use cache for common queries
+        cache_domain = 'products_with_stock' if include_stock else 'products'
+        cache_key = 'all' if include_inactive else 'active'
+        
+        products = cache.get(cache_domain, cache_key)
+        if products is None:
+            if include_stock:
+                products = db.get_all_products_with_stock(include_inactive=include_inactive)
+            else:
+                products = db.get_all_products(include_inactive=include_inactive)
+            cache.set(cache_domain, cache_key, products)
         
         return jsonify({
             'success': True,
@@ -184,6 +195,9 @@ def update_product(product_id):
         success = db.update_product(product_id, update_data)
         
         if success:
+            # Invalidate product caches
+            cache.invalidate('products')
+            cache.invalidate('products_with_stock')
             return jsonify({
                 'success': True,
                 'message': 'Product updated successfully',

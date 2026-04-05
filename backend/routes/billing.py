@@ -2,6 +2,7 @@ from flask import Blueprint, request, jsonify
 from services.db_service import DatabaseService
 from services.printer_service import PrinterService
 from config import config
+import cache
 
 
 billing_bp = Blueprint('billing', __name__, url_prefix='/api/bill')
@@ -106,6 +107,17 @@ def create_bill():
             except Exception as e:
                 print(f"Printer error (non-critical): {e}")
         
+        # Invalidate product caches (stock levels changed)
+        cache.invalidate('products')
+        cache.invalidate('products_with_stock')
+        
+        # Update pre-aggregated daily summary (async-safe, non-blocking)
+        try:
+            from services.aggregation_service import update_daily_summary
+            update_daily_summary()
+        except Exception as agg_err:
+            print(f"Aggregation update warning: {agg_err}")
+        
         return jsonify({
             'success': True,
             'message': 'Bill created successfully',
@@ -150,10 +162,31 @@ def get_bill(bill_no):
 
 @billing_bp.route('/today', methods=['GET'])
 def get_today_bills():
-    """Get all bills for today"""
+    """Get all bills for today (supports pagination)"""
     try:
-        # Use the DB service's specific method for today's bills (already handles local date)
+        page = request.args.get('page', type=int)
+        per_page = request.args.get('per_page', 20, type=int)
+        
         bills = db.get_todays_bills()
+        
+        # Apply pagination if requested
+        if page is not None:
+            total = len(bills)
+            start = (page - 1) * per_page
+            end = start + per_page
+            paginated_bills = bills[start:end]
+            
+            return jsonify({
+                'success': True,
+                'bills': paginated_bills,
+                'pagination': {
+                    'page': page,
+                    'per_page': per_page,
+                    'total': total,
+                    'total_pages': (total + per_page - 1) // per_page,
+                    'has_more': end < total
+                }
+            }), 200
         
         return jsonify({
             'success': True,
@@ -250,6 +283,12 @@ def cancel_bill(bill_no):
     try:
         success = db.cancel_bill(bill_no)
         if success:
+            # Re-aggregate after cancellation
+            try:
+                from services.aggregation_service import update_daily_summary
+                update_daily_summary()
+            except Exception:
+                pass
             return jsonify({
                 'success': True,
                 'message': f'Bill {bill_no} cancelled successfully'

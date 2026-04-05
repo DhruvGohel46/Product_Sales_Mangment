@@ -21,6 +21,8 @@ import {
 import { useTheme } from '../../context/ThemeContext';
 import api, { summaryAPI, reportsAPI, billingAPI, getLocalDateString } from '../../utils/api';
 import { formatCurrency, handleAPIError, downloadFile } from '../../utils/api';
+import { usePOSData } from '../../context/POSDataContext';
+import { useDebounce } from '../../hooks/useDebounce';
 import Button from '../ui/Button';
 import Card from '../ui/Card';
 import Skeleton from '../ui/Skeleton';
@@ -189,8 +191,13 @@ function getYearDates(referenceDate) {
 // MAIN COMPONENT
 // ═══════════════════════════════════════════════════════════════════════
 const Analytics = () => {
-    const { currentTheme, isDark } = useTheme();
     const navigate = useNavigate();
+    const { 
+        products: contextProducts, 
+        categories: contextCategories,
+        refreshAll: refreshPOSData,
+        cachedAnalytics 
+    } = usePOSData();
 
     // ─── Tabs ───
     const [activeTab, setActiveTab] = useState('sales_history');
@@ -213,6 +220,20 @@ const Analytics = () => {
     const [rangeProductSales, setRangeProductSales] = useState([]);
     const [rangeSummary, setRangeSummary] = useState(null);
     const [rangeLoading, setRangeLoading] = useState(false);
+
+    // ─── Debounced Date for Range Loading ───
+    const debouncedDate = useDebounce(selectedDate, 300);
+
+    // ─── Sync from Context on Mount / Refresh ───
+    useEffect(() => {
+        if (selectedDate === getLocalDateString() && cachedAnalytics?.data) {
+            setSummary(cachedAnalytics.data);
+            setLoading(false);
+        } else {
+            loadSummary(selectedDate);
+            loadProductSales(selectedDate);
+        }
+    }, [selectedDate, cachedAnalytics]);
 
     // ─── Reports / Download ───
     const [downloading, setDownloading] = useState({});
@@ -276,7 +297,7 @@ const Analytics = () => {
         } else {
             loadRangeData();
         }
-    }, [viewRange, selectedDate, productSales, summary]);
+    }, [viewRange, debouncedDate, productSales, summary]);
 
     async function loadSummary(date) {
         try {
@@ -312,11 +333,52 @@ const Analytics = () => {
     async function loadRangeData() {
         try {
             setRangeLoading(true);
-            const res = await summaryAPI.getRangeSummary(viewRange, selectedDate);
+            
+            // PRODUCTION PT: Use the pre-aggregated summary API for instant loads
+            // instead of calculating on-the-fly from millions of bill rows.
+            
+            let start, end;
+            const refDate = new Date(selectedDate);
+            
+            if (viewRange === 'week') {
+                const day = refDate.getDay() || 7;
+                const s = new Date(refDate);
+                s.setDate(refDate.getDate() - (day - 1));
+                const e = new Date(s);
+                e.setDate(s.getDate() + 6);
+                start = s.toISOString().split('T')[0];
+                end = e.toISOString().split('T')[0];
+            } else if (viewRange === 'month') {
+                start = `${refDate.getFullYear()}-${String(refDate.getMonth() + 1).padStart(2, '0')}-01`;
+                const lastDay = new Date(refDate.getFullYear(), refDate.getMonth() + 1, 0).getDate();
+                end = `${refDate.getFullYear()}-${String(refDate.getMonth() + 1).padStart(2, '0')}-${lastDay}`;
+            } else { // year
+                start = `${refDate.getFullYear()}-01-01`;
+                end = `${refDate.getFullYear()}-12-31`;
+            }
+
+            const res = await api.get('/api/summary/aggregated', {
+                params: { start, end }
+            });
+
             if (res.data.success) {
-                const s = res.data.summary;
-                setRangeProductSales(s.products || []);
-                setRangeSummary(s);
+                const totals = res.data.totals;
+                const daily = res.data.daily;
+                
+                // Map daily data to what charts expect
+                setRangeProductSales(daily.map(d => ({
+                    name: d.date.split('-').slice(1).join('/'), // MM/DD
+                    total_amount: d.total_sales,
+                    quantity: d.total_orders
+                })));
+                
+                setRangeSummary({
+                    total_sales: totals.total_sales,
+                    total_expenses: totals.total_expenses,
+                    net_profit: totals.net_profit,
+                    total_bills: totals.total_orders,
+                    category_totals: {} // We'd need to extend aggregated table to store category JSON if needed
+                });
             }
         } catch (err) {
             console.error('Error loading range data:', err);
@@ -664,7 +726,12 @@ const Analytics = () => {
                         </motion.div>
                         <motion.div whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }}>
                             <Button
-                                onClick={() => { loadSummary(selectedDate); loadProductSales(selectedDate); }}
+                                onClick={() => {
+                                    refreshPOSData(); // Context refresh (boostrap + cache invalidation)
+                                    loadSummary(selectedDate);
+                                    loadProductSales(selectedDate);
+                                    loadBills(selectedBillDate);
+                                }}
                                 variant="secondary"
                                 size="lg"
                                 style={{ 

@@ -138,6 +138,13 @@ def create_expense():
                     
         db.session.commit()
         
+        # Update pre-aggregated daily summary
+        try:
+            from services.aggregation_service import update_daily_summary
+            update_daily_summary()
+        except Exception as agg_err:
+            print(f"Aggregation update warning: {agg_err}")
+        
         return jsonify({
             'success': True,
             'message': 'Expense created successfully',
@@ -209,6 +216,13 @@ def delete_expense(expense_id):
             
         db.session.delete(expense)
         db.session.commit()
+        
+        # Update pre-aggregated daily summary
+        try:
+            from services.aggregation_service import update_daily_summary
+            update_daily_summary()
+        except Exception:
+            pass
         
         return jsonify({'success': True, 'message': 'Expense deleted successfully'}), 200
     except Exception as e:

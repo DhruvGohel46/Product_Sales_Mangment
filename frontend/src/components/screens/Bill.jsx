@@ -58,6 +58,8 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import { useTheme } from '../../context/ThemeContext';
 import { useSettings } from '../../context/SettingsContext';
 import { useAlert } from '../../context/AlertContext';
+import { usePOSData } from '../../context/POSDataContext';
+import { useDebounce } from '../../hooks/useDebounce';
 import { productsAPI, billingAPI, categoriesAPI } from '../../utils/api';
 import { handleAPIError, formatCurrency } from '../../utils/api';
 import { CATEGORY_COLORS } from '../../utils/constants';
@@ -83,10 +85,19 @@ const WorkingPOSInterface = ({ onBillCreated }) => {
   const showImages = settings?.show_product_images !== 'false';
   const { showSuccess } = useAlert();
 
+  // ── POS Data from global context (load-once pattern) ──
+  const {
+    products: bootstrapProducts,
+    categories: bootstrapCategories,
+    bootstrapLoading,
+    refreshProducts
+  } = usePOSData();
+
   const [products, setProducts] = useState([]);
   const [categories, setCategories] = useState([{ id: 'favorites', name: '★ Favorites' }]);
   const [selectedCategory, setSelectedCategory] = useState('favorites');
   const [searchTerm, setSearchTerm] = useState('');
+  const debouncedSearch = useDebounce(searchTerm, 300); // Debounced search
   const [orderItems, setOrderItems] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -102,10 +113,28 @@ const WorkingPOSInterface = ({ onBillCreated }) => {
   // Ref to prevent multiple rapid clicks
   const lastClickTime = useRef(0);
 
+  // ── Sync from bootstrap context ──
   useEffect(() => {
-    loadProducts();
-    loadCategories();
+    if (bootstrapProducts.length > 0) {
+      setProducts(bootstrapProducts);
+      setLoading(false);
+    }
+  }, [bootstrapProducts]);
 
+  useEffect(() => {
+    if (bootstrapCategories.length > 0) {
+      setCategories([
+        { id: 'favorites', name: '★ Favorites' },
+        ...bootstrapCategories.map(c => ({ id: c.id, name: c.name }))
+      ]);
+    }
+  }, [bootstrapCategories]);
+
+  useEffect(() => {
+    setLoading(bootstrapLoading);
+  }, [bootstrapLoading]);
+
+  useEffect(() => {
     // Check for edit mode
     if (location.state?.bill) {
       const bill = location.state.bill;
@@ -114,11 +143,11 @@ const WorkingPOSInterface = ({ onBillCreated }) => {
     }
   }, [location.state]);
 
+  // Fallback: direct API call if bootstrap doesn't have data
   const loadProducts = async () => {
     try {
       setLoading(true);
       setError('');
-      // Request stock data for alerts
       const response = await productsAPI.getAllProducts({ include_stock: true });
       setProducts(response.data.products || []);
     } catch (err) {
@@ -126,19 +155,6 @@ const WorkingPOSInterface = ({ onBillCreated }) => {
       setError(apiError.message);
     } finally {
       setLoading(false);
-    }
-  };
-
-  const loadCategories = async () => {
-    try {
-      const response = await categoriesAPI.getAllCategories();
-      const dynamicCategories = response.data.categories || [];
-      setCategories([
-        { id: 'favorites', name: '★ Favorites' },
-        ...dynamicCategories.map(c => ({ id: c.id, name: c.name }))
-      ]);
-    } catch (err) {
-      console.error('Failed to load categories', err);
     }
   };
 
@@ -150,7 +166,7 @@ const WorkingPOSInterface = ({ onBillCreated }) => {
       categoryMatch = product.category_id === selectedCategory ||
         product.category === selectedCategory;
     }
-    const searchMatch = product.name.toLowerCase().includes(searchTerm.toLowerCase());
+    const searchMatch = product.name.toLowerCase().includes(debouncedSearch.toLowerCase());
     return categoryMatch && searchMatch;
   });
 
@@ -234,8 +250,8 @@ const WorkingPOSInterface = ({ onBillCreated }) => {
             total: calculateTotal()
           });
         }
-        // Refresh stock levels
-        loadProducts();
+        // Refresh stock levels via global context (single targeted refresh)
+        refreshProducts();
       }
 
     } catch (err) {
@@ -282,8 +298,8 @@ const WorkingPOSInterface = ({ onBillCreated }) => {
             total: calculateTotal()
           });
         }
-        // Refresh stock levels
-        loadProducts();
+        // Refresh stock levels via global context
+        refreshProducts();
       }
 
     } catch (err) {

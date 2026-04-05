@@ -1,7 +1,9 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useTheme } from '../../context/ThemeContext';
 import { workerAPI } from '../../api/workers';
+import { usePOSData } from '../../context/POSDataContext';
+import { useDebounce } from '../../hooks/useDebounce';
 import Button from '../../components/ui/Button';
 import Card from '../../components/ui/Card';
 import Input from '../../components/ui/Input';
@@ -12,35 +14,23 @@ import AddWorkerModal from './AddWorkerModal';
 const WorkerList = () => {
     const { currentTheme, isDark } = useTheme();
     const navigate = useNavigate();
-    const [workers, setWorkers] = useState([]);
-    const [loading, setLoading] = useState(true);
+    const { workers: contextWorkers, refreshWorkers, loading: contextLoading } = usePOSData();
+    
     const [showModal, setShowModal] = useState(false);
     const [searchQuery, setSearchQuery] = useState('');
-
-    useEffect(() => {
-        loadWorkers();
-    }, []);
-
-    const loadWorkers = async () => {
-        try {
-            setLoading(true);
-            const data = await workerAPI.getWorkers();
-            setWorkers(data);
-        } catch (error) {
-            console.error("Failed to load workers", error);
-        } finally {            setLoading(false);
-        }
-    };
+    const debouncedSearch = useDebounce(searchQuery, 300);
 
     const handleWorkerSaved = () => {
-        loadWorkers();
+        refreshWorkers();
         setShowModal(false);
     };
 
-    const filteredWorkers = workers.filter(w =>
-        w.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        w.role.toLowerCase().includes(searchQuery.toLowerCase())
-    );
+    const filteredWorkers = useMemo(() => {
+        return contextWorkers.filter(w =>
+            w.name.toLowerCase().includes(debouncedSearch.toLowerCase()) ||
+            w.role.toLowerCase().includes(debouncedSearch.toLowerCase())
+        );
+    }, [contextWorkers, debouncedSearch]);
 
     return (
         <div style={{ padding: '24px', height: '100%', overflowY: 'auto' }}>

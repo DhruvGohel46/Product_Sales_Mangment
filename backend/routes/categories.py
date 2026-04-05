@@ -1,16 +1,23 @@
 from flask import Blueprint, request, jsonify
 from services.db_service import DatabaseService
 from config import config
+import cache
 
 categories_bp = Blueprint('categories', __name__, url_prefix='/api/categories')
 db = DatabaseService()
 
 @categories_bp.route('', methods=['GET'])
 def get_categories():
-    """Get all categories"""
+    """Get all categories (cached)"""
     try:
         include_inactive = request.args.get('include_inactive', 'false').lower() == 'true'
-        categories = db.get_all_categories(include_inactive=include_inactive)
+        cache_key = 'all' if include_inactive else 'active'
+        
+        categories = cache.get('categories', cache_key)
+        if categories is None:
+            categories = db.get_all_categories(include_inactive=include_inactive)
+            cache.set('categories', cache_key, categories)
+        
         return jsonify({
             'success': True,
             'categories': categories
@@ -50,6 +57,7 @@ def create_category():
         })
         
         if category_id:
+            cache.invalidate('categories')
             return jsonify({
                 'success': True,
                 'message': 'Category created successfully',
@@ -85,6 +93,7 @@ def update_category(category_id):
         success = db.update_category(category_id, data)
         
         if success:
+            cache.invalidate('categories')
             return jsonify({
                 'success': True,
                 'message': 'Category updated successfully'

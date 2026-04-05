@@ -1,15 +1,19 @@
 from flask import Blueprint, jsonify, request
 from flask import Blueprint, jsonify, request
 from services.db_service import DatabaseService
+import cache
 
 settings_bp = Blueprint('settings', __name__)
 db_service = DatabaseService()
 
 @settings_bp.route('/api/settings', methods=['GET'])
 def get_settings():
-    """Get all settings"""
+    """Get all settings (cached)"""
     try:
-        settings = db_service.get_all_settings()
+        settings = cache.get('settings', 'all')
+        if settings is None:
+            settings = db_service.get_all_settings()
+            cache.set('settings', 'all', settings)
         return jsonify(settings)
     except Exception as e:
         return jsonify({
@@ -47,6 +51,7 @@ def update_settings():
             }), 400
 
         if success:
+            cache.invalidate('settings')
             return jsonify({
                 'success': True,
                 'message': 'Settings updated successfully'

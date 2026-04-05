@@ -90,60 +90,72 @@ class PrinterService:
         if settings['shop_contact']:
             lines.append(self._center_text(f"Tel: {settings['shop_contact']}", max_chars))
             
-        lines.append(self._center_text("-" * max_chars, max_chars))
+        lines.append("-" * max_chars)
         
         # Bill info
-        date_str = f"Date: {bill_data.get('date', datetime.now().strftime('%d-%m-%Y'))}"
-        time_str = f"Time: {bill_data.get('time', datetime.now().strftime('%H:%M'))}"
+        date_str = str(bill_data.get('date', datetime.now().strftime('%d-%m-%Y')))
+        time_str = str(bill_data.get('time', datetime.now().strftime('%H:%M')))
+        bill_no = str(bill_data['bill_no'])
         
-        lines.append(f"Bill No: {bill_data['bill_no']}")
-        lines.append(date_str)
-        lines.append(time_str)
+        if not settings['is_80mm'] and len(date_str) == 10:
+             # Shorten DD-MM-YYYY to DD-MM-YY for 58mm width
+             parts = date_str.split('-')
+             if len(parts) == 3 and len(parts[2]) == 4:
+                 date_str = f"{parts[0]}-{parts[1]}-{parts[2][2:]}"
+        
+        # Combine bill info into a single line to save paper
+        if settings['is_80mm']:
+            dt_str = f"Date: {date_str} {time_str}"
+            bill_str = f"Bill No: {bill_no}"
+            padding = max_chars - len(bill_str) - len(dt_str)
+            if padding >= 0:
+                lines.append(f"{bill_str}{' ' * padding}{dt_str}")
+            else:
+                lines.append(f"{bill_str} {dt_str}")
+        else:
+            lines.append(f"BillNo:{bill_no:<5} Dt:{date_str} {time_str}")
+            
         lines.append("-" * max_chars)
         
         # Product headers
         if settings['is_80mm']:
-            # 48 chars: Item(20) Qty(4) Price(10) Total(12)
-            header = f"{'Item':<20} {'Qty':<4} {'Price':>10} {'Total':>12}"
+            # 48 chars: Item(22) Qty(4) Price(9) Total(10)
+            header = f"{'Item':<22} {'Qty':>4} {'Price':>9} {'Total':>10}"
         else:
-            # 32 chars: Item(14) Q(2) P(7) T(8) - tight fit
-            header = f"{'Item':<14} {'Q':<2} {'Price':>7} {'Total':>7}"
+            # 32 chars: Item(14) Qty(3) Price(6) Total(6)
+            header = f"{'Item':<14} {'Qty':>3} {'Price':>6} {'Total':>6}"
             
         lines.append(header)
         lines.append("-" * max_chars)
         
         # Products
         for product in bill_data['products']:
-            name = product['name']
+            name = str(product['name'])
             qty = str(product['quantity'])
-            price = f"{product['price']:.2f}"
-            total = f"{product['price'] * product['quantity']:.2f}"
+            price = f"{float(product['price']):.2f}"
+            total = f"{float(product['price']) * float(product['quantity']):.2f}"
             
             if settings['is_80mm']:
-                name = name[:20]
-                lines.append(f"{name:<20} {qty:<4} {price:>10} {total:>12}")
+                name = name[:22]
+                lines.append(f"{name:<22} {qty:>4} {price:>9} {total:>10}")
             else:
                 name = name[:14]
-                lines.append(f"{name:<14} {qty:<2} {price:>7} {total:>7}")
+                lines.append(f"{name:<14} {qty:>3} {price:>6} {total:>6}")
         
         # Footer
         lines.append("-" * max_chars)
         total_label = "TOTAL:"
-        total_val = f"{bill_data['total']:.2f}"
+        total_val = f"{float(bill_data['total']):.2f}"
         
         # Right align total
         gap = max_chars - len(total_label) - len(total_val)
         if gap < 1: gap = 1
         lines.append(f"{total_label}{' ' * gap}{total_val}")
         
-        lines.append("=" * max_chars)
-        lines.append(self._center_text("Thank You!", max_chars))
-        lines.append(self._center_text("Visit Again", max_chars))
+        lines.append("-" * max_chars)
+        lines.append(self._center_text("Thank You! Visit Again", max_chars))
         
-        # Add feed lines
-        lines.extend(["", "", ""])
-        
-        return "\n".join(lines)
+        return "\n".join(lines) + "\n"
     
     def _center_text(self, text: str, width: int) -> str:
         """Center text within width"""

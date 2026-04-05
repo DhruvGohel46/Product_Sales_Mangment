@@ -1,13 +1,14 @@
 from datetime import datetime
 from typing import Dict, List
 import win32print
-from .sqlite_db_service import SQLiteDatabaseService
+from .db_service import DatabaseService
 
 class PrinterService:
     """Thermal printer service for bill printing"""
     
     def __init__(self):
-        self.db_service = SQLiteDatabaseService()
+        # Must match Settings API (PostgreSQL / SQLAlchemy), not legacy SQLite products.db
+        self.db_service = DatabaseService()
         self.printer_name = self._find_champ_printer()
     
     def _get_settings(self):
